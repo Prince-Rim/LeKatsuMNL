@@ -1,0 +1,89 @@
+
+C:\Users\azuce\OneDrive
+\Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\Services\L
+stmForecastingService.c
+s(8,25): error CS0234: 
+The type or namespace 
+name 'KerasApi' does 
+not exist in the 
+namespace 'Tensorflow' 
+(are you missing an 
+assembly reference?) [C
+:\Users\azuce\OneDrive\
+Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\LeKatsuMNL
+.csproj]
+C:\Users\azuce\OneDrive
+\Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\Services\L
+stmForecastingService.c
+s(85,17): error 
+CS0246: The type or 
+namespace name 
+'Sequential' could not 
+be found (are you 
+missing a using 
+directive or an 
+assembly reference?) [C
+:\Users\azuce\OneDrive\
+Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\LeKatsuMNL
+.csproj]
+C:\Users\azuce\OneDrive
+\Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\Services\L
+stmForecastingService.c
+s(8,25): error CS0234: 
+The type or namespace 
+name 'KerasApi' does 
+not exist in the 
+namespace 'Tensorflow' 
+(are you missing an 
+assembly reference?) [C
+:\Users\azuce\OneDrive\
+Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\LeKatsuMNL
+.csproj]
+C:\Users\azuce\OneDrive
+\Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\Services\L
+stmForecastingService.c
+s(85,17): error 
+CS0246: The type or 
+namespace name 
+'Sequential' could not 
+be found (are you 
+missing a using 
+directive or an 
+assembly reference?) [C
+:\Users\azuce\OneDrive\
+Documents\Visual 
+Studio 2022\Code 
+Snippets\Visual C#\My 
+Code Snippets\LeKatsuMN
+L\LeKatsuMNL\LeKatsuMNL
+.csproj]
+
+
