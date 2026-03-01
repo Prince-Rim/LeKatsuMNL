@@ -39,7 +39,7 @@ namespace LeKatsuMNL.Services
             var predictions = new List<double>();
             
             // Start with the last known sequence from our historical data
-            var currentSequence = scaledData.Skip(scaledData.Count - lookbackWindow).Take(lookbackWindow).ToList();
+            var currentSequence = scaledData.Skip(scaledData.Count - lookbackWindow).Take(lookbackWindow).Select(x => (float)x).ToList();
 
             for (int i = 0; i < stepsToPredict; i++)
             {
@@ -76,7 +76,16 @@ namespace LeKatsuMNL.Services
             }
 
             // TensorFlow expects 3D shape for RNNs: [samples, time steps, features]
-            var xNd = np.array(xList.ToArray()).reshape(new Shape(xList.Count, lookback, 1));
+            var xFlat = new float[xList.Count * lookback];
+            for (int i = 0; i < xList.Count; i++)
+            {
+                for (int j = 0; j < lookback; j++)
+                {
+                    xFlat[i * lookback + j] = xList[i][j];
+                }
+            }
+
+            var xNd = np.array(xFlat).reshape(new Shape(xList.Count, lookback, 1));
             var yNd = np.array(yList.ToArray());
 
             return (xNd, yNd);
