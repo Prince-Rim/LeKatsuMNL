@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace LeKatsuMNL.Models
+{
+    public class Category
+    {
+        [Key]
+        public int CategoryId { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string CategoryName { get; set; }
+
+        // Navigation property for One-to-Many
+        public ICollection<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
+        public ICollection<CommissaryInventory> CommissaryInventories { get; set; } = new List<CommissaryInventory>();
+        public ICollection<RestaurantInventory> RestaurantInventories { get; set; } = new List<RestaurantInventory>();
+    }
+}
