@@ -19,10 +19,10 @@ jobs:
         dotnet-version: 8.0.x
         
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore LeKatsuMNL/LeKatsuMNL.csproj
       
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build LeKatsuMNL/LeKatsuMNL.csproj --no-restore
       
     # If you add unit tests later, this step will automatically run them!
     # - name: Test
