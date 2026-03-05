@@ -37,5 +37,6 @@ namespace LeKatsuMNL.Models
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();
         public ICollection<OrderList> OrderLists { get; set; } = new List<OrderList>();
         public ICollection<SupplyList> SupplyLists { get; set; } = new List<SupplyList>();
+        public ICollection<SkuRecipe> SkuRecipes { get; set; } = new List<SkuRecipe>();
     }
 }
