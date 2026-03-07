@@ -23,6 +23,17 @@ namespace LeKatsuMNL.Models
         public string ContactNum { get; set; }
 
         [Required]
+        [MaxLength(255)]
+        public string Password { get; set; }
+
+        [MaxLength(255)]
+        public string Email { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Privileges { get; set; }
+
+        [Required]
         [MaxLength(20)]
         public string Status { get; set; }
 

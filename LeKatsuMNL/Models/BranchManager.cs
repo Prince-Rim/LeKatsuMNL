@@ -23,6 +23,9 @@ namespace LeKatsuMNL.Models
         [MaxLength(50)]
         public string MiddleName { get; set; }
 
+        [MaxLength(255)]
+        public string Email { get; set; }
+
         [Required]
         [MaxLength(50)]
         public string LastName { get; set; }

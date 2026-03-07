@@ -1,12 +1,31 @@
 using LeKatsuMNL.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
+// Load the .env file containing API Keys (like EmailJS)
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login/login";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    });
+
+// Add Session Services for OTP verification
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(10); // OTP expires in 10 minutes
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 // Register DbContext
 builder.Services.AddDbContext<LeKatsuMNL.Data.LeKatsuDb>(options =>
@@ -33,6 +52,8 @@ app.UseRewriter(new Microsoft.AspNetCore.Rewrite.RewriteOptions()
 
 app.UseRouting();
 
+app.UseSession();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
