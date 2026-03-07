@@ -32,7 +32,7 @@ namespace LeKatsuMNL.Pages.Login
         {
             if (User.Identity.IsAuthenticated)
             {
-                Response.Redirect("/");
+                Response.Redirect("/Index");
             }
         }
 
@@ -53,7 +53,7 @@ namespace LeKatsuMNL.Pages.Login
             var admin = await _context.AdminAccounts.FirstOrDefaultAsync(a => a.ManagerId == numericId);
             if (admin != null)
             {
-                if (admin.Password == Password)
+                if (BCrypt.Net.BCrypt.Verify(Password, admin.Password))
                 {
                     await SignInUserAsync(admin.ManagerId.ToString(), "Admin", admin.FirstName + " " + admin.LastName);
                     return RedirectToPage("/Index");
@@ -65,7 +65,7 @@ namespace LeKatsuMNL.Pages.Login
                 var manager = await _context.BranchManagers.FirstOrDefaultAsync(m => m.BManagerId == numericId);
                 if (manager != null)
                 {
-                    if (manager.Password == Password)
+                    if (BCrypt.Net.BCrypt.Verify(Password, manager.Password))
                     {
                         await SignInUserAsync(manager.BManagerId.ToString(), "BranchManager", manager.FirstName + " " + manager.LastName);
                         return RedirectToPage("/Index");
@@ -77,7 +77,7 @@ namespace LeKatsuMNL.Pages.Login
                     var staff = await _context.StaffInformations.FirstOrDefaultAsync(s => s.StaffId == numericId);
                     if (staff != null)
                     {
-                        if (staff.Password == Password)
+                        if (BCrypt.Net.BCrypt.Verify(Password, staff.Password))
                         {
                             await SignInUserAsync(staff.StaffId.ToString(), "Staff", staff.FirstName + " " + staff.LastName);
                             return RedirectToPage("/Index");

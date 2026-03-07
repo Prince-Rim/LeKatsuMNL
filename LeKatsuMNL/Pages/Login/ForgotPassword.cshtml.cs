@@ -135,21 +135,21 @@ namespace LeKatsuMNL.Pages.Login
             var admin = await _context.AdminAccounts.FirstOrDefaultAsync(a => a.Email == RecoveryEmail);
             if (admin != null)
             {
-                admin.Password = NewPassword;
+                admin.Password = BCrypt.Net.BCrypt.HashPassword(NewPassword);
             }
             else
             {
                 var manager = await _context.BranchManagers.FirstOrDefaultAsync(m => m.Email == RecoveryEmail);
                 if (manager != null)
                 {
-                    manager.Password = NewPassword;
+                    manager.Password = BCrypt.Net.BCrypt.HashPassword(NewPassword);
                 }
                 else
                 {
                     var staff = await _context.StaffInformations.FirstOrDefaultAsync(s => s.Email == RecoveryEmail);
                     if (staff != null)
                     {
-                        staff.Password = NewPassword;
+                        staff.Password = BCrypt.Net.BCrypt.HashPassword(NewPassword);
                     }
                     else
                     {
