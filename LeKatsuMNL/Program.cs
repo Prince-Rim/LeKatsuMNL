@@ -1,5 +1,6 @@
 using LeKatsuMNL.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Rewrite;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +27,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseRewriter(new Microsoft.AspNetCore.Rewrite.RewriteOptions()
+    .AddRedirect("^$", "Login/login"));
 
 app.UseRouting();
 

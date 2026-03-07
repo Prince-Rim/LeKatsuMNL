@@ -1,4 +1,116 @@
 ﻿@page
 @model LeKatsuMNL.Pages.Login.loginModel
 @{
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - LeKatsuMNL</title>
+    <!-- Include Tailwind CSS via Play CDN per implementation plan -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Add specific fonts or utility overrides here if needed */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #000;
+            background-image: url('/images/lekatsu_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Adjust placeholder color to match the mockup */
+        input::placeholder {
+            color: #9ca3af; /* tailwind text-gray-400 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative text-white antialiased">
+    <!-- Red top border -->
+    <div class="h-2 w-full bg-[#cb2d2f] absolute top-0 left-0"></div>
+
+    <!-- Dark Overlay to match contrast in mockup -->
+    <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+    <div class="relative z-10 flex-grow flex items-center justify-center pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8 flex flex-col items-center">
+            
+            <!-- Logo and Text -->
+            <div class="text-center w-full flex flex-col items-center">
+                <div class="h-24 w-24 rounded-full border-2 border-white overflow-hidden shadow-lg p-1 bg-white mb-6">
+                    <img class="h-full w-full object-contain rounded-full bg-white" src="/images/lekatsu_icon.jpg" alt="LeKatsu MNL Logo">
+                </div>
+                
+                <!-- Updated tracking to add some letter spacing -->
+                <h2 class="mt-2 text-2xl font-bold tracking-widest text-white uppercase drop-shadow-md pb-2">
+                    家 カツ LE KATSU MNL
+                </h2>
+                
+                <p class="mt-2 text-sm text-gray-200 drop-shadow-md">
+                    Use your organizational account to access ordering and inventory.
+                </p>
+                <div class="mt-6 w-12 h-0.5 bg-[#cb2d2f] mx-auto rounded"></div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="mt-10 w-full flex justify-center">
+                <form class="space-y-6 w-full max-w-[340px]" method="post">
+                    
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <label for="UserId" class="sr-only">User ID</label>
+                            <input id="UserId" name="UserId" type="text" autocomplete="username" required 
+                                class="appearance-none rounded-md relative block w-full px-4 py-3 border border-gray-400 border-opacity-40 bg-white bg-opacity-10 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#cb2d2f] focus:border-[#cb2d2f] focus:z-10 sm:text-sm shadow-sm transition-colors duration-200 backdrop-blur-sm" 
+                                placeholder="User ID">
+                        </div>
+                        <div class="relative">
+                            <label for="Password" class="sr-only">Password</label>
+                            <input id="Password" name="Password" type="password" autocomplete="current-password" required 
+                                class="appearance-none rounded-md relative block w-full px-4 py-3 border border-gray-400 border-opacity-40 bg-white bg-opacity-10 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#cb2d2f] focus:border-[#cb2d2f] focus:z-10 sm:text-sm shadow-sm transition-colors duration-200 backdrop-blur-sm" 
+                                placeholder="Password">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-gray-300 border-opacity-40 bg-white bg-opacity-10 text-[#cb2d2f] focus:ring-[#cb2d2f] appearance-none checked:bg-[#cb2d2f] checked:border-transparent transition-colors duration-200 relative
+                                after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[2px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45">
+                        <label for="remember-me" class="ml-2 block text-xs tracking-wider text-gray-200 cursor-pointer select-none">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-md text-white bg-[#cb2d2f] hover:bg-[#a52123] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#cb2d2f] focus:ring-offset-black transition-colors duration-200 shadow-lg tracking-wider">
+                            Sign In
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-center mt-6">
+                        <div class="text-sm">
+                            <a href="#" class="font-medium text-gray-300 hover:text-white transition-colors duration-200 text-xs tracking-widest">
+                                Forgot your password?
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer text -->
+            <div class="mt-8 flex flex-col items-center space-y-2 relative pt-6 w-full max-w-[400px]">
+                <!-- Faded divider line -->
+                <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-40 absolute top-0"></div>
+                
+                <span class="text-[10px] text-gray-400 tracking-widest uppercase relative bg-transparent px-2 -mt-[5px]" style="background: rgba(0,0,0,0); margin-top: -16px;">Authorized personnel only</span>
+                
+                <span class="text-[10px] text-gray-500 mt-2">
+                    Contact your administrator for access
+                </span>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>
