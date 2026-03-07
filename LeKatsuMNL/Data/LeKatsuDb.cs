@@ -107,11 +107,11 @@ namespace LeKatsuMNL.Data
                 .HasForeignKey(ol => ol.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // CommissaryInventory -> OrderList (1:M)
+            // SkuHeader -> OrderList (1:M)
             modelBuilder.Entity<OrderList>()
-                .HasOne(ol => ol.CommissaryInventory)
-                .WithMany(ci => ci.OrderLists)
-                .HasForeignKey(ol => ol.ComId)
+                .HasOne(ol => ol.SkuHeader)
+                .WithMany() // Assuming SkuHeader doesn't have an OrderLists collection navigation property
+                .HasForeignKey(ol => ol.SkuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // OrderInfo -> OrderComment (1:M)
