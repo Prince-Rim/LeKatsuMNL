@@ -32,7 +32,7 @@ namespace LeKatsuMNL.Pages.Login
         {
             if (User.Identity.IsAuthenticated)
             {
-                Response.Redirect("/Index");
+                Response.Redirect("/Dashboard");
             }
         }
 
@@ -56,7 +56,7 @@ namespace LeKatsuMNL.Pages.Login
                 if (BCrypt.Net.BCrypt.Verify(Password, admin.Password))
                 {
                     await SignInUserAsync(admin.ManagerId.ToString(), "Admin", admin.FirstName + " " + admin.LastName);
-                    return RedirectToPage("/Index");
+                    return RedirectToPage("/Dashboard/Index");
                 }
             }
             else
@@ -68,7 +68,7 @@ namespace LeKatsuMNL.Pages.Login
                     if (BCrypt.Net.BCrypt.Verify(Password, manager.Password))
                     {
                         await SignInUserAsync(manager.BManagerId.ToString(), "BranchManager", manager.FirstName + " " + manager.LastName);
-                        return RedirectToPage("/Index");
+                        return RedirectToPage("/Dashboard/Index");
                     }
                 }
                 else
@@ -80,7 +80,7 @@ namespace LeKatsuMNL.Pages.Login
                         if (BCrypt.Net.BCrypt.Verify(Password, staff.Password))
                         {
                             await SignInUserAsync(staff.StaffId.ToString(), "Staff", staff.FirstName + " " + staff.LastName);
-                            return RedirectToPage("/Index");
+                            return RedirectToPage("/Dashboard/Index");
                         }
                     }
                 }
