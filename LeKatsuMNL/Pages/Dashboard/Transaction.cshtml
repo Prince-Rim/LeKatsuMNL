@@ -1,0 +1,88 @@
+﻿@page
+@model LeKatsuMNL.Pages.Dashboard.TransactionModel
+@{
+    ViewData["Title"] = "Transaction";
+}
+
+<div class="bg-white rounded-t-xl border border-gray-200 p-4 flex items-center space-x-3">
+    <select class="border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-500 bg-white outline-none">
+        <option>Actions</option>
+    </select>
+
+    <div class="relative flex-1 max-w-md">
+        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 text-xs">🔍</span>
+        <input type="text" class="w-full border border-gray-300 rounded-md pl-9 pr-3 py-1.5 text-xs focus:ring-1 focus:ring-[#C41E24] outline-none" placeholder="Search item name...">
+    </div>
+
+    <button class="p-2 text-gray-400 hover:bg-gray-50 rounded">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+    </button>
+
+    <select class="border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-500 bg-gray-50 outline-none">
+        <option>All Types</option>
+    </select>
+    <select class="border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-500 bg-gray-50 outline-none">
+        <option>All Statuses</option>
+    </select>
+
+    <button class="flex items-center space-x-2 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
+        <span>🔄</span> <span>Refresh</span>
+    </button>
+</div>
+
+<div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden">
+    <table class="w-full text-left text-[11px] whitespace-nowrap">
+        <thead class="bg-gray-200 text-gray-500 uppercase tracking-wider font-bold">
+            <tr>
+                <th class="px-6 py-3 border-b"><input type="checkbox" class="rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></th>
+                <th class="px-4 py-3 border-b">Image</th>
+                <th class="px-4 py-3 border-b">Item Name</th>
+                <th class="px-4 py-3 border-b">Category</th>
+                <th class="px-4 py-3 border-b">Sub-Category</th>
+                <th class="px-4 py-3 border-b">Sub-class</th>
+                <th class="px-4 py-3 border-b">In Stock</th>
+                <th class="px-4 py-3 border-b text-right">Price</th>
+                <th class="px-4 py-3 border-b text-right">Yield</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            @for (int i = 0; i < 6; i++)
+            {
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4"><input type="checkbox" class="rounded border-gray-300"></td>
+                    <td class="px-4 py-4">
+                        <div class="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center text-gray-400">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 font-semibold text-gray-700">Beef Marinated</td>
+                    <td class="px-4 py-4 text-gray-500 font-medium">Raw Material</td>
+                    <td class="px-4 py-4 text-gray-500 font-medium">Wet Goods</td>
+                    <td class="px-4 py-4 text-gray-500 font-medium">Food</td>
+                    <td class="px-4 py-4">
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-md font-bold">500g</span>
+                    </td>
+                    <td class="px-4 py-4 font-bold text-right text-gray-800">₱ 0.00</td>
+                    <td class="px-4 py-4 font-bold text-right text-gray-400">₱ 0.00</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-4 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+    <div>Showing 1 - 5 of 10</div>
+    <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-2">
+            <span>Records per page</span>
+            <select class="border border-gray-300 rounded px-2 py-0.5 bg-white text-gray-600 outline-none">
+                <option>10</option>
+            </select>
+        </div>
+        <div class="flex items-center space-x-1">
+            <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&lt;</button>
+            <button class="px-3 py-1 bg-gray-600 text-white rounded shadow-md">1</button>
+            <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&gt;</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,229 @@
+﻿@page
+@model LeKatsuMNL.Pages.Dashboard.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@* Removed outer div wrappers to prevent double padding and alignment issues *@
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-[#C41E24] text-white p-6 rounded-2xl shadow-xl shadow-red-100 flex flex-col justify-between relative overflow-hidden">
+        <div>
+            <p class="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">Total Branch Sales</p>
+            <h3 class="text-3xl font-bold">₱341,560.00</h3>
+        </div>
+        <div class="absolute top-6 right-6 opacity-30 text-3xl"><i class="bi bi-briefcase-fill"></i></div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between relative">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">No. Low Stocks</p>
+        <h3 class="text-3xl font-bold text-[#C41E24]">31</h3>
+        <div class="flex items-center justify-between mt-4">
+            <p class="text-red-500 text-[10px] font-bold">↘ 3 Today</p>
+            <i class="bi bi-shop text-xl text-[#C41E24]"></i>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between relative">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Pending Orders</p>
+        <h3 class="text-3xl font-bold text-[#C41E24]">26</h3>
+        <div class="flex items-center justify-between mt-4">
+            <p class="text-red-500 text-[10px] font-bold">↗ 5 Today</p>
+            <i class="bi bi-cart3 text-xl text-[#C41E24]"></i>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between relative">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Open Discrepancies</p>
+        <h3 class="text-3xl font-bold text-[#C41E24]">10</h3>
+        <div class="flex items-center justify-between mt-4">
+            <p class="text-red-500 text-[10px] font-bold">↗ 3 Today</p>
+            <i class="bi bi-exclamation-triangle text-xl text-[#C41E24]"></i>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+            <h4 class="font-bold text-sm text-gray-800">Low Stock Alert</h4>
+            <span class="bg-[#C41E24] text-white text-[10px] px-2 py-0.5 rounded font-bold shadow-sm">31</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+                <thead class="text-gray-400 border-b border-gray-100">
+                    <tr>
+                        <th class="pb-3 font-semibold uppercase">Item</th>
+                        <th class="pb-3 font-semibold uppercase text-center">Quantity</th>
+                        <th class="pb-3 font-semibold uppercase text-center">Safe Stock</th>
+                        <th class="pb-3 font-semibold uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50 text-gray-700">
+                    <tr>
+                        <td class="py-4 font-medium">Chicken Katsu(500g)</td>
+                        <td class="py-4 font-bold text-red-500 text-center">68</td>
+                        <td class="py-4 text-center font-bold">100</td>
+                        <td class="py-4"><span class="bg-red-50 text-red-600 px-3 py-1 rounded-md font-bold text-[10px]">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 font-medium">Chicken Katsu(500g)</td>
+                        <td class="py-4 font-bold text-red-500 text-center">54</td>
+                        <td class="py-4 text-center font-bold">50</td>
+                        <td class="py-4"><span class="bg-orange-50 text-orange-600 px-3 py-1 rounded-md font-bold text-[10px]">Warning</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm text-xs">
+        <div class="flex justify-between items-center mb-6">
+            <h4 class="font-bold text-sm text-gray-800">Waste / Adjustments</h4>
+            <span class="bg-[#C41E24] text-white text-[10px] px-2 py-0.5 rounded font-bold shadow-sm">07</span>
+        </div>
+        <table class="w-full text-left">
+            <thead class="text-gray-400 border-b border-gray-100">
+                <tr>
+                    <th class="pb-3 font-semibold uppercase">Item</th>
+                    <th class="pb-3 font-semibold uppercase text-center">Qty</th>
+                    <th class="pb-3 font-semibold uppercase">Type</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 text-gray-700">
+                <tr>
+                    <td class="py-4 font-medium">Chicken Breast</td>
+                    <td class="py-4 font-bold text-center">4</td>
+                    <td class="py-4 text-gray-400 italic">Spoilage</td>
+                </tr>
+                <tr>
+                    <td class="py-4 font-medium">Oil</td>
+                    <td class="py-4 font-bold text-center">1</td>
+                    <td class="py-4 text-gray-400 italic">Waste</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+    <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+            <h4 class="font-bold text-sm text-gray-800">AI Demand Forecast</h4>
+            <select class="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-[10px] outline-none font-bold text-gray-600">
+                <option>Chicken Katsu</option>
+            </select>
+        </div>
+        <div class="h-48 relative">
+            <canvas id="forecastChart"></canvas>
+        </div>
+        <div class="mt-6 bg-[#C41E24] p-4 rounded-xl flex items-center shadow-lg shadow-red-100 border border-[#a51a1f]">
+            <div class="bg-white/20 p-2 rounded-lg mr-4"><i class="bi bi-lightbulb-fill text-lg"></i></div>
+            <p class="text-white text-[11px] font-medium leading-relaxed">
+                <span class="font-bold uppercase tracking-widest mr-1">Smart Alert:</span> Order 90kg of chicken breast today to meet the projected weekend demand.
+            </p>
+        </div>
+    </div>
+
+    <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h4 class="font-bold text-sm mb-6 text-gray-800">Leading Branches</h4>
+        <div class="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
+            <p class="text-gray-300 text-[10px] italic text-center">Loading branch analytics...</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h4 class="font-bold text-sm mb-6 text-gray-800">Recent Orders</h4>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+                <thead class="text-gray-400 border-b border-gray-100">
+                    <tr>
+                        <th class="pb-3 font-semibold uppercase">Order ID</th>
+                        <th class="pb-3 font-semibold uppercase">Branch</th>
+                        <th class="pb-3 font-semibold uppercase">Amount</th>
+                        <th class="pb-3 font-semibold uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50 text-gray-700">
+                    <tr>
+                        <td class="py-4 font-medium">#LK-9021</td>
+                        <td class="py-4">Quezon City</td>
+                        <td class="py-4 font-bold">₱1,250.00</td>
+                        <td class="py-4"><span class="bg-green-50 text-green-600 px-2 py-1 rounded-md text-[10px] font-bold border border-green-100">Completed</span></td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 font-medium">#LK-9022</td>
+                        <td class="py-4">Makati Central</td>
+                        <td class="py-4 font-bold">₱850.00</td>
+                        <td class="py-4"><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-md text-[10px] font-bold border border-blue-100">In Progress</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h4 class="font-bold text-sm mb-6 text-gray-800">Recent Activity</h4>
+        <div class="space-y-6 text-gray-700">
+            <div class="flex items-start space-x-4">
+                <div class="mt-1 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
+                <div class="flex-1">
+                    <p class="text-[11px] font-medium">Stock update: Chicken Breast (QC Branch)</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">2 minutes ago</p>
+                </div>
+            </div>
+            <div class="flex items-start space-x-4">
+                <div class="mt-1 w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div>
+                <div class="flex-1">
+                    <p class="text-[11px] font-bold text-[#C41E24]">Critical Stock Alert: Oil (Makati Branch)</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">15 minutes ago</p>
+                </div>
+            </div>
+            <div class="flex items-start space-x-4">
+                <div class="mt-1 w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                <div class="flex-1">
+                    <p class="text-[11px] font-medium">New Branch Added: Manila Bay</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">1 hour ago</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            const redGrad = ctx.createLinearGradient(0, 0, 0, 200);
+            redGrad.addColorStop(0, 'rgba(196, 30, 36, 0.2)');
+            redGrad.addColorStop(1, 'rgba(196, 30, 36, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        data: [20, 45, 30, 60, 85, 40, 50],
+                        borderColor: '#C41E24',
+                        backgroundColor: redGrad,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                        y: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+}
