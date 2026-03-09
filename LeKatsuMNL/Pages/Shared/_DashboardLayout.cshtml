@@ -16,31 +16,30 @@
             font-family: 'Inter', sans-serif;
             background-color: #f9fafb;
         }
+
         .active-nav {
             background-color: #C41E24;
             color: white;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
+
         .sub-nav-active {
             color: #C41E24;
-            font-weight: 700;
+            font-weight: 700 !important;
             border-left: 3px solid #C41E24;
-            padding-left: 12px;
+            padding-left: 12px !important;
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="antialiased text-gray-800">
 
-    <!-- Full-Width Top Header Bar -->
     <header class="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-[60] flex items-center justify-between px-6">
-        <!-- Left: Logo + Brand -->
         <div class="flex items-center space-x-3">
             <img src="/images/lekatsu_icon.jpg" class="h-8 w-8 rounded-full border border-gray-100" alt="Logo">
             <span class="font-bold text-sm tracking-tight">Le Katsu MNL</span>
         </div>
 
-        <!-- Right: Restaurant, Bell, User Profile -->
         <div class="flex items-center space-x-6">
             <div class="flex items-center text-sm font-medium text-gray-600 cursor-pointer">
                 Restaurant <span class="ml-1 text-[#C41E24]">▶</span>
@@ -52,6 +51,7 @@
             <div class="flex items-center space-x-3 border-l pl-6 border-gray-200">
                 <div class="text-right">
                     <p class="text-sm font-bold leading-none">@User.Identity?.Name</p>
+                    @* FIXED TYPO BELOW: ClaimsTypes -> ClaimTypes *@
                     <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
                 </div>
                 <div class="w-10 h-10 bg-[#C41E24] rounded-full border border-gray-300 overflow-hidden flex items-center justify-center">
@@ -61,7 +61,6 @@
         </div>
     </header>
 
-    <!-- Sidebar (below header) -->
     <aside class="fixed top-16 left-0 bottom-0 w-48 bg-white border-r border-gray-200 z-50 flex flex-col">
         <nav class="px-3 py-4 space-y-1 flex-1">
             <a href="/Dashboard" class="@(currentPage.Contains("/Dashboard/Index") ? "active-nav" : "text-gray-500 hover:bg-gray-50") flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold transition-all">
@@ -69,15 +68,16 @@
             </a>
 
             <div class="space-y-1">
-                <a href="/Dashboard/Transaction" class="@(currentPage.Contains("/Dashboard/Transaction") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold transition-all">
+                <a href="/Dashboard/Transaction" class="@(currentPage.Contains("/Dashboard/Transaction") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Reports") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold transition-all">
                     <i class="bi bi-receipt mr-3 text-base"></i> Transaction
                 </a>
-                @if (currentPage.Contains("/Dashboard/Transaction"))
+
+                @if (currentPage.Contains("/Dashboard/Transaction") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Reports"))
                 {
                     <div class="ml-4 flex flex-col space-y-3 py-3 border-l border-gray-100">
-                        <a href="#" class="sub-nav-active text-xs">Items</a>
-                        <a href="#" class="text-xs text-gray-400 hover:text-gray-600 pl-[15px]">Categories</a>
-                        <a href="#" class="text-xs text-gray-400 hover:text-gray-600 pl-[15px]">Reports</a>
+                        <a href="/Dashboard/Transaction" class="@(currentPage.EndsWith("/Transaction") ? "sub-nav-active" : "text-xs text-gray-400 hover:text-gray-600 pl-[15px]") transition-all">Items</a>
+                        <a href="/Dashboard/Category" class="@(currentPage.Contains("/Category") ? "sub-nav-active" : "text-xs text-gray-400 hover:text-gray-600 pl-[15px]") transition-all">Categories</a>
+                        <a href="/Dashboard/Reports" class="@(currentPage.Contains("/Reports") ? "sub-nav-active" : "text-xs text-gray-400 hover:text-gray-600 pl-[15px]") transition-all">Reports</a>
                     </div>
                 }
             </div>
@@ -96,7 +96,6 @@
             </a>
         </nav>
 
-        <!-- Logout Button -->
         <div class="px-3 pb-4 border-t border-gray-100 pt-3">
             <form method="post" action="/Dashboard/Logout">
                 @Html.AntiForgeryToken()
@@ -107,9 +106,7 @@
         </div>
     </aside>
 
-    <!-- Main Content (offset by header height + sidebar width) -->
     <main class="ml-48 mt-16 px-6 pt-4 pb-8 bg-gray-100 flex-grow min-h-screen">
-
         <div class="bg-white border border-gray-200 rounded-xl py-3 px-5 mb-6 flex items-center shadow-sm">
             <button onclick="history.back()" class="bg-[#C41E24] text-white rounded-full p-2 mr-4 hover:bg-[#a51a1f] transition-colors shadow-md flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +117,6 @@
         </div>
 
         @RenderBody()
-
     </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
