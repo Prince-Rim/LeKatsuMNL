@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
-    public class TransactionModel : PageModel
+    public class RejectsModel : PageModel
     {
         public void OnGet()
         {
