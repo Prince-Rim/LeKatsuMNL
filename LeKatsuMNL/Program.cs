@@ -4,7 +4,17 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 // Load the .env file containing API Keys (like EmailJS)
-DotNetEnv.Env.Load();
+// Use the project directory explicitly so it works regardless of the working directory
+var envPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env");
+if (File.Exists(envPath))
+{
+    DotNetEnv.Env.Load(envPath);
+}
+else
+{
+    // Fallback: try the current working directory (default behavior)
+    DotNetEnv.Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
