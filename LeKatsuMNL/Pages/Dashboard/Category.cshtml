@@ -4,110 +4,107 @@
     ViewData["Title"] = "Inventory Categories";
 }
 
-<div class="p-6 bg-gray-50 min-h-screen">
-
-    <div class="bg-white rounded-t-xl border border-gray-200 p-4 flex items-center justify-between">
-
-        <div class="relative flex-1 max-w-md">
-            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                <i class="bi bi-search text-xs"></i>
-            </span>
-            <input type="text" class="w-full border border-gray-300 rounded-md pl-9 pr-3 py-1.5 text-xs focus:ring-1 focus:ring-[#C41E24] outline-none" placeholder="Search category name...">
+    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-4 flex-1 max-w-2xl">
+            <div class="relative w-80">
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400" placeholder="Search category name...">
+            </div>
         </div>
 
-        <div class="flex items-center space-x-3">
-            <button class="flex items-center space-x-2 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
-                <i class="bi bi-arrow-clockwise text-sm"></i> <span>Refresh</span>
+        <div class="flex items-center space-x-4">
+            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh</span>
             </button>
-
-            <button onclick="openModal('createCategoryModal')" class="bg-[#C41E24] text-white px-4 py-1.5 rounded-md text-xs font-bold hover:bg-red-700 transition-colors shadow-sm">
+            <button onclick="openModal('createCategoryModal')" class="bg-[#C41E24] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
                 + New Category
             </button>
         </div>
     </div>
 
     <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden">
-        <table class="w-full text-left text-[11px] whitespace-nowrap">
-            <thead class="bg-gray-200 text-gray-500 uppercase tracking-wider font-bold">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-3 border-b">Category Name</th>
-                    <th class="px-6 py-3 border-b">Description</th>
-                    <th class="px-6 py-3 border-b">Created At</th>
-                    <th class="px-6 py-3 border-b text-center">Actions</th>
+                    <th class="px-8 py-4">Category Name</th>
+                    <th class="px-8 py-4">Description</th>
+                    <th class="px-8 py-4">Created At</th>
+                    <th class="px-8 py-4 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @* Sample data based on your screenshot *@
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-gray-700">Wet Goods</td>
-                    <td class="px-6 py-4 text-gray-400">-</td>
-                    <td class="px-6 py-4 text-gray-500">December 25, 2026</td>
-                    <td class="px-6 py-4 text-center space-x-2">
-                        <button class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 bg-gray-100 px-3 py-1 rounded transition-colors">Update</button>
-                        <button class="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-700 bg-red-50 px-3 py-1 rounded transition-colors">Delete</button>
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Wet Goods</td>
+                    <td class="px-8 py-5 text-gray-500">-</td>
+                    <td class="px-8 py-5 text-gray-500">December 25, 2026</td>
+                    <td class="px-8 py-5 text-center space-x-3">
+                        <button class="text-xs font-bold uppercase tracking-widest text-gray-600 hover:text-gray-900 bg-gray-100 px-4 py-1.5 rounded-lg transition-colors">Update</button>
+                        <button class="text-xs font-bold uppercase tracking-widest text-[#C41E24] hover:text-red-700 bg-red-50 px-4 py-1.5 rounded-lg transition-colors">Delete</button>
                     </td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-gray-700">Dry Goods</td>
-                    <td class="px-6 py-4 text-gray-400">-</td>
-                    <td class="px-6 py-4 text-gray-500">December 25, 2026</td>
-                    <td class="px-6 py-4 text-center space-x-2">
-                        <button class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-800 bg-gray-100 px-3 py-1 rounded transition-colors">Update</button>
-                        <button class="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-700 bg-red-50 px-3 py-1 rounded transition-colors">Delete</button>
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Dry Goods</td>
+                    <td class="px-8 py-5 text-gray-500">-</td>
+                    <td class="px-8 py-5 text-gray-500">December 25, 2026</td>
+                    <td class="px-8 py-5 text-center space-x-3">
+                        <button class="text-xs font-bold uppercase tracking-widest text-gray-600 hover:text-gray-900 bg-gray-100 px-4 py-1.5 rounded-lg transition-colors">Update</button>
+                        <button class="text-xs font-bold uppercase tracking-widest text-[#C41E24] hover:text-red-700 bg-red-50 px-4 py-1.5 rounded-lg transition-colors">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-4 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold border-t border-gray-100 uppercase tracking-widest">
         <div>Showing 1 - 2 of 10</div>
         <div class="flex items-center space-x-6">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
                 <span>Records per page</span>
-                <select class="border border-gray-300 rounded px-2 py-0.5 bg-white text-gray-600 outline-none">
-                    <option>10</option>
-                </select>
+                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center">
+                    <span>10</span>
+                </div>
             </div>
-            <div class="flex items-center space-x-1">
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&lt;</button>
-                <button class="px-3 py-1 bg-gray-600 text-white rounded shadow-md">1</button>
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&gt;</button>
+            <div class="flex items-center space-x-2">
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&lt;</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md">1</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&gt;</button>
             </div>
         </div>
     </div>
-</div>
 
 <div id="createCategoryModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-100 transform transition-all">
 
-        <div class="px-8 py-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-            <h3 class="text-xs font-extrabold text-gray-800 uppercase tracking-widest">Create Category</h3>
-            <button onclick="closeModal('createCategoryModal')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="bi bi-x-lg text-lg"></i>
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white">
+            <h3 class="text-base font-bold text-gray-900">Create Category</h3>
+            <button onclick="closeModal('createCategoryModal')" class="text-gray-500 hover:text-gray-700 transition-colors">
+                <i class="bi bi-x-lg text-xl"></i>
             </button>
         </div>
 
         <form method="post" class="p-8 space-y-5">
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Category name</label>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Category name</label>
                 <input type="text" name="CategoryName" placeholder="Category name"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
             </div>
 
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Description</label>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Description</label>
                 <textarea name="Description" rows="4" placeholder="Description"
-                          class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all resize-none"></textarea>
+                          class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all resize-none placeholder:text-gray-500 text-gray-800 shadow-sm font-medium"></textarea>
             </div>
 
-            <div class="flex justify-end space-x-3 pt-6">
+            <div class="flex justify-end space-x-4 pt-8">
                 <button type="button" onclick="closeModal('createCategoryModal')"
-                        class="px-6 py-2.5 rounded-xl text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:bg-gray-100 transition-all">
+                        class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">
                     Cancel
                 </button>
                 <button type="submit"
-                        class="px-10 py-2.5 bg-[#C41E24] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 hover:shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
+                        class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-700 shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
                     Submit
                 </button>
             </div>

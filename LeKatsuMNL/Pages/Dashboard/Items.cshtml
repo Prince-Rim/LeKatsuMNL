@@ -4,167 +4,237 @@
     ViewData["Title"] = "Inventory Items";
 }
 
-<div class="p-6 bg-gray-50 min-h-screen">
+@section TitleActions {
+    <button onclick="openNewItemModal()" class="bg-[#C41E24] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
+        + New Item
+    </button>
+}
 
-    <div class="bg-white rounded-t-xl border border-gray-200 p-4 flex items-center justify-between shadow-sm">
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200">
+        <button class="px-10 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">Recipe</button>
+        <a href="/Dashboard/SKU" class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all">SKU</a>
+    </div>
 
-        <div class="flex items-center space-x-3 flex-1 max-w-2xl">
-            <div class="relative inline-block text-left">
-                <button onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-md px-3 py-1.5 text-xs text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all">
-                    <span>Actions</span>
-                    <i class="bi bi-chevron-down text-[10px]"></i>
+    <!-- Toolbar -->
+    <div class="p-5 flex items-center space-x-4 bg-white border-b border-gray-100">
+        <div class="relative inline-block text-left">
+            <button onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white hover:bg-gray-50 outline-none transition-all">
+                <span>Actions</span>
+                <i class="bi bi-chevron-down text-xs"></i>
+            </button>
+            <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all">
+                <button onclick="handleArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors">
+                    Archive
                 </button>
-
-                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all">
-                    <button onclick="handleArchive()" class="w-full text-left px-4 py-2.5 text-[10px] font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors">
-                        Archive
-                    </button>
-                    <button onclick="openRejectModal()" class="w-full text-left px-4 py-2.5 text-[10px] font-bold text-gray-600 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
-                        Reject
-                    </button>
-                </div>
-            </div>
-
-            <div class="relative flex-1 max-w-md">
-                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                    <i class="bi bi-search text-xs"></i>
-                </span>
-                <input type="text" class="w-full border border-gray-300 rounded-md pl-9 pr-3 py-1.5 text-xs focus:ring-1 focus:ring-[#C41E24] outline-none" placeholder="Search item name...">
+                <button onclick="openRejectModal()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
+                    Reject
+                </button>
             </div>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+                <i class="bi bi-search text-sm"></i>
+            </span>
+            <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400" placeholder="Search...">
+        </div>
 
-            <button class="p-2 text-gray-400 hover:bg-gray-50 rounded transition-colors flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                </svg>
-            </button>
-
-            <select class="border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-500 bg-gray-50 outline-none cursor-pointer">
-                <option>All Types</option>
+        <div class="flex items-center space-x-3">
+            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer">
+                <option>Category</option>
             </select>
-
-            <select class="border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-500 bg-gray-50 outline-none cursor-pointer">
-                <option>All Statuses</option>
+            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer">
+                <option>Status</option>
             </select>
-
-            <button class="flex items-center space-x-2 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
-                <i class="bi bi-arrow-clockwise text-sm"></i> <span>Refresh</span>
-            </button>
-
-            <button onclick="openNewItemModal()" class="bg-[#C41E24] text-white px-4 py-1.5 rounded-md text-xs font-bold hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
-                + New Item
+            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                <i class="bi bi-arrow-clockwise text-base"></i>
+                <span>Refresh</span>
             </button>
         </div>
     </div>
 
-    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden">
-        <table class="w-full text-left text-[11px] whitespace-nowrap">
-            <thead class="bg-gray-200 text-gray-500 uppercase tracking-wider font-bold">
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-3 border-b"><input type="checkbox" class="rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></th>
-                    <th class="px-4 py-3 border-b">Image</th>
-                    <th class="px-4 py-3 border-b">Item Name</th>
-                    <th class="px-4 py-3 border-b">Category</th>
-                    <th class="px-4 py-3 border-b">Sub-Category</th>
-                    <th class="px-4 py-3 border-b">Sub-class</th>
-                    <th class="px-4 py-3 border-b">In Stock</th>
-                    <th class="px-4 py-3 border-b text-right">Price</th>
-                    <th class="px-4 py-3 border-b text-right">Yield</th>
+                    <th class="px-8 py-4 w-12"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></th>
+                    <th class="px-6 py-4">Image</th>
+                    <th class="px-6 py-4">Item Name</th>
+                    <th class="px-6 py-4">Category</th>
+                    <th class="px-6 py-4">Sub-Category</th>
+                    <th class="px-6 py-4">Sub-class</th>
+                    <th class="px-6 py-4">In Stock</th>
+                    <th class="px-6 py-4">Unit Price</th>
+                    <th class="px-6 py-4">Yield</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-gray-50">
                 @for (int i = 0; i < 6; i++)
                 {
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4"><input type="checkbox" class="rounded border-gray-300"></td>
-                        <td class="px-4 py-4">
-                            <div class="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center text-gray-400">
-                                <i class="bi bi-image text-xl"></i>
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300"></td>
+                        <td class="px-6 py-5">
+                            <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors">
+                                <i class="bi bi-image text-2xl"></i>
                             </div>
                         </td>
-                        <td class="px-4 py-4 font-semibold text-gray-700">Beef Marinated</td>
-                        <td class="px-4 py-4 text-gray-500 font-medium">Raw Material</td>
-                        <td class="px-4 py-4 text-gray-500 font-medium">Wet Goods</td>
-                        <td class="px-4 py-4 text-gray-500 font-medium">Food</td>
-                        <td class="px-4 py-4">
-                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-md font-bold">500g</span>
+                        <td class="px-6 py-5 font-bold text-gray-800 text-sm">Beef Marinated</td>
+                        <td class="px-6 py-5 text-gray-600">Raw Material</td>
+                        <td class="px-6 py-5 text-gray-600">Wet Goods</td>
+                        <td class="px-6 py-5 text-gray-600">Food</td>
+                        <td class="px-6 py-5">
+                            <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold border border-blue-100">500g</span>
                         </td>
-                        <td class="px-4 py-4 font-bold text-right text-gray-800">₱ 0.00</td>
-                        <td class="px-4 py-4 font-bold text-right text-gray-400">₱ 0.00</td>
+                        <td class="px-6 py-5 font-bold text-gray-900 text-sm">₱ 0.00</td>
+                        <td class="px-6 py-5 text-gray-600 font-semibold">Pack</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 
-    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-4 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+    <!-- Pagination -->
+    <div class="bg-white p-5 flex justify-between items-center text-xs text-gray-500 font-bold border-t border-gray-100 uppercase tracking-widest">
         <div>Showing 1 - 5 of 10</div>
         <div class="flex items-center space-x-6">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
                 <span>Records per page</span>
-                <select class="border border-gray-300 rounded px-2 py-0.5 bg-white text-gray-600 outline-none">
-                    <option>10</option>
-                </select>
+                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center">
+                    <span>10</span>
+                </div>
             </div>
-            <div class="flex items-center space-x-1">
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&lt;</button>
-                <button class="px-3 py-1 bg-gray-600 text-white rounded shadow-md">1</button>
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&gt;</button>
+            <div class="flex items-center space-x-2">
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&lt;</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md">1</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&gt;</button>
             </div>
         </div>
     </div>
 </div>
 
-<div id="newItemModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100">
-        <div class="px-8 py-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-            <h3 class="text-xs font-extrabold text-gray-800 uppercase tracking-widest">Create New Item</h3>
-            <button onclick="closeModal('newItemModal')" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="bi bi-x-lg text-lg"></i></button>
+<div id="newItemModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 font-sans">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100">
+        <div class="px-8 py-6 flex justify-between items-center border-b border-gray-50">
+            <h3 class="text-base font-bold text-gray-900">Create New Item</h3>
+            <button onclick="closeModal('newItemModal')" class="text-gray-500 hover:text-gray-700 transition-colors"><i class="bi bi-x-lg text-xl"></i></button>
         </div>
-        <form method="post" class="p-8 space-y-5">
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Item Name</label>
-                <input type="text" name="ItemName" placeholder="Enter item name..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+        <form method="post" class="px-8 pb-8 space-y-4">
+            <!-- Item Name -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Name</label>
+                <input type="text" name="ItemName" placeholder="Item name" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
             </div>
+
+            <!-- Category & Sub-Category -->
             <div class="grid grid-cols-2 gap-5">
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
-                    <input type="text" name="Category" placeholder="Category" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Category</label>
+                    <select name="Category" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <option value="" disabled selected hidden>Category</option>
+                        <option>Raw Material</option>
+                        <option>Packaging</option>
+                    </select>
                 </div>
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Sub-Category</label>
-                    <input type="text" name="SubCategory" placeholder="Sub-Category" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Sub-Category</label>
+                    <select name="SubCategory" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <option value="" disabled selected hidden>Sub-Category</option>
+                        <option>Wet Goods</option>
+                        <option>Dry Goods</option>
+                    </select>
                 </div>
             </div>
+
+            <!-- Packaging Type, Unit, Pack Size -->
+            <div class="grid grid-cols-3 gap-5">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest whitespace-nowrap">Packaging Type</label>
+                    <div class="relative">
+                        <select name="PackagingType" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 appearance-none shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Type</option>
+                            <option>Plastic</option>
+                            <option>Box</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest whitespace-nowrap">Packaging Unit</label>
+                    <div class="relative">
+                        <select name="PackagingUnit" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 appearance-none shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Unit</option>
+                            <option>bundle</option>
+                            <option>roll</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Pack Size</label>
+                    <input type="text" name="PackSize" placeholder="00" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
+                </div>
+            </div>
+
+            <!-- UOM & Sub-Class -->
             <div class="grid grid-cols-2 gap-5">
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Yield</label>
-                    <input type="text" name="Yield" placeholder="0.00" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Unit of Measurement</label>
+                    <div class="relative">
+                        <select name="UOM" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 appearance-none shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Unit of Measurement</option>
+                            <option>kg</option>
+                            <option>grams</option>
+                            <option>pcs</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
                 </div>
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Unit (UOM)</label>
-                    <input type="text" name="UOM" placeholder="e.g. kg, grams" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Sub-Class</label>
+                    <div class="relative">
+                        <select name="SubClass" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 appearance-none shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Sub-Class</option>
+                            <option value="Food">Food</option>
+                            <option value="Beverage">Beverage</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-5">
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Sub-Class</label>
-                    <input type="text" name="SubClass" placeholder="Sub-Class" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+
+            <!-- Supplier & Unit Price -->
+            <div class="grid grid-cols-[2fr_1fr] gap-5">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Supplier</label>
+                    <div class="relative">
+                        <select name="Supplier" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all cursor-pointer text-gray-700 appearance-none shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Supplier</option>
+                            <option value="Supplier A">Supplier A</option>
+                            <option value="Supplier B">Supplier B</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
                 </div>
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Price (SRP)</label>
-                    <input type="text" name="SRP" placeholder="₱ 0.00" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all font-bold">
+                <!-- Unit Price (hidden by default) -->
+                <div id="unitPriceContainer" class="space-y-1.5 hidden transition-all duration-300">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest">Unit Price</label>
+                    <input type="text" name="UnitPrice" placeholder="00.00" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-gray-400 bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
                 </div>
             </div>
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Supplier</label>
-                <input type="text" name="Supplier" placeholder="Select supplier..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+
+            <!-- Selling Price Checkbox -->
+            <div class="flex items-center space-x-3 pt-2 border-b border-gray-100 pb-5">
+                <input type="checkbox" id="sellingPriceCheck" onchange="togglePriceField()" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer">
+                <label for="sellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer">Selling Price</label>
             </div>
-            <div class="flex justify-end space-x-3 pt-6">
-                <button type="button" onclick="closeModal('newItemModal')" class="px-6 py-2.5 rounded-xl text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:bg-gray-100 transition-all">Cancel</button>
-                <button type="submit" class="px-10 py-2.5 bg-[#C41E24] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 transition-all">Save Item</button>
+
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4 pt-8">
+                <button type="button" onclick="closeModal('newItemModal')" class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">Cancel</button>
+                <button type="submit" class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg hover:shadow-red-100">Save Item</button>
             </div>
         </form>
     </div>
@@ -177,31 +247,38 @@
             <button onclick="closeModal('rejectItemModal')" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="bi bi-x-lg text-lg"></i></button>
         </div>
         <form method="post" class="p-8 space-y-5">
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Item Name</label>
-                <input type="text" name="RejectName" placeholder="Item Name" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Item Name</label>
+                <input type="text" name="RejectName" placeholder="Item Name" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
             </div>
             <div class="grid grid-cols-2 gap-5">
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Quantity</label>
-                    <input type="number" name="RejectQty" placeholder="0" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Quantity</label>
+                    <input type="number" name="RejectQty" placeholder="0" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
                 </div>
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Type</label>
-                    <select name="RejectType" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all cursor-pointer">
-                        <option>Damaged</option>
-                        <option>Expired</option>
-                        <option>Return</option>
-                    </select>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Unit (UOM)</label>
+                    <div class="relative">
+                        <select name="RejectUOM" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                            <option value="" disabled selected hidden>UOM</option>
+                            <option value="kg">kg</option>
+                            <option value="grams">grams</option>
+                            <option value="pack">pack</option>
+                            <option value="pcs">pcs</option>
+                            <option value="box">box</option>
+                            <option value="bottle">bottle</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm"></i>
+                    </div>
                 </div>
             </div>
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Reason</label>
-                <textarea name="RejectReason" rows="3" placeholder="Reason for rejection..." class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-gray-50/50 transition-all resize-none"></textarea>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Reason</label>
+                <textarea name="RejectReason" rows="3" placeholder="Reason for rejection..." class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all resize-none placeholder:text-gray-500 text-gray-800 shadow-sm font-medium"></textarea>
             </div>
-            <div class="flex justify-end space-x-3 pt-6">
-                <button type="button" onclick="closeModal('rejectItemModal')" class="px-6 py-2.5 rounded-xl text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:bg-gray-100 transition-all">Cancel</button>
-                <button type="submit" class="px-10 py-2.5 bg-[#C41E24] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 transition-all">Submit Reject</button>
+            <div class="flex justify-end space-x-4 pt-8">
+                <button type="button" onclick="closeModal('rejectItemModal')" class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">Cancel</button>
+                <button type="submit" class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg hover:shadow-red-100">Submit Reject</button>
             </div>
         </form>
     </div>
@@ -219,6 +296,16 @@
         function openNewItemModal() {
             document.getElementById('newItemModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+        }
+
+        function togglePriceField() {
+            const checkbox = document.getElementById('sellingPriceCheck');
+            const container = document.getElementById('unitPriceContainer');
+            if (checkbox.checked) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
         }
 
         function openRejectModal() {

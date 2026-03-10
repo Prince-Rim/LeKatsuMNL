@@ -4,80 +4,77 @@
     ViewData["Title"] = "Inventory Reports";
 }
 
-<div class="p-6 bg-gray-50 min-h-screen">
-
-    <div class="mb-4">
-        <h2 class="text-sm font-bold text-gray-700">December 25, 2026</h2>
+    <div class="mb-6">
+        <h2 class="text-base font-bold text-gray-800 tracking-tight">December 25, 2026</h2>
     </div>
 
-    <div class="bg-white rounded-t-xl border border-gray-200 p-4 flex items-center justify-between">
-        <div class="relative flex-1 max-w-md">
-            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                <i class="bi bi-search text-xs"></i>
+    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm">
+        <div class="relative flex-1 max-w-lg">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+                <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" class="w-full border border-gray-300 rounded-md pl-9 pr-3 py-1.5 text-xs focus:ring-1 focus:ring-[#C41E24] outline-none" placeholder="Search item name...">
+            <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400" placeholder="Search inventory item...">
         </div>
 
-        <button class="flex items-center space-x-2 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
-            <i class="bi bi-arrow-clockwise text-sm"></i> <span>Refresh</span>
+        <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium">
+            <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
         </button>
     </div>
 
     <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden">
-        <table class="w-full text-left text-[11px] whitespace-nowrap">
-            <thead class="bg-gray-200 text-gray-500 uppercase tracking-wider font-bold">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-3 border-b">Item Name</th>
-                    <th class="px-6 py-3 border-b text-center">Computed Beginning</th>
-                    <th class="px-6 py-3 border-b text-center">Computed Ending</th>
-                    <th class="px-6 py-3 border-b text-center">Received</th>
-                    <th class="px-6 py-3 border-b text-center">Consumed</th>
-                    <th class="px-6 py-3 border-b text-center">Rejected</th>
+                    <th class="px-8 py-4">Item Name</th>
+                    <th class="px-8 py-4 text-center">Computed Beginning</th>
+                    <th class="px-8 py-4 text-center">Computed Ending</th>
+                    <th class="px-8 py-4 text-center">Received</th>
+                    <th class="px-8 py-4 text-center">Consumed</th>
+                    <th class="px-8 py-4 text-center">Rejected</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-gray-700">Marinated Chicken</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
+                <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100">
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Marinated Chicken (kg)</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">150</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">120</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">50</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">80</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">0</td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-gray-700">Oil</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Cooking Oil (18L)</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">40</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">32</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">10</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">18</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">0</td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-gray-700">Breading</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
-                    <td class="px-6 py-4 text-center text-gray-400">-</td>
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Breading Mix (kg)</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">25</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">20</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">5</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">10</td>
+                    <td class="px-8 py-5 text-center text-gray-600 font-medium">0</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-4 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold uppercase tracking-widest border-t border-gray-100">
         <div>Showing 1 - 3 of 10</div>
-        <div class="flex items-center space-x-6">
-            <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-8">
+            <div class="flex items-center space-x-3">
                 <span>Records per page</span>
-                <select class="border border-gray-300 rounded px-2 py-0.5 bg-white text-gray-600 outline-none">
-                    <option>10</option>
-                </select>
+                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center">
+                    <span>10</span>
+                </div>
             </div>
-            <div class="flex items-center space-x-1">
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&lt;</button>
-                <button class="px-3 py-1 bg-gray-600 text-white rounded shadow-md">1</button>
-                <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">&gt;</button>
+            <div class="flex items-center space-x-2">
+                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&lt;</button>
+                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md">1</button>
+                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&gt;</button>
             </div>
         </div>
     </div>
-</div>
