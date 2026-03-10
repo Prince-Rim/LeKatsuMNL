@@ -1,0 +1,282 @@
+﻿@page
+@model LeKatsuMNL.Pages.Dashboard.SKUModel
+@{
+    ViewData["Title"] = "Inventory Items";
+}
+
+@section TitleActions {
+    <button onclick="openNewProductModal()" class="bg-[#C41E24] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
+        + New Product
+    </button>
+}
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200">
+        <a href="/Dashboard/Items" class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all">Recipe</a>
+        <button class="px-10 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">SKU</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="p-5 flex items-center space-x-4 bg-white border-b border-gray-100">
+        <div class="relative inline-block text-left">
+            <button onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white hover:bg-gray-50 outline-none transition-all">
+                <span>Actions</span>
+                <i class="bi bi-chevron-down text-xs"></i>
+            </button>
+            <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all">
+                <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors">
+                    Archive
+                </button>
+                <button class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
+                    Reject
+                </button>
+            </div>
+        </div>
+
+        <div class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+                <i class="bi bi-search text-sm"></i>
+            </span>
+            <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400" placeholder="Search...">
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer">
+                <option>Sub-Category</option>
+            </select>
+            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                <i class="bi bi-arrow-clockwise text-base"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-4 w-12"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></th>
+                    <th class="px-6 py-4">Image</th>
+                    <th class="px-6 py-4">Product Name</th>
+                    <th class="px-6 py-4">Sub-Category</th>
+                    <th class="px-6 py-4">Sub-Class</th>
+                    <th class="px-6 py-4">Yield</th>
+                    <th class="px-6 py-4">Updated Cost</th>
+                    <th class="px-6 py-4">Existing selling price</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300"></td>
+                        <td class="px-6 py-5">
+                            <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors">
+                                <i class="bi bi-image text-2xl"></i>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <a href="/Dashboard/SkuDetails" class="font-bold text-[#C41E24] hover:underline text-sm">Chicken Karaage</a>
+                        </td>
+                        <td class="px-6 py-5 text-gray-600">Meats</td>
+                        <td class="px-6 py-5 text-gray-600">Food</td>
+                        <td class="px-6 py-5 text-gray-600 font-semibold uppercase">PACK / 15PCS</td>
+                        <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">₱ 0.00</td>
+                        <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">₱ 0.00</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="bg-white p-5 flex justify-between items-center text-xs text-gray-500 font-bold border-t border-gray-100 uppercase tracking-widest">
+        <div>Showing 1 - 5 of 10</div>
+        <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-3">
+                <span>Records per page</span>
+                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center">
+                    <span>10</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&lt;</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md">1</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&gt;</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create New Product -->
+<div id="newProductModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 font-sans">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white">
+            <h3 class="text-lg font-bold text-gray-900 tracking-tight">Create New Product</h3>
+            <button onclick="closeModal('newProductModal')" class="text-gray-500 hover:text-gray-700 transition-colors">
+                <i class="bi bi-x-lg text-lg"></i>
+            </button>
+        </div>
+
+        <form method="post" class="p-8">
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                <!-- Name -->
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Name</label>
+                    <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="Product Name" required>
+                </div>
+
+                <!-- Sub-Category -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Sub-Category</label>
+                    <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="Sub-Category">
+                </div>
+
+                <!-- Sub-Class -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Sub-Class</label>
+                    <div class="relative">
+                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Sub-Class</option>
+                            <option value="Food">Food</option>
+                            <option value="Beverage">Beverage</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Packaging Type -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Packaging Type</label>
+                    <div class="relative">
+                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Packaging Type</option>
+                            <option value="Can">Can</option>
+                            <option value="Bottle">Bottle</option>
+                            <option value="Box">Box</option>
+                            <option value="Pack">Pack</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Packaging Unit -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Packaging Unit</label>
+                    <div class="relative">
+                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Packaging Unit</option>
+                            <option value="kg">kg</option>
+                            <option value="grams">grams</option>
+                            <option value="pcs">pcs</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Pack Size -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Pack Size</label>
+                    <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="00">
+                </div>
+
+                <!-- Unit of Measurement -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Unit of Measurement</label>
+                    <div class="relative">
+                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                            <option value="" disabled selected hidden>UOM</option>
+                            <option value="kg">kg</option>
+                            <option value="grams">grams</option>
+                            <option value="pack">pack</option>
+                            <option value="pcs">pcs</option>
+                            <option value="box">box</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Supplier -->
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Supplier</label>
+                    <div class="relative">
+                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                            <option value="" disabled selected hidden>Supplier</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Selling Price Checkbox -->
+                <div class="col-span-2 flex items-center space-x-3 mt-1">
+                    <input type="checkbox" id="sellingPriceSku" onchange="toggleSkuPriceFields()" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all cursor-pointer">
+                    <label for="sellingPriceSku" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer select-none">Selling Price</label>
+                </div>
+
+                <!-- Conditional Price Fields -->
+                <div id="skuPriceContainer" class="col-span-2 grid grid-cols-2 gap-x-6 hidden transition-all duration-300">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Selling Price</label>
+                        <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="₱ 0.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Unit Cost</label>
+                        <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="₱ 0.00">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4 pt-8 mt-6 border-t border-gray-50">
+                <button type="button" onclick="closeModal('newProductModal')" class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">Cancel</button>
+                <button type="submit" class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Save Item</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleActions(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('actionsMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openNewProductModal() {
+            openModal('newProductModal');
+        }
+
+        function toggleSkuPriceFields() {
+            const checkbox = document.getElementById('sellingPriceSku');
+            const container = document.getElementById('skuPriceContainer');
+            if (checkbox.checked) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('click', function (event) {
+            const menu = document.getElementById('actionsMenu');
+            if (menu && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+}

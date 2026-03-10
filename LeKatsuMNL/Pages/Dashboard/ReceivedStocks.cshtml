@@ -1,0 +1,95 @@
+﻿@page
+@model LeKatsuMNL.Pages.Dashboard.ReceivedStocksModel
+@{
+    ViewData["Title"] = "Transaction / Received Stocks";
+}
+
+    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm">
+        <h2 class="text-base font-bold text-gray-800 tracking-tight">Received Stocks</h2>
+
+        <button class="bg-[#C41E24] text-white px-8 py-3 rounded-lg text-sm font-bold hover:bg-red-700 transition-all flex items-center space-x-3 shadow-sm">
+            <i class="bi bi-floppy-fill text-base"></i>
+            <span>Save and Submit</span>
+        </button>
+    </div>
+
+    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-4">Item Name</th>
+                    <th class="px-8 py-4">Supplier</th>
+                    <th class="px-8 py-4">Quantity Received</th>
+                    <th class="px-8 py-4">Receiving Unit</th>
+                    <th class="px-8 py-4 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <tr class="bg-gray-50/50">
+                    <td class="px-5 py-4">
+                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium">
+                            <option>Select Item</option>
+                        </select>
+                    </td>
+                    <td class="px-5 py-4">
+                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium">
+                            <option>Select Supplier</option>
+                        </select>
+                    </td>
+                    <td class="px-5 py-4">
+                        <input type="number" placeholder="Input Quantity" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium">
+                    </td>
+                    <td class="px-5 py-4">
+                        <input type="text" placeholder="Receiving Unit" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium">
+                    </td>
+                    <td class="px-5 py-4 text-center">
+                        <button class="text-green-500 hover:text-green-700 transition-colors">
+                            <i class="bi bi-plus-circle-fill text-2xl"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr class="hover:bg-gray-50 transition-colors border-t border-gray-50">
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Item name sample</td>
+                    <td class="px-8 py-5 text-gray-600 font-medium">Supplier sample</td>
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">25</td>
+                    <td class="px-8 py-5 text-gray-500 font-medium">Pack</td>
+                    <td class="px-8 py-5 text-center space-x-4">
+                        <button class="text-gray-400 hover:text-gray-700 transition-colors"><i class="bi bi-pencil-square text-lg"></i></button>
+                        <button class="text-red-400 hover:text-red-700 transition-colors"><i class="bi bi-trash text-lg"></i></button>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition-colors border-t border-gray-50">
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">Item name sample</td>
+                    <td class="px-8 py-5 text-gray-600 font-medium">Supplier sample</td>
+                    <td class="px-8 py-5 font-bold text-gray-800 text-sm">25</td>
+                    <td class="px-8 py-5 text-gray-500 font-medium">Pack</td>
+                    <td class="px-8 py-5 text-center space-x-4">
+                        <button class="text-gray-400 hover:text-gray-700 transition-colors"><i class="bi bi-pencil-square text-lg"></i></button>
+                        <button class="text-red-400 hover:text-red-700 transition-colors"><i class="bi bi-trash text-lg"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold uppercase tracking-widest border-t border-gray-100">
+        <button class="hover:text-gray-800 transition-colors flex items-center space-x-3">
+            <i class="bi bi-plus-lg text-sm"></i> <span>Add Row</span>
+        </button>
+
+        <div class="flex items-center space-x-8">
+            <span>Showing 1 - 5 of 10</span>
+            <div class="flex items-center space-x-3">
+                <span>Records per page</span>
+                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center">
+                    <span>10</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&lt;</button>
+                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md">1</button>
+                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&gt;</button>
+            </div>
+        </div>
+    </div>
