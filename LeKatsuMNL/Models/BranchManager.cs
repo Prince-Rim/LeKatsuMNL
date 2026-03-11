@@ -37,6 +37,10 @@ namespace LeKatsuMNL.Models
         [MaxLength(20)]
         public string Status { get; set; }
 
+        [Required]
+        [MaxLength(50)]
+        public string Role { get; set; } = "Branch Manager";
+
         // Navigation Properties
         public ICollection<OrderInfo> Orders { get; set; } = new List<OrderInfo>();
         public ICollection<OrderComment> OrderComments { get; set; } = new List<OrderComment>();

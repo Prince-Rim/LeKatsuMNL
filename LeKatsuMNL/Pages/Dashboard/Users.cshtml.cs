@@ -28,6 +28,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Email { get; set; }
             public string ContactNum { get; set; }
             public string Role { get; set; }
+            public string Privileges { get; set; }
             public string Status { get; set; }
             public string BranchName { get; set; }
             public string Type { get; set; } // "Admin" or "Manager"
@@ -76,7 +77,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                     LastName = a.LastName,
                     UserSystemId = "ADM-" + a.ManagerId.ToString("D4"),
                     Email = a.Email,
-                    Role = a.Privileges,
+                    Role = a.Role,
+                    Privileges = a.Privileges,
                     Status = a.Status,
                     BranchName = "Main / All",
                     Type = "Admin"
@@ -90,10 +92,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                     FirstName = m.FirstName,
                     MiddleName = m.MiddleName,
                     LastName = m.LastName,
-                    UserSystemId = "BM-" + m.BManagerId.ToString("D4"),
+                    UserSystemId = "BRCH-" + m.BManagerId.ToString("D4"),
                     Email = m.Email,
                     ContactNum = m.ContactNum,
-                    Role = "Branch Manager",
+                    Role = m.Role,
+                    Privileges = "N/A",
                     Status = m.Status,
                     BranchName = m.BranchLocation != null ? m.BranchLocation.BranchName : "N/A",
                     Type = "Manager"
@@ -121,7 +124,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     LastName = NewUser.LastName,
                     Email = NewUser.Email,
                     ContactNum = NewUser.ContactNum ?? "N/A",
-                    Password = NewUser.Password, // In a real app, hash this
+                    Password = BCrypt.Net.BCrypt.HashPassword(NewUser.Password),
                     BranchId = NewUser.BranchId ?? 0,
                     Status = "Active"
                 };
@@ -135,8 +138,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                     MiddleName = NewUser.MiddleName ?? "",
                     LastName = NewUser.LastName,
                     Email = NewUser.Email,
-                    Password = NewUser.Password, // In a real app, hash this
-                    Privileges = NewUser.Role == "admin" ? (NewUser.Privileges ?? "Admin") : "Staff",
+                    Password = BCrypt.Net.BCrypt.HashPassword(NewUser.Password),
+                    Role = NewUser.Role,
+                    Privileges = NewUser.Role == "Admin" ? (NewUser.Privileges ?? "Full Access") : "N/A",
                     Status = "Active",
                     IsSuperAdmin = false
                 };
@@ -158,13 +162,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                     admin.MiddleName = EditUser.MiddleName ?? "";
                     admin.LastName = EditUser.LastName;
                     admin.Email = EditUser.Email;
-                    if (EditUser.Role == "admin") {
-                        admin.Privileges = EditUser.Privileges ?? admin.Privileges;
-                    } else if (EditUser.Role == "Staff") {
-                        admin.Privileges = "Staff";
-                    }
+                    admin.Role = EditUser.Role;
+                    admin.Privileges = EditUser.Role == "Admin" ? (EditUser.Privileges ?? admin.Privileges) : "N/A";
                     admin.Status = EditUser.Status;
-                    if (!string.IsNullOrEmpty(EditUser.Password)) admin.Password = EditUser.Password;
+                    if (!string.IsNullOrEmpty(EditUser.Password)) admin.Password = BCrypt.Net.BCrypt.HashPassword(EditUser.Password);
                 }
             }
             else
@@ -184,7 +185,30 @@ namespace LeKatsuMNL.Pages.Dashboard
                     }
 
                     manager.Status = EditUser.Status;
-                    if (!string.IsNullOrEmpty(EditUser.Password)) manager.Password = EditUser.Password;
+                    if (!string.IsNullOrEmpty(EditUser.Password)) manager.Password = BCrypt.Net.BCrypt.HashPassword(EditUser.Password);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostToggleStatusAsync(int id, string type)
+        {
+            if (type == "Admin")
+            {
+                var admin = await _context.AdminAccounts.FindAsync(id);
+                if (admin != null)
+                {
+                    admin.Status = admin.Status.ToLower() == "active" ? "Deactivated" : "Active";
+                }
+            }
+            else
+            {
+                var manager = await _context.BranchManagers.FindAsync(id);
+                if (manager != null)
+                {
+                    manager.Status = manager.Status.ToLower() == "active" ? "Deactivated" : "Active";
                 }
             }
 

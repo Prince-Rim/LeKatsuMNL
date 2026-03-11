@@ -7,7 +7,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - LeKatsuMNL</title>
+    <script>
+        // Check for theme configuration before page renders to prevent flash of unstyled content
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Apply sidebar state immediately
+        if (localStorage.getItem('sidebar') === 'collapsed') {
+            document.documentElement.classList.add('sidebar-collapsed');
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -40,123 +61,187 @@
             background: #e5e7eb;
             border-radius: 10px;
         }
+
+        /* Collapsed Sidebar Styles */
+        html.sidebar-collapsed aside {
+            width: 5rem; /* 80px */
+            transition: width 0.2s ease-in-out;
+            overflow-x: hidden;
+            z-index: 50;
+        }
+
+        html.sidebar-collapsed aside:hover {
+            width: 14rem; /* 224px (w-56) */
+        }
+
+        html.sidebar-collapsed aside span.sidebar-text,
+        html.sidebar-collapsed aside .logout-text,
+        html.sidebar-collapsed aside nav div.ml-5 {
+            display: none;
+        }
+
+        html.sidebar-collapsed aside:hover span.sidebar-text,
+        html.sidebar-collapsed aside:hover .logout-text {
+            display: inline;
+        }
+
+        html.sidebar-collapsed aside:hover nav div.ml-5 {
+            display: flex;
+        }
+
+        html.sidebar-collapsed aside nav a i {
+            margin-right: 0;
+            font-size: 1.5rem;
+        }
+
+        html.sidebar-collapsed aside nav a {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        html.sidebar-collapsed aside:hover nav a i {
+            margin-right: 1rem;
+            font-size: 1.125rem;
+        }
+
+        html.sidebar-collapsed aside:hover nav a {
+            justify-content: flex-start;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        html.sidebar-collapsed main {
+            padding-left: 7rem; /* 112px */
+            transition: padding-left 0.2s ease-in-out;
+        }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="antialiased text-gray-800">
+<body class="antialiased text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
 
-    <header class="fixed top-0 left-0 right-0 h-20 bg-white border-b border-gray-200 z-[60] flex items-center justify-between px-8">
+    <header class="fixed top-0 left-0 right-0 h-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-[60] flex items-center justify-between px-8 transition-colors duration-200">
         <div class="flex items-center space-x-4">
-            <img src="/images/lekatsu_icon.jpg" class="h-10 w-10 rounded-full border border-gray-100" alt="Logo">
-            <span class="font-bold text-base tracking-tight text-gray-800">Le Katsu MNL <span class="text-gray-400 font-medium mx-1">•</span> <span class="text-gray-400 font-medium text-xs">Commissary</span></span>
+            <img src="/images/lekatsu_icon.jpg" class="h-10 w-10 rounded-full border border-gray-100 dark:border-gray-600" alt="Logo">
+            <span class="font-bold text-base tracking-tight text-gray-800 dark:text-gray-100">Le Katsu MNL <span class="text-gray-400 font-medium mx-1">•</span> <span class="text-gray-400 font-medium text-xs">Commissary</span></span>
         </div>
 
         <div class="flex items-center space-x-6">
-            <div class="flex items-center text-sm font-medium text-gray-600 cursor-pointer">
+            <div class="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer">
                 Restaurant <span class="ml-1 text-[#C41E24]">▶</span>
             </div>
             <div class="relative">
-                <i class="bi bi-bell text-2xl text-gray-500"></i>
-                <span class="absolute -top-1 -right-1 bg-[#C41E24] text-white text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full border-2 border-white font-bold">1</span>
+                <i class="bi bi-bell text-2xl text-gray-500 dark:text-gray-400"></i>
+                <span class="absolute -top-1 -right-1 bg-[#C41E24] text-white text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full border-2 border-white dark:border-gray-800 font-bold">1</span>
             </div>
-            <div class="flex items-center space-x-3 border-l pl-6 border-gray-200">
+            <div class="flex items-center space-x-3 border-l pl-6 border-gray-200 dark:border-gray-700">
                 <div class="text-right">
                     <p class="text-sm font-bold leading-none">@User.Identity?.Name</p>
                     <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
                 </div>
-                <div class="w-10 h-10 bg-[#C41E24] rounded-full border border-gray-300 overflow-hidden flex items-center justify-center">
+                <div class="w-10 h-10 bg-[#C41E24] rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center">
                     <img src="https://ui-avatars.com/api/?name=@(Uri.EscapeDataString(User.Identity?.Name ?? "Admin"))&background=C41E24&color=fff&bold=true&size=40" alt="User profile" class="w-full h-full object-cover">
                 </div>
             </div>
         </div>
     </header>
 
-    <aside class="fixed top-20 left-0 bottom-0 w-56 bg-white border-r border-gray-200 z-50 flex flex-col overflow-y-auto">
-        <nav class="px-4 py-6 space-y-2 flex-1">
+    <!-- Sidebar Content -->
+    <aside class="fixed top-20 left-0 bottom-0 w-56 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-200 shadow-sm z-50 overflow-y-auto">
 
-            <a href="/Dashboard" class="@(currentPage.Contains("/Dashboard/Index") ? "active-nav" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-grid-1x2-fill mr-4 text-lg"></i> Dashboard
+        <!-- Navigation Links -->
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="/Dashboard" class="@(currentPage.Contains("/Dashboard/Index") ? "active-nav" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Dashboard">
+                <i class="bi bi-grid-1x2-fill mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Dashboard</span>
             </a>
 
             <div class="space-y-1">
-                <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                    <i class="bi bi-node-plus mr-4 text-lg"></i> Transaction
+                <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Transaction">
+                    <i class="bi bi-node-plus mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Transaction</span>
                 </a>
 
                 @if (currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails"))
                 {
-                    <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100">
-                        <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/ReceivedStocks") ? "sub-nav-active" : "text-sm text-gray-400 hover:text-gray-600 pl-[20px]") transition-all">Received Stocks</a>
+                    <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
+                        <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/ReceivedStocks") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Received Stocks</span></a>
                         @* Stays active for both the list view and the details view *@
-                        <a href="/Dashboard/BranchOrders" class="@(currentPage.Contains("/BranchOrders") || currentPage.Contains("/OrderDetails") ? "sub-nav-active" : "text-sm text-gray-400 hover:text-gray-600 pl-[20px]") transition-all">Branch Orders</a>
+                        <a href="/Dashboard/BranchOrders" class="@(currentPage.Contains("/BranchOrders") || currentPage.Contains("/OrderDetails") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Branch Orders</span></a>
                     </div>
                 }
             </div>
 
             <div class="space-y-1">
-                <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                    <i class="bi bi-box-seam mr-4 text-lg"></i> Inventory
+                <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Inventory">
+                    <i class="bi bi-box-seam mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Inventory</span>
                 </a>
 
                 @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))
                 {
-                    <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100">
-                        <a href="/Dashboard/Items" class="@(currentPage.Contains("/Items") || currentPage.Contains("/SKU") || currentPage.Contains("/SkuDetails") ? "sub-nav-active" : "text-sm text-gray-400 hover:text-gray-600 pl-[20px]") transition-all">Items</a>
-                        <a href="/Dashboard/Category" class="@(currentPage.Contains("/Category") ? "sub-nav-active" : "text-sm text-gray-400 hover:text-gray-600 pl-[20px]") transition-all">Categories</a>
-                        <a href="/Dashboard/Rejects" class="@(currentPage.Contains("/Rejects") ? "sub-nav-active" : "text-sm text-gray-400 hover:text-gray-600 pl-[20px]") transition-all">Rejects</a>
+                    <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
+                        <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                            <span class="sidebar-text">Items</span>
+                        </a>
+                        <a href="/Dashboard/Category" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Category") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                            <span class="sidebar-text">Categories</span>
+                        </a>
+                        <a href="/Dashboard/Rejects" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Rejects") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                            <span class="sidebar-text">Rejects</span>
+                        </a>
                     </div>
                 }
             </div>
 
-            <a href="/Dashboard/Analytics" class="@(currentPage.Contains("/Dashboard/Analytics") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-graph-up mr-4 text-lg"></i> Analytics
+            <a href="/Dashboard/Analytics" class="@(currentPage.Contains("/Dashboard/Analytics") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Analytics">
+                <i class="bi bi-graph-up mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Analytics</span>
             </a>
 
-            <a href="/Dashboard/Reports" class="@(currentPage.Contains("/Dashboard/Reports") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-file-earmark-text mr-4 text-lg"></i> Reports
+            <a href="/Dashboard/Reports" class="@(currentPage.Contains("/Dashboard/Reports") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Reports">
+                <i class="bi bi-file-earmark-text mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Reports</span>
             </a>
 
-            <a href="/Dashboard/Branches" class="@(currentPage.Contains("/Dashboard/Branches") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-geo-alt mr-4 text-lg"></i> Branches
+            <a href="/Dashboard/Branches" class="@(currentPage.Contains("/Dashboard/Branches") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Branches">
+                <i class="bi bi-geo-alt mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Branches</span>
             </a>
 
-            <a href="/Dashboard/Supplier" class="@(currentPage.Contains("/Dashboard/Supplier") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-truck mr-4 text-lg"></i> Supplier
+            <a href="/Dashboard/Supplier" class="@(currentPage.Contains("/Dashboard/Supplier") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Supplier">
+                <i class="bi bi-truck mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Supplier</span>
             </a>
 
-            <a href="/Dashboard/Users" class="@(currentPage.Contains("/Dashboard/Users") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-person-badge mr-4 text-lg"></i> Users
+            <a href="/Dashboard/Users" class="@(currentPage.Contains("/Dashboard/Users") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Users">
+                <i class="bi bi-person-badge mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Users</span>
             </a>
 
-            <a href="/Dashboard/Billing" class="@(currentPage.Contains("/Dashboard/Billing") ? "active-nav shadow-md" : "text-gray-500 hover:bg-gray-50") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all">
-                <i class="bi bi-wallet2 mr-4 text-lg"></i> Billing
+            <a href="/Dashboard/Billing" class="@(currentPage.Contains("/Dashboard/Billing") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Billing">
+                <i class="bi bi-wallet2 mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Billing</span>
             </a>
 
-            <a href="#" class="flex items-center px-3 py-2.5 text-gray-500 hover:bg-gray-50 rounded-lg text-sm font-semibold transition-all">
-                <i class="bi bi-gear mr-3 text-base"></i> Settings
+            <a href="/Dashboard/Settings" class="@(currentPage.Contains("/Dashboard/Settings") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Settings">
+                <i class="bi bi-gear mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Settings</span>
             </a>
 
         </nav>
 
-        <div class="px-3 pb-4 border-t border-gray-100 pt-3">
-            <form method="post" action="/Dashboard/Logout">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="flex items-center w-full px-3 py-2.5 text-gray-500 hover:bg-red-50 hover:text-[#C41E24] rounded-lg text-sm font-semibold transition-all">
-                    <i class="bi bi-box-arrow-left mr-3 text-base"></i> Logout
+        <!-- User Profile Area inside sidebar -->
+        <div class="px-3 pb-4 border-t border-gray-100 dark:border-gray-700 pt-3">
+            <form method="post" asp-page="/Login/login" asp-page-handler="Logout" class="block w-full">
+                <button type="submit" class="w-full flex items-center px-4 py-3 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-gray-700 hover:text-[#C41E24] dark:hover:text-red-400 rounded-xl transition-all font-medium group text-sm">
+                    <i class="bi bi-box-arrow-left mr-3 text-base group-hover:text-[#C41E24]"></i>
+                    <span class="logout-text group-hover:text-[#C41E24]">Logout</span>
                 </button>
             </form>
         </div>
     </aside>
 
-    <main class="pt-24 pl-64 pr-8 pb-8 min-h-screen bg-[#fcfcfc]">
-        <div class="bg-white rounded-xl border border-gray-200 py-3 px-5 mb-6 flex items-center justify-between shadow-sm">
+    <!-- Main Content wrapper -->
+    <main class="pt-24 pl-64 pr-8 pb-8 min-h-screen bg-[#fcfcfc] dark:bg-gray-900 transition-colors duration-200">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 py-3 px-5 mb-6 flex items-center justify-between shadow-sm transition-colors duration-200">
             <div class="flex items-center">
                 <button onclick="history.back()" class="bg-[#C41E24] text-white rounded-full p-2 mr-4 hover:bg-[#a51a1f] transition-colors shadow-md flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </button>
-                <h1 class="text-lg font-bold text-gray-800 tracking-tight">@ViewData["Title"]</h1>
+                <h1 class="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-tight">@ViewData["Title"]</h1>
             </div>
             <div>
                 @await RenderSectionAsync("TitleActions", required: false)

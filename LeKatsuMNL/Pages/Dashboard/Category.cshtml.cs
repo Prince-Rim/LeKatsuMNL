@@ -18,13 +18,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public IList<Category> Categories { get; set; }
+        public IList<Category> Categories { get; set; } = default!;
 
         [BindProperty]
-        public Category NewCategory { get; set; }
+        public Category NewCategory { get; set; } = default!;
 
         [BindProperty]
-        public Category EditCategory { get; set; }
+        public Category EditCategory { get; set; } = default!;
 
         public async Task OnGetAsync()
         {

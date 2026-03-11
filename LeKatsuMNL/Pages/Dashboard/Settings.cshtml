@@ -1,0 +1,233 @@
+@page
+@model LeKatsuMNL.Pages.Dashboard.SettingsModel
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "_DashboardLayout";
+}
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-8 transition-colors duration-200">
+    
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-100 dark:border-gray-700 px-6">
+        <button id="tab-account" onclick="switchTab('account')" class="px-6 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">Account</button>
+        <button id="tab-feature" onclick="switchTab('feature')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Feature Access</button>
+        <button id="tab-appearance" onclick="switchTab('appearance')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Appearance</button>
+    </div>
+
+    <!-- Account Tab Content -->
+    <div id="content-account" class="p-8">
+        <form method="post" asp-page-handler="EditAccount" id="edit-account-form" class="space-y-8 max-w-4xl">
+            <!-- Full Name -->
+            <div class="grid grid-cols-[200px_1fr_1fr] gap-6 items-center">
+                <label class="text-xs font-bold text-gray-700 tracking-wide">Account Full Name</label>
+                <div class="w-full">
+                    <input type="text" asp-for="FirstName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                </div>
+                <div class="w-full">
+                    <input type="text" asp-for="LastName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                </div>
+            </div>
+            
+            <!-- Middle Name -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <label class="text-xs font-bold text-gray-700 tracking-wide">Middle Name</label>
+                <div class="max-w-[calc(50%-12px)]">
+                    <input type="text" asp-for="MiddleName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                </div>
+            </div>
+
+            <!-- Role (Uneditable) -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <label class="text-xs font-bold text-gray-700 tracking-wide">Role</label>
+                <div class="w-full">
+                    <input type="text" value="@Model.Role" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none transition-colors duration-200" readonly>
+                </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <label class="text-xs font-bold text-gray-700 tracking-wide">Email Address</label>
+                <div class="max-w-[calc(50%-12px)]">
+                    <input type="email" asp-for="Email" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                </div>
+            </div>
+
+            <!-- Edit / Save Actions -->
+            <div class="flex justify-end pt-8 mt-4 border-t border-gray-50 transition-colors duration-200">
+                <div id="start-edit-actions">
+                    <button type="button" onclick="enableEdit()" class="px-5 py-2.5 bg-white border-2 border-[#C41E24] text-[#C41E24] rounded font-bold text-sm shadow-sm hover:bg-red-50 active:scale-95 transition-all">
+                        Edit Details
+                    </button>
+                </div>
+                <div id="save-edit-actions" class="hidden flex space-x-4">
+                    <button type="button" onclick="cancelEdit()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded font-bold text-sm shadow-sm hover:bg-gray-300 active:scale-95 transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 bg-[#C41E24] text-white rounded font-bold text-sm shadow hover:bg-[#a51a1f] active:scale-95 transition-all">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Delete Account Form Separate -->
+        <div class="max-w-4xl space-y-8 mt-4">
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center pt-8 border-t border-gray-50 transition-colors duration-200">
+                <div class="flex items-center">
+                    <label class="text-xs font-bold text-red-600 tracking-wide">Danger Zone</label>
+                </div>
+                <div class="flex justify-end">
+                    <form method="post" asp-page-handler="DeleteAccount" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone and you will be logged out immediately.');">
+                        <button type="submit" class="px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded font-bold text-sm shadow-sm hover:bg-red-50 hover:border-red-400 active:scale-95 transition-all">
+                            Delete Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Access Tab Content -->
+    <div id="content-feature" class="p-8 hidden">
+        <div class="space-y-8 max-w-4xl">
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <label class="text-xs font-bold text-gray-700 tracking-wide">Privileges</label>
+                <div class="max-w-[calc(50%-12px)]">
+                    <input type="text" value="@Model.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none" readonly>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 italic mt-4 pl-[224px]">Your current access level restricts or permits actions across different modules.</p>
+        </div>
+    </div>
+
+    <!-- Appearance Tab Content -->
+    <div id="content-appearance" class="p-8 hidden">
+        <div class="space-y-8 max-w-4xl">
+            <!-- Theme Toggle -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold text-gray-700 dark:text-gray-300 tracking-wide">Interface Theme</label>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Select your color scheme preference</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="theme-light" onclick="setTheme('light')" class="w-32 py-3 border-2 border-[#C41E24] bg-red-50 dark:bg-red-900/20 text-[#C41E24] rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-sun-fill text-xl"></i>
+                        <span>Light</span>
+                    </button>
+                    <button id="theme-dark" onclick="setTheme('dark')" class="w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-moon-fill text-xl"></i>
+                        <span>Dark</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Toggle -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold text-gray-700 dark:text-gray-300 tracking-wide">Navigation Sidebar</label>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Choose layout density</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="sidebar-expanded" onclick="setSidebar('expanded')" class="w-32 py-3 border-2 border-[#C41E24] bg-red-50 dark:bg-red-900/20 text-[#C41E24] rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-layout-sidebar text-xl"></i>
+                        <span>Expanded</span>
+                    </button>
+                    <button id="sidebar-collapsed" onclick="setSidebar('collapsed')" class="w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-layout-sidebar-inset text-xl"></i>
+                        <span>Collapsed</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function enableEdit() {
+            document.getElementById('start-edit-actions').classList.add('hidden');
+            document.getElementById('save-edit-actions').classList.remove('hidden');
+            
+            const inputs = document.querySelectorAll('.account-input');
+            inputs.forEach(input => {
+                input.classList.remove('pointer-events-none');
+                input.removeAttribute('readonly');
+                input.classList.replace('bg-gray-50', 'bg-white');
+            });
+        }
+
+        function cancelEdit() {
+            window.location.reload();
+        }
+
+        function switchTab(tab) {
+            const tabs = ['account', 'feature', 'appearance'];
+            
+            tabs.forEach(t => {
+                const tabEl = document.getElementById(`tab-${t}`);
+                const contentEl = document.getElementById(`content-${t}`);
+                
+                if (t === tab) {
+                    tabEl.className = "px-6 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all";
+                    contentEl.classList.remove('hidden');
+                } else {
+                    tabEl.className = "px-6 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-all";
+                    contentEl.classList.add('hidden');
+                }
+            });
+        }
+
+        function setTheme(theme) {
+            const lightBtn = document.getElementById('theme-light');
+            const darkBtn = document.getElementById('theme-dark');
+            const activeClass = "w-32 py-3 border-2 border-[#C41E24] bg-red-50 dark:bg-red-900/20 text-[#C41E24] rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+            const inactiveClass = "w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                darkBtn.className = activeClass;
+                lightBtn.className = inactiveClass;
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                lightBtn.className = activeClass;
+                darkBtn.className = inactiveClass;
+            }
+        }
+
+        function setSidebar(state) {
+            const expBtn = document.getElementById('sidebar-expanded');
+            const colBtn = document.getElementById('sidebar-collapsed');
+            const activeClass = "w-32 py-3 border-2 border-[#C41E24] bg-red-50 dark:bg-red-900/20 text-[#C41E24] rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+            const inactiveClass = "w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+
+            if (state === 'collapsed') {
+                document.body.classList.add('sidebar-collapsed');
+                localStorage.setItem('sidebar', 'collapsed');
+                colBtn.className = activeClass;
+                expBtn.className = inactiveClass;
+            } else {
+                document.body.classList.remove('sidebar-collapsed');
+                localStorage.setItem('sidebar', 'expanded');
+                expBtn.className = activeClass;
+                colBtn.className = inactiveClass;
+            }
+        }
+
+        // Initialize button states on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+
+            if (localStorage.getItem('sidebar') === 'collapsed') {
+                setSidebar('collapsed');
+            } else {
+                setSidebar('expanded');
+            }
+        });
+    </script>
+}
