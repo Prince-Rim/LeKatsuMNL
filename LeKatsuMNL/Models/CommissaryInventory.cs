@@ -23,12 +23,19 @@ namespace LeKatsuMNL.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Stock { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Yield { get; set; }
+        public string Yield { get; set; }
 
         [Required]
         [MaxLength(50)]
-        public string Uom { get; set; } // Unit of Measure
+        public string Uom { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? ReorderValue { get; set; }
+
+        public int? SkuId { get; set; }
+        public SkuHeader SkuHeader { get; set; }
+
+        public int? PriceId { get; set; }
 
         public int VendorId { get; set; }
         public VendorInfo Vendor { get; set; }

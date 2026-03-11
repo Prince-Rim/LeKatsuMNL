@@ -22,6 +22,8 @@ namespace LeKatsuMNL.Models
         [MaxLength(20)]
         public string SecondVendorCn { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         // Navigation property for One-to-Many
         public ICollection<CommissaryInventory> CommissaryInventories { get; set; } = new List<CommissaryInventory>();
     }
