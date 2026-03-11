@@ -1,0 +1,384 @@
+@page
+@model LeKatsuMNL.Pages.Dashboard.BranchesModel
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Branches";
+}
+
+@section Styles {
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+    </style>
+}
+
+@section TitleActions {
+    <button onclick="openCreateModal()" class="px-6 py-2.5 bg-[#C41E24] text-white rounded-lg shadow-md hover:bg-red-700 transition-all font-bold text-sm flex items-center">
+        <i class="bi bi-plus-lg mr-2"></i> New Branch
+    </button>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+        <div class="flex items-center">
+            <i class="bi bi-exclamation-triangle-fill text-red-500 mr-3 text-lg"></i>
+            <p class="text-sm text-red-700 font-medium">@TempData["ErrorMessage"]</p>
+        </div>
+    </div>
+}
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
+    
+    <!-- Top toolbar -->
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div class="relative w-96 flex-1">
+            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="Search branches..." class="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm">
+        </div>
+        <div class="flex items-center space-x-3 ml-4">
+            <button class="px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center shadow-sm">
+                <i class="bi bi-arrow-clockwise mr-2"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Table content -->
+    <div class="flex-1 overflow-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead class="bg-gray-50/80 sticky top-0 z-10 backdrop-blur-sm border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Name</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Description</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Address</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Created at</th>
+                    <th class="px-8 py-4 text-right w-24"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                @if (Model.Branches != null && Model.Branches.Any())
+                {
+                    foreach (var branch in Model.Branches)
+                    {
+                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                            <td class="px-8 py-5 text-sm font-bold text-gray-800">@branch.BranchName</td>
+                            <td class="px-8 py-5 text-sm font-medium text-gray-500">-</td> <!-- Placeholder for description -->
+                            <td class="px-8 py-5 text-sm font-medium text-gray-600 max-w-xs truncate" title="@branch.BranchLocationAddress">@branch.BranchLocationAddress</td>
+                            <td class="px-8 py-5 text-sm font-medium text-gray-500">December 25, 2026</td> <!-- Static date for styling -->
+                            <td class="px-8 py-5 text-right w-32">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <button type="button" onclick="openEditModal('@branch.BranchId', '@branch.BranchName', '@branch.BranchLocationAddress')" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all">Edit</button>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@branch.BranchId" class="inline m-0">
+                                        <button type="submit" onclick="return confirm('Delete this branch?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-8 py-16 text-center text-gray-400 italic text-sm">
+                            - No branches found -
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Footer -->
+    <div class="p-6 border-t border-gray-100 flex items-center justify-between">
+        <p class="text-sm text-gray-400 font-medium italic">Showing 1 - @(Model.Branches?.Count ?? 0) of @(Model.Branches?.Count ?? 0)</p>
+        <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-3">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Records per page</span>
+                <div class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-600">10</div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all"><i class="bi bi-chevron-left text-xs"></i></button>
+                <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all"><i class="bi bi-chevron-right text-xs"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parent Overlay container for Modals to ensure stacking over layout -->
+<div id="modalOverlay" class="fixed inset-0 bg-black/40 z-[100] hidden items-center justify-center backdrop-blur-[2px] transition-all duration-300 opacity-0">
+
+    <!-- Create/Edit Branch Modal -->
+    <div id="branchModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all scale-95 duration-300 absolute">
+        <div class="p-6 border-b border-gray-100 bg-gray-50/30">
+            <h3 id="branchModalTitle" class="text-xl font-bold text-gray-800">Create Branch</h3>
+        </div>
+        
+        <form id="branchForm" method="post" asp-page-handler="Create">
+            <input type="hidden" id="editBranchId" name="BranchId" value="0" />
+            
+            <div class="p-6 space-y-5">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Name*</label>
+                    <input type="text" id="branchName" name="NewBranch.BranchName" required placeholder="Name" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm">
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Description</label>
+                    <input type="text" id="branchDesc" placeholder="Description" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 cursor-not-allowed">
+                </div>
+
+                <div class="relative group">
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Address</label>
+                    
+                    <!-- Dummy Select that triggers the address modal -->
+                    <div class="relative cursor-pointer" onclick="openAddressModal()">
+                        <select class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none pointer-events-none focus:outline-none">
+                            <option value="">Create Address</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+
+                    <!-- Hidden input that actually stores the address data for form submission -->
+                    <input type="hidden" id="branchAddressInput" name="NewBranch.BranchLocationAddress" />
+                    
+                    <!-- Read-only preview display of the selected address -->
+                    <p id="addressPreviewText" class="mt-2 text-xs font-semibold text-[#C41E24] hidden">No address selected.</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
+                <button type="button" onclick="closeBranchModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors bg-gray-200/50 rounded-lg">Cancel</button>
+                <button type="submit" id="saveBranchBtn" class="px-8 py-2.5 hidden bg-gray-400 text-white rounded-lg text-xs font-bold uppercase tracking-widest cursor-not-allowed" disabled>Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Create Address Modal -->
+    <div id="addressModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all scale-95 duration-300 absolute hidden z-[110]">
+        <div class="p-6 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-gray-800">Create Address</h3>
+            <button onclick="closeAddressModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-5">
+            <div>
+                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Address*</label>
+                <input type="text" id="addrStreet" placeholder="Street Address" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
+            </div>
+            
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">City*</label>
+                    <input type="text" id="addrCity" placeholder="City" value="QC" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Island*</label>
+                    <div class="relative">
+                        <select id="addrIsland" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24]">
+                            <option value="Luzon">Luzon</option>
+                            <option value="Visayas">Visayas</option>
+                            <option value="Mindanao">Mindanao</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Zip</label>
+                    <input type="text" id="addrZip" placeholder="Zip" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Country</label>
+                <input type="text" id="addrCountry" placeholder="Country" value="Philippines" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
+            </div>
+
+            <div class="pt-2">
+                <label class="flex items-center space-x-2 cursor-pointer group w-fit">
+                    <input type="checkbox" id="saveAddressCheck" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-gray-700">Save address</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
+            <button type="button" onclick="closeAddressModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors bg-gray-200/50 rounded-lg shadow-sm">Cancel</button>
+            <button type="button" onclick="compileAndSetAddress()" class="px-8 py-2.5 bg-gray-400 text-white rounded-lg text-xs font-bold uppercase tracking-widest transition-all shadow-sm" id="confirmAddressBtn" disabled>Confirm</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const overlay = document.getElementById('modalOverlay');
+        const branchModal = document.getElementById('branchModal');
+        const addressModal = document.getElementById('addressModal');
+
+        // Form elements
+        const form = document.getElementById('branchForm');
+        const idInput = document.getElementById('editBranchId');
+        const nameInput = document.getElementById('branchName');
+        const addressInput = document.getElementById('branchAddressInput');
+        
+        // Buttons
+        const saveBranchBtn = document.getElementById('saveBranchBtn');
+        const confirmAddressBtn = document.getElementById('confirmAddressBtn');
+
+        // Address Modal inputs
+        const addrStreet = document.getElementById('addrStreet');
+        const addrCity = document.getElementById('addrCity');
+        const addrIsland = document.getElementById('addrIsland');
+        const addrZip = document.getElementById('addrZip');
+        const addrCountry = document.getElementById('addrCountry');
+        const addressPreviewText = document.getElementById('addressPreviewText');
+
+        function openCreateModal() {
+            // Reset fields
+            document.getElementById('branchModalTitle').innerText = 'Create Branch';
+            form.action = "?handler=Create";
+            idInput.value = "0";
+            nameInput.value = "";
+            nameInput.name = "NewBranch.BranchName";
+            addressInput.value = "";
+            addressInput.name = "NewBranch.BranchLocationAddress";
+            addressPreviewText.classList.add('hidden');
+            addressPreviewText.innerText = "";
+            checkBranchFormValidation();
+
+            // Show base overlay + branch modal
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+                branchModal.classList.remove('scale-95');
+                branchModal.classList.add('scale-100');
+            }, 10);
+        }
+
+        function openEditModal(id, name, address) {
+            document.getElementById('branchModalTitle').innerText = 'Edit Branch';
+            form.action = "?handler=Edit";
+            idInput.value = id;
+            nameInput.value = name;
+            nameInput.name = "BranchName"; 
+            addressInput.value = address;
+            addressInput.name = "BranchLocationAddress"; 
+            
+            addressPreviewText.innerText = address;
+            addressPreviewText.classList.remove('hidden');
+            checkBranchFormValidation();
+
+            // Show base overlay + branch modal
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+                branchModal.classList.remove('scale-95');
+                branchModal.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeBranchModal() {
+            branchModal.classList.remove('scale-100');
+            branchModal.classList.add('scale-95');
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }, 300);
+        }
+
+        function openAddressModal() {
+            // Hide Branch Modal specifically, but keep overlay
+            branchModal.classList.add('hidden');
+            addressModal.classList.remove('hidden');
+            
+            setTimeout(() => {
+                addressModal.classList.remove('scale-95');
+                addressModal.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeAddressModal() {
+            addressModal.classList.remove('scale-100');
+            addressModal.classList.add('scale-95');
+            
+            setTimeout(() => {
+                addressModal.classList.add('hidden');
+                branchModal.classList.remove('hidden'); // bring back branch modal
+            }, 300);
+        }
+
+        // Validate Address Modal
+        function checkAddressFormValidation() {
+            if (addrStreet.value.trim().length > 0 && addrCity.value.trim().length > 0 && addrIsland.value.trim().length > 0) {
+                confirmAddressBtn.disabled = false;
+                confirmAddressBtn.classList.remove('bg-gray-400');
+                confirmAddressBtn.classList.add('bg-[#C41E24]');
+            } else {
+                confirmAddressBtn.disabled = true;
+                confirmAddressBtn.classList.remove('bg-[#C41E24]');
+                confirmAddressBtn.classList.add('bg-gray-400');
+            }
+        }
+
+        [addrStreet, addrCity].forEach(input => {
+            input.addEventListener('input', checkAddressFormValidation);
+        });
+        addrIsland.addEventListener('change', checkAddressFormValidation);
+
+        function compileAndSetAddress() {
+            const street = addrStreet.value.trim();
+            const city = addrCity.value.trim();
+            const island = addrIsland.value;
+            const zip = addrZip.value.trim();
+            const country = addrCountry.value.trim();
+
+            let parts = [street, city, island];
+            if (zip) parts.push(zip);
+            if (country) parts.push(country);
+
+            const compiledAddress = parts.join(", ");
+            addressInput.value = compiledAddress;
+            addressPreviewText.innerText = compiledAddress;
+            addressPreviewText.classList.remove('hidden');
+            
+            checkBranchFormValidation();
+            closeAddressModal();
+        }
+
+        // Validate Branch form
+        function checkBranchFormValidation() {
+            if (nameInput.value.trim().length > 0 && addressInput.value.trim().length > 0) {
+                saveBranchBtn.classList.remove('hidden', 'bg-gray-400', 'cursor-not-allowed');
+                saveBranchBtn.classList.add('bg-[#C41E24]', 'hover:bg-red-700');
+                saveBranchBtn.disabled = false;
+            } else {
+                saveBranchBtn.classList.add('hidden');
+                saveBranchBtn.disabled = true;
+            }
+        }
+
+        nameInput.addEventListener('input', checkBranchFormValidation);
+    </script>
+}
