@@ -4,6 +4,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeKatsuMNL.Migrations
 {
     [DbContext(typeof(LeKatsuDb))]
-    partial class LeKatsuDbModelSnapshot : ModelSnapshot
+    [Migration("20260311092203_UpdateSkuAndRecipeTables")]
+    partial class UpdateSkuAndRecipeTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -390,14 +393,6 @@ namespace LeKatsuMNL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.HasKey("CategoryId");
 
                     b.ToTable("Categories");
@@ -425,15 +420,6 @@ namespace LeKatsuMNL.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("PriceId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("ReorderValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("SkuId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Stock")
                         .HasColumnType("decimal(18,2)");
 
@@ -445,13 +431,10 @@ namespace LeKatsuMNL.Migrations
                     b.Property<int>("VendorId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Yield")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<decimal>("Yield")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("CaId");
-
-                    b.HasIndex("SkuId");
 
                     b.ToTable("CommissaryArchives");
                 });
@@ -475,15 +458,6 @@ namespace LeKatsuMNL.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("PriceId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("ReorderValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("SkuId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Stock")
                         .HasColumnType("decimal(18,2)");
 
@@ -495,15 +469,12 @@ namespace LeKatsuMNL.Migrations
                     b.Property<int>("VendorId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Yield")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<decimal>("Yield")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ComId");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("SkuId");
 
                     b.HasIndex("VendorId");
 
@@ -1122,6 +1093,7 @@ namespace LeKatsuMNL.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("SubCategory")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1602,9 +1574,6 @@ namespace LeKatsuMNL.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("SecondVendorCn")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1666,16 +1635,6 @@ namespace LeKatsuMNL.Migrations
                     b.Navigation("ExpenseType");
                 });
 
-            modelBuilder.Entity("LeKatsuMNL.Models.CommissaryArchive", b =>
-                {
-                    b.HasOne("LeKatsuMNL.Models.SkuHeader", "SkuHeader")
-                        .WithMany()
-                        .HasForeignKey("SkuId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("SkuHeader");
-                });
-
             modelBuilder.Entity("LeKatsuMNL.Models.CommissaryInventory", b =>
                 {
                     b.HasOne("LeKatsuMNL.Models.Category", "Category")
@@ -1684,11 +1643,6 @@ namespace LeKatsuMNL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("LeKatsuMNL.Models.SkuHeader", "SkuHeader")
-                        .WithMany()
-                        .HasForeignKey("SkuId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("LeKatsuMNL.Models.VendorInfo", "Vendor")
                         .WithMany("CommissaryInventories")
                         .HasForeignKey("VendorId")
@@ -1696,8 +1650,6 @@ namespace LeKatsuMNL.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-
-                    b.Navigation("SkuHeader");
 
                     b.Navigation("Vendor");
                 });

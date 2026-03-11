@@ -60,31 +60,46 @@
                     <th class="px-8 py-4 w-12"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></th>
                     <th class="px-6 py-4">Image</th>
                     <th class="px-6 py-4">Product Name</th>
-                    <th class="px-6 py-4">Sub-Category</th>
+                    <th class="px-6 py-4">Category</th>
                     <th class="px-6 py-4">Sub-Class</th>
                     <th class="px-6 py-4">Yield</th>
                     <th class="px-6 py-4">Updated Cost</th>
-                    <th class="px-6 py-4">Existing selling price</th>
+                    <th class="px-6 py-4">Selling Price</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                @for (int i = 0; i < 6; i++)
+                @if (Model.SkuHeaders != null && Model.SkuHeaders.Any())
                 {
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300"></td>
-                        <td class="px-6 py-5">
-                            <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors">
-                                <i class="bi bi-image text-2xl"></i>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <a href="/Dashboard/SkuDetails" class="font-bold text-[#C41E24] hover:underline text-sm">Chicken Karaage</a>
-                        </td>
-                        <td class="px-6 py-5 text-gray-600">Meats</td>
-                        <td class="px-6 py-5 text-gray-600">Food</td>
-                        <td class="px-6 py-5 text-gray-600 font-semibold uppercase">PACK / 15PCS</td>
-                        <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">₱ 0.00</td>
-                        <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">₱ 0.00</td>
+                    foreach (var sku in Model.SkuHeaders)
+                    {
+                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                            <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></td>
+                            <td class="px-6 py-5">
+                                <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors">
+                                    <i class="bi bi-image text-2xl"></i>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <a href="/Dashboard/SkuDetails/@sku.SkuId" class="font-bold text-[#C41E24] hover:underline text-sm">@sku.ItemName</a>
+                            </td>
+                            <td class="px-6 py-5 text-gray-600">@(sku.Category?.CategoryName ?? "-")</td>
+                            <td class="px-6 py-5 text-gray-600">@(string.IsNullOrEmpty(sku.SubClass) ? "-" : sku.SubClass)</td>
+                            <td class="px-6 py-5 text-gray-600 font-semibold uppercase">
+                                @if(!string.IsNullOrEmpty(sku.PackagingType)) {
+                                    @($"{sku.PackagingType} / {sku.PackSize}{sku.PackagingUnit}")
+                                } else {
+                                    @("-")
+                                }
+                            </td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">@(sku.SellingPrice.HasValue ? $"₱ {sku.SellingPrice.Value:0.00}" : "-")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-semibold italic">No SKU products found. Create a new product to get started.</td>
                     </tr>
                 }
             </tbody>
@@ -112,34 +127,45 @@
 
 <!-- Modal: Create New Product -->
 <div id="newProductModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 font-sans">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95">
         <!-- Header -->
         <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white">
-            <h3 class="text-lg font-bold text-gray-900 tracking-tight">Create New Product</h3>
+            <h3 class="text-base font-bold text-gray-900">Create New Product</h3>
             <button onclick="closeModal('newProductModal')" class="text-gray-500 hover:text-gray-700 transition-colors">
                 <i class="bi bi-x-lg text-lg"></i>
             </button>
         </div>
 
-        <form method="post" class="p-8">
+        <form method="post" asp-page-handler="Create" class="p-8 space-y-5">
             <div class="grid grid-cols-2 gap-x-6 gap-y-4">
                 <!-- Name -->
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Name</label>
-                    <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="Product Name" required>
+                <div class="col-span-2 space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Name</label>
+                    <input type="text" name="ProductName" placeholder="Product Name" required
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
                 </div>
 
-                <!-- Sub-Category -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Sub-Category</label>
-                    <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="Sub-Category">
+                <!-- Category -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Category</label>
+                    <div class="relative">
+                        <select name="CategoryId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                            <option value="" disabled selected hidden>Select Category</option>
+                            @if(Model.Categories != null) {
+                                foreach(var cat in Model.Categories) {
+                                    <option value="@cat.CategoryId">@cat.CategoryName</option>
+                                }
+                            }
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                    </div>
                 </div>
 
                 <!-- Sub-Class -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Sub-Class</label>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Sub-Class</label>
                     <div class="relative">
-                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <select name="SubClass" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
                             <option value="" disabled selected hidden>Sub-Class</option>
                             <option value="Food">Food</option>
                             <option value="Beverage">Beverage</option>
@@ -149,10 +175,10 @@
                 </div>
 
                 <!-- Packaging Type -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Packaging Type</label>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Packaging Type</label>
                     <div class="relative">
-                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <select name="PackagingType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
                             <option value="" disabled selected hidden>Packaging Type</option>
                             <option value="Can">Can</option>
                             <option value="Bottle">Bottle</option>
@@ -164,10 +190,10 @@
                 </div>
 
                 <!-- Packaging Unit -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Packaging Unit</label>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Packaging Unit</label>
                     <div class="relative">
-                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <select name="PackagingUnit" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
                             <option value="" disabled selected hidden>Packaging Unit</option>
                             <option value="kg">kg</option>
                             <option value="grams">grams</option>
@@ -178,61 +204,75 @@
                 </div>
 
                 <!-- Pack Size -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Pack Size</label>
-                    <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="00">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Pack Size</label>
+                    <input type="text" name="PackSize" placeholder="00"
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
                 </div>
 
                 <!-- Unit of Measurement -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Unit of Measurement</label>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Unit of Measurement</label>
                     <div class="relative">
-                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <select name="UOM" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
                             <option value="" disabled selected hidden>UOM</option>
                             <option value="kg">kg</option>
                             <option value="grams">grams</option>
                             <option value="pack">pack</option>
                             <option value="pcs">pcs</option>
-                            <option value="box">box</option>
                         </select>
                         <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
                     </div>
                 </div>
 
                 <!-- Supplier -->
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Supplier</label>
+                <div class="col-span-2 space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Supplier</label>
                     <div class="relative">
-                        <select class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm font-medium">
+                        <select name="Supplier" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
                             <option value="" disabled selected hidden>Supplier</option>
+                            @if(Model.Vendors != null) {
+                                foreach(var vendor in Model.Vendors) {
+                                    <option value="@vendor.VendorName">@vendor.VendorName</option>
+                                }
+                            }
                         </select>
                         <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
                     </div>
                 </div>
 
                 <!-- Selling Price Checkbox -->
-                <div class="col-span-2 flex items-center space-x-3 mt-1">
-                    <input type="checkbox" id="sellingPriceSku" onchange="toggleSkuPriceFields()" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all cursor-pointer">
-                    <label for="sellingPriceSku" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer select-none">Selling Price</label>
+                <div class="col-span-2 flex items-center space-x-3 pt-2">
+                    <input type="checkbox" id="sellingPriceSku" onchange="toggleSkuPriceFields()" 
+                           class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer">
+                    <label for="sellingPriceSku" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1">Selling Price</label>
                 </div>
 
                 <!-- Conditional Price Fields -->
-                <div id="skuPriceContainer" class="col-span-2 grid grid-cols-2 gap-x-6 hidden transition-all duration-300">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Selling Price</label>
-                        <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="₱ 0.00">
+                <div id="skuPriceContainer" class="col-span-2 grid grid-cols-2 gap-x-6 hidden">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Selling Price</label>
+                        <input type="text" name="SellingPrice" placeholder="₱ 0.00"
+                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">Unit Cost</label>
-                        <input type="text" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium" placeholder="₱ 0.00">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Unit Cost</label>
+                        <input type="text" name="UnitCost" placeholder="₱ 0.00"
+                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
                     </div>
                 </div>
             </div>
 
             <!-- Buttons -->
-            <div class="flex justify-end space-x-4 pt-8 mt-6 border-t border-gray-50">
-                <button type="button" onclick="closeModal('newProductModal')" class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">Cancel</button>
-                <button type="submit" class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Save Item</button>
+            <div class="flex justify-end space-x-4 pt-8 border-t border-gray-50">
+                <button type="button" onclick="closeModal('newProductModal')" 
+                        class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
+                    Save Item
+                </button>
             </div>
         </form>
     </div>
@@ -246,16 +286,30 @@
             menu.classList.toggle('hidden');
         }
 
-        function openModal(id) {
-            const modal = document.getElementById(id);
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div');
+            
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                content.classList.remove('opacity-0', 'scale-95');
+                content.classList.add('opacity-100', 'scale-100');
+            }, 10);
         }
 
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div');
+            
+            content.classList.add('opacity-0', 'scale-95');
+            content.classList.remove('opacity-100', 'scale-100');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
         }
 
         function openNewProductModal() {
@@ -276,6 +330,17 @@
             const menu = document.getElementById('actionsMenu');
             if (menu && !menu.contains(event.target)) {
                 menu.classList.add('hidden');
+            }
+            if (event.target.classList.contains('fixed')) {
+                closeModal(event.target.id);
+            }
+        });
+
+        // Close on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('.fixed:not(.hidden)');
+                openModals.forEach(modal => closeModal(modal.id));
             }
         });
     </script>

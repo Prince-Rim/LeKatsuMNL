@@ -36,6 +36,10 @@ namespace LeKatsuMNL.Data
         public DbSet<OrderComment> OrderComments { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
 
+        // SKU & Recipes
+        public DbSet<SkuHeader> SkuHeaders { get; set; }
+        public DbSet<SkuRecipe> SkuRecipes { get; set; }
+
         // Restaurant Inventory & Sales
         public DbSet<RestaurantItem> RestaurantItems { get; set; }
         public DbSet<ItemCategory> ItemCategories { get; set; }
@@ -91,6 +95,20 @@ namespace LeKatsuMNL.Data
                 .HasOne(ci => ci.Category)
                 .WithMany(c => c.CommissaryInventories)
                 .HasForeignKey(ci => ci.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SkuHeader -> CommissaryInventory (1:M)
+            modelBuilder.Entity<CommissaryInventory>()
+                .HasOne(ci => ci.SkuHeader)
+                .WithMany() // SkuHeader doesn't have CommissaryInventories collection
+                .HasForeignKey(ci => ci.SkuId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SkuHeader -> CommissaryArchive (1:M)
+            modelBuilder.Entity<CommissaryArchive>()
+                .HasOne(ca => ca.SkuHeader)
+                .WithMany()
+                .HasForeignKey(ca => ca.SkuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // CommissaryInventory -> InventoryTransaction (1:M)

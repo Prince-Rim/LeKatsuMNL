@@ -13,6 +13,11 @@ namespace LeKatsuMNL.Models
         [MaxLength(100)]
         public string CategoryName { get; set; }
 
+        [MaxLength(200)]
+        public string Description { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         // Navigation property for One-to-Many
         public ICollection<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
         public ICollection<CommissaryInventory> CommissaryInventories { get; set; } = new List<CommissaryInventory>();
