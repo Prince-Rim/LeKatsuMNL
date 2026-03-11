@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
-    public class BranchModel : PageModel
+    public class BranchesModel : PageModel
     {
         private readonly LeKatsuDb _context;
 
-        public BranchModel(LeKatsuDb context)
+        public BranchesModel(LeKatsuDb context)
         {
             _context = context;
         }

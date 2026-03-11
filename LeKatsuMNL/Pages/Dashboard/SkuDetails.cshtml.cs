@@ -93,16 +93,28 @@ namespace LeKatsuMNL.Pages.Dashboard
             
             if (SkuHeader.SkuRecipes != null)
             {
+                System.Console.WriteLine("---- DEBUGGING SKU POST ----");
                 foreach (var recipe in SkuHeader.SkuRecipes)
                 {
+                    System.Console.WriteLine($"Recipe attached: ComId={recipe.ComId}, Quantity={recipe.QuantityNeeded}");
+                    
+                    // Defensive check: Ignore invalid IDs
+                    if (recipe.ComId <= 0) continue;
+                    
+                    // Defensive check: Ensure it actually exists in CommissaryInventories
+                    var inventoryItem = await _context.CommissaryInventories.FindAsync(recipe.ComId);
+                    if (inventoryItem == null) continue;
+
                     skuToUpdate.SkuRecipes.Add(new SkuRecipe
                     {
                         SkuId = skuToUpdate.SkuId,
                         ComId = recipe.ComId,
+                        CommissaryInventory = inventoryItem, // Force EF to populate shadow FK
                         QuantityNeeded = recipe.QuantityNeeded,
                         Uom = recipe.Uom
                     });
                 }
+                System.Console.WriteLine("----------------------------");
             }
 
             await _context.SaveChangesAsync();

@@ -256,7 +256,7 @@
                 </div>
 
                 <div class="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                    @if (Model.AvailableItems != null)
+                    @if (Model.AvailableItems != null && Model.AvailableItems.Any())
                     {
                         @foreach (var item in Model.AvailableItems)
                         {
@@ -273,20 +273,8 @@
                     }
                     else
                     {
-                        <!-- Static examples -->
-                        <div class="item-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group" onclick="toggleItemSelection(this)">
-                             <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded group-hover:border-[#C41E24] transition-all checkbox-container">
-                                <i class="bi bi-check-lg text-white text-xs opacity-0"></i>
-                            </div>
-                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                            <span class="flex-1 font-bold text-gray-800">Chicken Leg Quarter Fillet</span>
-                        </div>
-                        <div class="item-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group" onclick="toggleItemSelection(this)">
-                             <div class="flex items-center justify-center w-6 h-6 border-2 border-[#C41E24] bg-[#C41E24] rounded transition-all checkbox-container">
-                                <i class="bi bi-check-lg text-white text-xs opacity-100"></i>
-                            </div>
-                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                            <span class="flex-1 font-bold text-gray-800 text-[#C41E24]">Japanese soy sauce</span>
+                        <div class="p-6 text-center text-gray-400 font-medium text-sm italic">
+                            No commissary items available. Please add items to the inventory first.
                         </div>
                     }
                 </div>
