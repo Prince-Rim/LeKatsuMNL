@@ -178,7 +178,7 @@
                 @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))
                 {
                     <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
-                        <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                        <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") || Context.Request.Path.StartsWithSegments("/Dashboard/SKU") || Context.Request.Path.StartsWithSegments("/Dashboard/SkuDetails") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
                             <span class="sidebar-text">Items</span>
                         </a>
                         <a href="/Dashboard/Category" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Category") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
