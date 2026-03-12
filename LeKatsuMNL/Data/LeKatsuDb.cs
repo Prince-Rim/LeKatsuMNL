@@ -69,6 +69,7 @@ namespace LeKatsuMNL.Data
         public DbSet<ItemTranArchive> ItemTranArchives { get; set; }
         public DbSet<StaffArchive> StaffArchives { get; set; }
         public DbSet<STimeArchive> STimeArchives { get; set; }
+        public DbSet<RejectItem> RejectItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

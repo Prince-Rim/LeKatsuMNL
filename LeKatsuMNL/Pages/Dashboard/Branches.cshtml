@@ -40,16 +40,16 @@
     </div>
 }
 
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)] dark:bg-slate-800 dark:border-gray-700">
     
     <!-- Top toolbar -->
-    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 dark:border-gray-700">
         <div class="relative w-96 flex-1">
-            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input type="text" id="searchInput" placeholder="Search branches..." class="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm">
+            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="text" id="searchInput" placeholder="Search branches..." class="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-[#C41E24]/10 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm dark:bg-slate-800 dark:placeholder:text-gray-500 dark:border-gray-700">
         </div>
         <div class="flex items-center space-x-3 ml-4">
-            <button class="px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center shadow-sm">
+            <button class="px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">
                 <i class="bi bi-arrow-clockwise mr-2"></i> Refresh
             </button>
         </div>
@@ -58,30 +58,41 @@
     <!-- Table content -->
     <div class="flex-1 overflow-auto custom-scrollbar">
         <table class="w-full text-left border-collapse min-w-[800px]">
-            <thead class="bg-gray-50/80 sticky top-0 z-10 backdrop-blur-sm border-b border-gray-100">
+            <thead class="bg-gray-50/80 sticky top-0 z-10 backdrop-blur-sm border-b border-gray-100 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Name</th>
-                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Description</th>
-                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Address</th>
-                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Created at</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap dark:text-gray-500">Name</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap dark:text-gray-500">Manager ID</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap dark:text-gray-500">Address</th>
+                    <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap dark:text-gray-500">Created at</th>
                     <th class="px-8 py-4 text-right w-24"></th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
                 @if (Model.Branches != null && Model.Branches.Any())
                 {
                     foreach (var branch in Model.Branches)
                     {
                         <tr class="hover:bg-gray-50/50 transition-colors group">
-                            <td class="px-8 py-5 text-sm font-bold text-gray-800">@branch.BranchName</td>
-                            <td class="px-8 py-5 text-sm font-medium text-gray-500">-</td> <!-- Placeholder for description -->
-                            <td class="px-8 py-5 text-sm font-medium text-gray-600 max-w-xs truncate" title="@branch.BranchLocationAddress">@branch.BranchLocationAddress</td>
-                            <td class="px-8 py-5 text-sm font-medium text-gray-500">December 25, 2026</td> <!-- Static date for styling -->
+                            <td class="px-8 py-5 text-sm font-bold text-gray-800 dark:text-white">@branch.BranchName</td>
+                            <td class="px-8 py-5 text-sm font-medium text-gray-500 dark:text-gray-400">
+                                @if (branch.BranchManagers != null && branch.BranchManagers.Any())
+                                {
+                                    @string.Join(", ", branch.BranchManagers.Select(m => $"BRCH-{m.BManagerId:D4}"))
+                                }
+                                else
+                                {
+                                    <span class="italic text-gray-400">No Manager</span>
+                                }
+                            </td>
+                            <td class="px-8 py-5 text-sm font-medium text-gray-600 max-w-xs truncate dark:text-gray-300" title="@branch.BranchLocationAddress">@branch.BranchLocationAddress</td>
+                            <td class="px-8 py-5 text-sm font-medium text-gray-500 dark:text-gray-400">@branch.CreatedAt.ToString("MMMM dd, yyyy")</td>
                             <td class="px-8 py-5 text-right w-32">
                                 <div class="flex items-center justify-end space-x-2">
-                                    <button type="button" onclick="openEditModal('@branch.BranchId', '@branch.BranchName', '@branch.BranchLocationAddress')" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all">Edit</button>
+                                    <button type="button" 
+                                            onclick="openEditModal('@branch.BranchId', '@branch.BranchName', '@branch.IslandGroup', '@branch.Region', '@branch.Province', '@branch.CityMunicipality', '@branch.Barangay', '@branch.StreetAddress', '@branch.ZipCode')" 
+                                            class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-300">Edit</button>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@branch.BranchId" class="inline m-0">
-                                        <button type="submit" onclick="return confirm('Delete this branch?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all">Delete</button>
+                                        <button type="submit" onclick="return confirm('Delete this branch?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all dark:bg-slate-700 dark:text-gray-500">Delete</button>
                                     </form>
                                 </div>
                             </td>
@@ -91,7 +102,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" class="px-8 py-16 text-center text-gray-400 italic text-sm">
+                        <td colspan="5" class="px-8 py-16 text-center text-gray-400 italic text-sm dark:text-gray-500">
                             - No branches found -
                         </td>
                     </tr>
@@ -101,124 +112,133 @@
     </div>
     
     <!-- Footer -->
-    <div class="p-6 border-t border-gray-100 flex items-center justify-between">
-        <p class="text-sm text-gray-400 font-medium italic">Showing 1 - @(Model.Branches?.Count ?? 0) of @(Model.Branches?.Count ?? 0)</p>
+    <div class="p-6 border-t border-gray-100 flex items-center justify-between dark:border-gray-700">
+        <p class="text-sm text-gray-400 font-medium italic dark:text-gray-500">Showing 1 - @(Model.Branches?.Count ?? 0) of @(Model.Branches?.Count ?? 0)</p>
         <div class="flex items-center space-x-6">
             <div class="flex items-center space-x-3">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Records per page</span>
-                <div class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-600">10</div>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest dark:text-gray-500">Records per page</span>
+                <div class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-600 dark:bg-slate-700 dark:text-gray-300">10</div>
             </div>
             <div class="flex items-center space-x-2">
-                <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all"><i class="bi bi-chevron-left text-xs"></i></button>
-                <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all"><i class="bi bi-chevron-right text-xs"></i></button>
+                <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-500"><i class="bi bi-chevron-left text-xs"></i></button>
+                <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-500"><i class="bi bi-chevron-right text-xs"></i></button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Parent Overlay container for Modals to ensure stacking over layout -->
-<div id="modalOverlay" class="fixed inset-0 bg-black/40 z-[100] hidden items-center justify-center backdrop-blur-[2px] transition-all duration-300 opacity-0">
+<div id="modalOverlay" class="fixed inset-0 bg-black/40 z-[100] hidden items-center justify-center backdrop-blur-[2px] transition-all duration-300 opacity-0 px-4">
 
-    <!-- Create/Edit Branch Modal -->
-    <div id="branchModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all scale-95 duration-300 absolute">
-        <div class="p-6 border-b border-gray-100 bg-gray-50/30">
-            <h3 id="branchModalTitle" class="text-xl font-bold text-gray-800">Create Branch</h3>
+    <!-- Unified Create/Edit Branch Modal -->
+    <div id="branchModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden border border-gray-100 transform transition-all scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
+        <div class="p-6 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between dark:border-gray-700">
+            <h3 id="branchModalTitle" class="text-xl font-bold text-gray-800 dark:text-white">Create Branch</h3>
+            <button onclick="closeBranchModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
         
         <form id="branchForm" method="post" asp-page-handler="Create">
             <input type="hidden" id="editBranchId" name="BranchId" value="0" />
             
-            <div class="p-6 space-y-5">
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Name*</label>
-                    <input type="text" id="branchName" name="NewBranch.BranchName" required placeholder="Name" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm">
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Description</label>
-                    <input type="text" id="branchDesc" placeholder="Description" disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 cursor-not-allowed">
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-auto custom-scrollbar">
+                <!-- Branch Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Branch Name*</label>
+                        <input type="text" id="branchName" name="NewBranch.BranchName" required placeholder="Enter Branch Name" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    </div>
                 </div>
 
-                <div class="relative group">
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Address</label>
+                <hr class="border-gray-100 dark:border-gray-700" />
+
+                <!-- Address Section -->
+                <div class="space-y-5">
+                    <h4 class="text-xs font-black text-[#C41E24] uppercase tracking-widest flex items-center">
+                        <i class="bi bi-geo-alt-fill mr-2"></i> Address Information
+                    </h4>
                     
-                    <!-- Dummy Select that triggers the address modal -->
-                    <div class="relative cursor-pointer" onclick="openAddressModal()">
-                        <select class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none pointer-events-none focus:outline-none">
-                            <option value="">Create Address</option>
-                        </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Island Group -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Island Group*</label>
+                            <div class="relative">
+                                <select id="islandSelect" required class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <option value="">Select Island</option>
+                                    <option value="Luzon">Luzon</option>
+                                    <option value="Visayas">Visayas</option>
+                                    <option value="Mindanao">Mindanao</option>
+                                </select>
+                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Region -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Region*</label>
+                            <div class="relative">
+                                <select id="regionSelect" name="NewBranch.Region" required disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] disabled:cursor-not-allowed dark:bg-slate-800 dark:text-white dark:border-gray-700 dark:disabled:bg-slate-900/50">
+                                    <option value="">Select Region</option>
+                                </select>
+                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Province (Optional, hidden for NCR) -->
+                        <div id="provinceContainer" class="hidden">
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Province</label>
+                            <div class="relative">
+                                <select id="provinceSelect" name="NewBranch.Province" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <option value="">Select Province</option>
+                                </select>
+                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- City / Municipality -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">City / Municipality*</label>
+                            <div class="relative">
+                                <select id="citySelect" name="NewBranch.CityMunicipality" required disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] disabled:cursor-not-allowed dark:bg-slate-800 dark:text-white dark:border-gray-700 dark:disabled:bg-slate-900/50">
+                                    <option value="">Select City/Municipality</option>
+                                </select>
+                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Barangay -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Barangay*</label>
+                            <div class="relative">
+                                <select id="barangaySelect" name="NewBranch.Barangay" required disabled class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] disabled:cursor-not-allowed dark:bg-slate-800 dark:text-white dark:border-gray-700 dark:disabled:bg-slate-900/50">
+                                    <option value="">Select Barangay</option>
+                                </select>
+                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Hidden input that actually stores the address data for form submission -->
-                    <input type="hidden" id="branchAddressInput" name="NewBranch.BranchLocationAddress" />
-                    
-                    <!-- Read-only preview display of the selected address -->
-                    <p id="addressPreviewText" class="mt-2 text-xs font-semibold text-[#C41E24] hidden">No address selected.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Street -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Street Address</label>
+                            <input type="text" id="streetAddress" name="NewBranch.StreetAddress" placeholder="Bldg No, Street Name" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
+                        <!-- Zip Code -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1 dark:text-gray-400">Zip Code</label>
+                            <input type="text" id="zipCode" name="NewBranch.ZipCode" placeholder="Zip Code" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
-                <button type="button" onclick="closeBranchModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors bg-gray-200/50 rounded-lg">Cancel</button>
-                <button type="submit" id="saveBranchBtn" class="px-8 py-2.5 hidden bg-gray-400 text-white rounded-lg text-xs font-bold uppercase tracking-widest cursor-not-allowed" disabled>Submit</button>
+            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
+                <button type="button" onclick="closeBranchModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors bg-gray-200/50 rounded-lg dark:text-gray-400">Cancel</button>
+                <button type="submit" id="saveBranchBtn" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md">Submit</button>
             </div>
         </form>
-    </div>
-
-    <!-- Create Address Modal -->
-    <div id="addressModal" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all scale-95 duration-300 absolute hidden z-[110]">
-        <div class="p-6 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-gray-800">Create Address</h3>
-            <button onclick="closeAddressModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        
-        <div class="p-6 space-y-5">
-            <div>
-                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Address*</label>
-                <input type="text" id="addrStreet" placeholder="Street Address" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
-            </div>
-            
-            <div class="grid grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">City*</label>
-                    <input type="text" id="addrCity" placeholder="City" value="QC" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Island*</label>
-                    <div class="relative">
-                        <select id="addrIsland" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24]">
-                            <option value="Luzon">Luzon</option>
-                            <option value="Visayas">Visayas</option>
-                            <option value="Mindanao">Mindanao</option>
-                        </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Zip</label>
-                    <input type="text" id="addrZip" placeholder="Zip" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Country</label>
-                <input type="text" id="addrCountry" placeholder="Country" value="Philippines" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
-            </div>
-
-            <div class="pt-2">
-                <label class="flex items-center space-x-2 cursor-pointer group w-fit">
-                    <input type="checkbox" id="saveAddressCheck" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all">
-                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-gray-700">Save address</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
-            <button type="button" onclick="closeAddressModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors bg-gray-200/50 rounded-lg shadow-sm">Cancel</button>
-            <button type="button" onclick="compileAndSetAddress()" class="px-8 py-2.5 bg-gray-400 text-white rounded-lg text-xs font-bold uppercase tracking-widest transition-all shadow-sm" id="confirmAddressBtn" disabled>Confirm</button>
-        </div>
     </div>
 </div>
 
@@ -226,68 +246,98 @@
     <script>
         const overlay = document.getElementById('modalOverlay');
         const branchModal = document.getElementById('branchModal');
-        const addressModal = document.getElementById('addressModal');
-
-        // Form elements
         const form = document.getElementById('branchForm');
         const idInput = document.getElementById('editBranchId');
-        const nameInput = document.getElementById('branchName');
-        const addressInput = document.getElementById('branchAddressInput');
         
-        // Buttons
-        const saveBranchBtn = document.getElementById('saveBranchBtn');
-        const confirmAddressBtn = document.getElementById('confirmAddressBtn');
+        // Cascading Selects
+        const islandSelect = document.getElementById('islandSelect');
+        const regionSelect = document.getElementById('regionSelect');
+        const provinceSelect = document.getElementById('provinceSelect');
+        const citySelect = document.getElementById('citySelect');
+        const barangaySelect = document.getElementById('barangaySelect');
+        const provinceContainer = document.getElementById('provinceContainer');
 
-        // Address Modal inputs
-        const addrStreet = document.getElementById('addrStreet');
-        const addrCity = document.getElementById('addrCity');
-        const addrIsland = document.getElementById('addrIsland');
-        const addrZip = document.getElementById('addrZip');
-        const addrCountry = document.getElementById('addrCountry');
-        const addressPreviewText = document.getElementById('addressPreviewText');
+        const BASE_API = "https://psgc.gitlab.io/api";
 
         function openCreateModal() {
-            // Reset fields
             document.getElementById('branchModalTitle').innerText = 'Create Branch';
             form.action = "?handler=Create";
             idInput.value = "0";
-            nameInput.value = "";
-            nameInput.name = "NewBranch.BranchName";
-            addressInput.value = "";
-            addressInput.name = "NewBranch.BranchLocationAddress";
-            addressPreviewText.classList.add('hidden');
-            addressPreviewText.innerText = "";
-            checkBranchFormValidation();
-
-            // Show base overlay + branch modal
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
+            form.reset();
             
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                overlay.classList.add('opacity-100');
-                branchModal.classList.remove('scale-95');
-                branchModal.classList.add('scale-100');
-            }, 10);
+            // Set input names for creation
+            const prefix = "NewBranch.";
+            document.getElementById('branchName').name = prefix + "BranchName";
+            islandSelect.name = prefix + "IslandGroup";
+            regionSelect.name = prefix + "Region";
+            provinceSelect.name = prefix + "Province";
+            citySelect.name = prefix + "CityMunicipality";
+            barangaySelect.name = prefix + "Barangay";
+            document.getElementById('streetAddress').name = prefix + "StreetAddress";
+            document.getElementById('zipCode').name = prefix + "ZipCode";
+
+            resetCascadingSelects(true);
+            showOverlay();
         }
 
-        function openEditModal(id, name, address) {
+        async function openEditModal(id, name, island, region, province, city, barangay, street, zip) {
             document.getElementById('branchModalTitle').innerText = 'Edit Branch';
             form.action = "?handler=Edit";
             idInput.value = id;
-            nameInput.value = name;
-            nameInput.name = "BranchName"; 
-            addressInput.value = address;
-            addressInput.name = "BranchLocationAddress"; 
             
-            addressPreviewText.innerText = address;
-            addressPreviewText.classList.remove('hidden');
-            checkBranchFormValidation();
+            // Set input names for editing (no prefix)
+            document.getElementById('branchName').name = "BranchName";
+            islandSelect.name = "IslandGroup";
+            regionSelect.name = "Region";
+            provinceSelect.name = "Province";
+            citySelect.name = "CityMunicipality";
+            barangaySelect.name = "Barangay";
+            document.getElementById('streetAddress').name = "StreetAddress";
+            document.getElementById('zipCode').name = "ZipCode";
 
-            // Show base overlay + branch modal
+            document.getElementById('branchName').value = name;
+            document.getElementById('streetAddress').value = (street === '-' || !street) ? '' : street;
+            document.getElementById('zipCode').value = (zip === '-' || !zip) ? '' : zip;
+
+            showOverlay();
+
+            // Load cascading selects sequentially
+            if (island) {
+                islandSelect.value = island; // Match exactly (Luzon, Visayas, etc)
+                await handleIslandChange();
+                if (region) {
+                    // Region logic often uses codes for API but the dropdown value might be name or code
+                    // If we stored name, we need to find the option by text
+                    selectOptionByText(regionSelect, region);
+                    await handleRegionChange();
+                    if (province && province !== '-') {
+                        selectOptionByText(provinceSelect, province);
+                        await handleProvinceChange();
+                    }
+                    if (city) {
+                        selectOptionByText(citySelect, city);
+                        await handleCityChange();
+                        if (barangay) {
+                            selectOptionByText(barangaySelect, barangay);
+                        }
+                    }
+                }
+            }
+        }
+
+        function selectOptionByText(select, text) {
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].text === text) {
+                    select.selectedIndex = i;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function showOverlay() {
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
-            
             setTimeout(() => {
                 overlay.classList.remove('opacity-0');
                 overlay.classList.add('opacity-100');
@@ -301,84 +351,144 @@
             branchModal.classList.add('scale-95');
             overlay.classList.remove('opacity-100');
             overlay.classList.add('opacity-0');
-            
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
+                form.reset();
             }, 300);
         }
 
-        function openAddressModal() {
-            // Hide Branch Modal specifically, but keep overlay
-            branchModal.classList.add('hidden');
-            addressModal.classList.remove('hidden');
-            
-            setTimeout(() => {
-                addressModal.classList.remove('scale-95');
-                addressModal.classList.add('scale-100');
-            }, 10);
+        // PSGC Integration Logic
+        islandSelect.addEventListener('change', handleIslandChange);
+        regionSelect.addEventListener('change', handleRegionChange);
+        provinceSelect.addEventListener('change', handleProvinceChange);
+        citySelect.addEventListener('change', handleCityChange);
+
+        async function handleIslandChange() {
+            const island = islandSelect.value;
+            resetCascadingSelects(false, 'region');
+            if (!island) return;
+
+            const regions = await fetchApi(`${BASE_API}/island-groups/${island.toLowerCase()}/regions/`);
+            populateSelect(regionSelect, regions);
+            regionSelect.disabled = false;
+            regionSelect.classList.remove('bg-gray-50');
         }
 
-        function closeAddressModal() {
-            addressModal.classList.remove('scale-100');
-            addressModal.classList.add('scale-95');
-            
-            setTimeout(() => {
-                addressModal.classList.add('hidden');
-                branchModal.classList.remove('hidden'); // bring back branch modal
-            }, 300);
-        }
+        async function handleRegionChange() {
+            const option = regionSelect.options[regionSelect.selectedIndex];
+            const regionCode = option.getAttribute('data-code');
+            resetCascadingSelects(false, 'province');
+            if (!regionCode) return;
 
-        // Validate Address Modal
-        function checkAddressFormValidation() {
-            if (addrStreet.value.trim().length > 0 && addrCity.value.trim().length > 0 && addrIsland.value.trim().length > 0) {
-                confirmAddressBtn.disabled = false;
-                confirmAddressBtn.classList.remove('bg-gray-400');
-                confirmAddressBtn.classList.add('bg-[#C41E24]');
+            const provinces = await fetchApi(`${BASE_API}/regions/${regionCode}/provinces/`);
+            
+            if (provinces.length > 0) {
+                provinceContainer.classList.remove('hidden');
+                populateSelect(provinceSelect, provinces);
+                provinceSelect.disabled = false;
             } else {
-                confirmAddressBtn.disabled = true;
-                confirmAddressBtn.classList.remove('bg-[#C41E24]');
-                confirmAddressBtn.classList.add('bg-gray-400');
+                provinceContainer.classList.add('hidden');
+                // Fetch cities directly if no provinces
+                const cities = await fetchApi(`${BASE_API}/regions/${regionCode}/cities-municipalities/`);
+                populateSelect(citySelect, cities);
+                citySelect.disabled = false;
+                citySelect.classList.remove('bg-gray-50');
             }
         }
 
-        [addrStreet, addrCity].forEach(input => {
-            input.addEventListener('input', checkAddressFormValidation);
+        async function handleProvinceChange() {
+            const option = provinceSelect.options[provinceSelect.selectedIndex];
+            const provinceCode = option.getAttribute('data-code');
+            resetCascadingSelects(false, 'city');
+            if (!provinceCode) return;
+
+            const cities = await fetchApi(`${BASE_API}/provinces/${provinceCode}/cities-municipalities/`);
+            populateSelect(citySelect, cities);
+            citySelect.disabled = false;
+            citySelect.classList.remove('bg-gray-50');
+        }
+
+        async function handleCityChange() {
+            const option = citySelect.options[citySelect.selectedIndex];
+            const cityCode = option.getAttribute('data-code');
+            resetCascadingSelects(false, 'barangay');
+            if (!cityCode) return;
+
+            const barangays = await fetchApi(`${BASE_API}/cities-municipalities/${cityCode}/barangays/`);
+            populateSelect(barangaySelect, barangays);
+            barangaySelect.disabled = false;
+            barangaySelect.classList.remove('bg-gray-50');
+        }
+
+        function resetCascadingSelects(all = true, startFrom = 'region') {
+            const levels = ['region', 'province', 'city', 'barangay'];
+            const startIdx = levels.indexOf(startFrom);
+            
+            levels.forEach((level, idx) => {
+                if (idx >= startIdx || all) {
+                    const select = document.getElementById(`${level}Select`);
+                    select.innerHTML = `<option value="">Select ${level.charAt(0).toUpperCase() + level.slice(1)}</option>`;
+                    select.disabled = true;
+                    select.classList.add('bg-gray-50');
+                    if (level === 'province') provinceContainer.classList.add('hidden');
+                }
+            });
+
+            if (all) {
+                islandSelect.value = "";
+                document.getElementById('branchName').value = "";
+                document.getElementById('streetAddress').value = "";
+                document.getElementById('zipCode').value = "";
+            }
+        }
+
+        async function fetchApi(url) {
+            try {
+                const response = await fetch(url);
+                return await response.json();
+            } catch (error) {
+                console.error("PSGC API Error:", error);
+                return [];
+            }
+        }
+
+        function populateSelect(select, data) {
+            const type = select.id.replace('Select', '');
+            select.innerHTML = `<option value="">Select ${type.charAt(0).toUpperCase() + type.slice(1)}</option>`;
+            
+            // Sort data by name
+            data.sort((a, b) => a.name.localeCompare(b.name));
+            
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.name; // Use name for storage
+                option.text = item.name;
+                // Store code in data attribute for API calls
+                if (item.code) option.setAttribute('data-code', item.code);
+                select.appendChild(option);
+            });
+        }
+
+        // Before submitting, we need to replace codes with names for storage
+        form.addEventListener('submit', function(e) {
+            // Re-map select values to names for backend storage
+            const selects = [islandSelect, regionSelect, provinceSelect, citySelect, barangaySelect];
+            selects.forEach(select => {
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    // We'll let the names be sent to the server for storage
+                    // Currently select values ARE the codes if available
+                    // Let's actually keep the codes if we want to re-load them exactly, 
+                    // but the user wants names in the DB.
+                    // Solution: Add hidden inputs for names if needed, or just change values before submit.
+                    if (selectedOption.text && selectedOption.value !== "") {
+                        // Force value to be text for the server
+                        // Wait, if I change it now, I might break logic if I had any.
+                        // But I'm submitting the form.
+                    }
+                }
+            });
         });
-        addrIsland.addEventListener('change', checkAddressFormValidation);
-
-        function compileAndSetAddress() {
-            const street = addrStreet.value.trim();
-            const city = addrCity.value.trim();
-            const island = addrIsland.value;
-            const zip = addrZip.value.trim();
-            const country = addrCountry.value.trim();
-
-            let parts = [street, city, island];
-            if (zip) parts.push(zip);
-            if (country) parts.push(country);
-
-            const compiledAddress = parts.join(", ");
-            addressInput.value = compiledAddress;
-            addressPreviewText.innerText = compiledAddress;
-            addressPreviewText.classList.remove('hidden');
-            
-            checkBranchFormValidation();
-            closeAddressModal();
-        }
-
-        // Validate Branch form
-        function checkBranchFormValidation() {
-            if (nameInput.value.trim().length > 0 && addressInput.value.trim().length > 0) {
-                saveBranchBtn.classList.remove('hidden', 'bg-gray-400', 'cursor-not-allowed');
-                saveBranchBtn.classList.add('bg-[#C41E24]', 'hover:bg-red-700');
-                saveBranchBtn.disabled = false;
-            } else {
-                saveBranchBtn.classList.add('hidden');
-                saveBranchBtn.disabled = true;
-            }
-        }
-
-        nameInput.addEventListener('input', checkBranchFormValidation);
     </script>
 }
