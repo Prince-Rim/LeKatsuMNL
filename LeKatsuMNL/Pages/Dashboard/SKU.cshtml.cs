@@ -84,5 +84,27 @@ namespace LeKatsuMNL.Pages.Dashboard
             await OnGetAsync();
             return Page();
         }
+        public async Task<IActionResult> OnPostRejectAsync(string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
+        {
+            if (string.IsNullOrEmpty(RejectName) || RejectQty <= 0)
+            {
+                return await InitializeAndReturnPage();
+            }
+
+            var reject = new RejectItem
+            {
+                ItemName = RejectName,
+                Quantity = RejectQty,
+                Uom = RejectUOM,
+                Reason = RejectReason,
+                RejectedAt = System.DateTime.Now,
+                RejectType = "SKU"
+            };
+
+            _context.RejectItems.Add(reject);
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage("/Dashboard/Rejects", new { tab = "sku" });
+        }
     }
 }

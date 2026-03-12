@@ -123,7 +123,7 @@
     <header class="fixed top-0 left-0 right-0 h-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-[60] flex items-center justify-between px-8 transition-colors duration-200">
         <div class="flex items-center space-x-4">
             <img src="/images/lekatsu_icon.jpg" class="h-10 w-10 rounded-full border border-gray-100 dark:border-gray-600" alt="Logo">
-            <span class="font-bold text-base tracking-tight text-gray-800 dark:text-gray-100">Le Katsu MNL <span class="text-gray-400 font-medium mx-1">•</span> <span class="text-gray-400 font-medium text-xs">Commissary</span></span>
+            <span class="font-bold text-base tracking-tight text-gray-800 dark:text-gray-100">Le Katsu MNL <span class="text-gray-400 font-medium mx-1 dark:text-gray-500">•</span> <span class="text-gray-400 font-medium text-xs dark:text-gray-500">Commissary</span></span>
         </div>
 
         <div class="flex items-center space-x-6">
@@ -137,7 +137,7 @@
             <div class="flex items-center space-x-3 border-l pl-6 border-gray-200 dark:border-gray-700">
                 <div class="text-right">
                     <p class="text-sm font-bold leading-none">@User.Identity?.Name</p>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mt-1 dark:text-gray-500">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
                 </div>
                 <div class="w-10 h-10 bg-[#C41E24] rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center">
                     <img src="https://ui-avatars.com/api/?name=@(Uri.EscapeDataString(User.Identity?.Name ?? "Admin"))&background=C41E24&color=fff&bold=true&size=40" alt="User profile" class="w-full h-full object-cover">

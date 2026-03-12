@@ -53,20 +53,20 @@
 <div class="space-y-6 max-w-7xl mx-auto py-8 px-6">
     <!-- Product Header Section -->
     <div class="flex items-center space-x-8 mb-8">
-        <div class="w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm relative overflow-hidden group">
+        <div class="w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm relative overflow-hidden group dark:bg-slate-700 dark:border-gray-700">
             <i class="bi bi-image text-3xl text-gray-300"></i>
             <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
                 <i class="bi bi-pencil-square text-white text-xl"></i>
             </div>
         </div>
         <div class="flex-1 space-y-4">
-            <h2 class="text-3xl font-extrabold text-gray-800 tracking-tight">@Model.SkuHeader?.ItemName: <span class="text-[#C41E24]">@Model.SkuHeader?.PackSize</span></h2>
+            <h2 class="text-3xl font-extrabold text-gray-800 tracking-tight dark:text-white">@Model.SkuHeader?.ItemName: <span class="text-[#C41E24]">@Model.SkuHeader?.PackSize</span></h2>
             <div class="flex items-center space-x-4">
                 <button type="button" class="px-6 py-2.5 bg-[#FFF5F5] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest shadow-sm hover:bg-red-50 transition-all flex items-center border border-red-100/50">
                     <i class="bi bi-upload mr-2 text-sm"></i> Upload Image
                 </button>
                 <div class="flex-1 max-w-md">
-                    <input type="text" placeholder="Enter Image URL" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm">
+                    <input type="text" placeholder="Enter Image URL" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm dark:bg-slate-800 dark:placeholder:text-gray-500 dark:border-gray-700">
                 </div>
                 <button type="button" class="p-2.5 bg-[#C41E24] text-white rounded-lg hover:bg-red-700 transition-all shadow-md">
                     <i class="bi bi-floppy text-lg"></i>
@@ -83,26 +83,26 @@
                 <input type="hidden" asp-for="SkuHeader.SkuId" />
                 
                 <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Product Name</label>
-                    <input type="text" asp-for="SkuHeader.ItemName" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-base font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Product Name</label>
+                    <input type="text" asp-for="SkuHeader.ItemName" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-base font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Category</label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Category</label>
                         <input type="hidden" asp-for="SkuHeader.CategoryId" />
-                        <input type="text" value="@(Model.SkuHeader?.Category?.CategoryName ?? "-")" readonly class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none cursor-default">
+                        <input type="text" value="@(Model.SkuHeader?.Category?.CategoryName ?? "-")" readonly class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none cursor-default dark:bg-slate-700/50 dark:text-white dark:border-gray-700">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Sub-Class</label>
-                        <input type="text" asp-for="SkuHeader.SubClass" placeholder="Sub-Class" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Sub-Class</label>
+                        <input type="text" asp-for="SkuHeader.SubClass" placeholder="Sub-Class" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Packaging Type</label>
-                        <select asp-for="SkuHeader.PackagingType" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all appearance-none cursor-pointer">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Packaging Type</label>
+                        <select asp-for="SkuHeader.PackagingType" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
                             <option value="">Packaging Type</option>
                             <option value="Bottle">Bottle</option>
                             <option value="Pack">Pack</option>
@@ -110,48 +110,48 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Packaging Unit</label>
-                        <input type="text" asp-for="SkuHeader.PackagingUnit" placeholder="Packaging Unit" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Packaging Unit</label>
+                        <input type="text" asp-for="SkuHeader.PackagingUnit" placeholder="Packaging Unit" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Pack size</label>
-                        <input type="text" asp-for="SkuHeader.PackSize" placeholder="Pack Size" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Pack size</label>
+                        <input type="text" asp-for="SkuHeader.PackSize" placeholder="Pack Size" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Unit of Measurement</label>
-                        <input type="text" asp-for="SkuHeader.Uom" placeholder="UOM" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit of Measurement</label>
+                        <input type="text" asp-for="SkuHeader.Uom" placeholder="UOM" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Supplier</label>
-                    <input type="text" asp-for="SkuHeader.Supplier" placeholder="Supplier" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Supplier</label>
+                    <input type="text" asp-for="SkuHeader.Supplier" placeholder="Supplier" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
                 </div>
 
                 <div class="pt-2 flex items-center justify-between">
                     <div class="flex items-center space-x-6">
                         <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" asp-for="SkuHeader.IsSellingPriceEnabled" class="w-5 h-5 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all">
-                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest group-hover:text-[#C41E24]">Selling Price</span>
+                            <input type="checkbox" asp-for="SkuHeader.IsSellingPriceEnabled" class="w-5 h-5 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all dark:border-gray-600">
+                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest group-hover:text-[#C41E24] dark:text-gray-200">Selling Price</span>
                         </label>
                         <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" asp-for="SkuHeader.IsReorderLevelEnabled" class="w-5 h-5 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all">
-                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest group-hover:text-[#C41E24]">Enable reorder level</span>
+                            <input type="checkbox" asp-for="SkuHeader.IsReorderLevelEnabled" class="w-5 h-5 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all dark:border-gray-600">
+                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest group-hover:text-[#C41E24] dark:text-gray-200">Enable reorder level</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-2">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Selling Price</label>
-                        <input type="number" step="0.01" asp-for="SkuHeader.SellingPrice" placeholder="₱ 0.00" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Selling Price</label>
+                        <input type="number" step="0.01" asp-for="SkuHeader.SellingPrice" placeholder="₱ 0.00" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Unit Cost</label>
-                        <input type="number" step="0.01" asp-for="SkuHeader.UnitCost" placeholder="₱ 0.00" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit Cost</label>
+                        <input type="number" step="0.01" asp-for="SkuHeader.UnitCost" placeholder="₱ 0.00" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                 </div>
 
@@ -165,9 +165,9 @@
 
         <!-- Right: Recipe Details -->
         <div class="col-span-12 lg:col-span-7 space-y-6">
-            <div class="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-gray-100">
-                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">Stock keeping Unit Sub Category</h3>
+            <div class="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+                <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">Stock keeping Unit Sub Category</h3>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <button type="button" onclick="openRecipeModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
@@ -177,7 +177,7 @@
                                 <i class="bi bi-arrow-repeat mr-2"></i> Update
                             </button>
                         </div>
-                        <button type="button" class="px-5 py-2.5 bg-white border border-[#C41E24] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all flex items-center">
+                        <button type="button" class="px-5 py-2.5 bg-white border border-[#C41E24] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all flex items-center dark:bg-slate-800">
                             <i class="bi bi-file-earmark-x mr-2"></i> Detach SKU
                         </button>
                     </div>
@@ -204,21 +204,21 @@
                                             <input type="hidden" name="SkuHeader.SkuRecipes[@i].ComId" value="@recipes[i].ComId" />
                                             <div class="flex items-center space-x-4">
                                                 <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                                                <span class="font-bold text-gray-800">@recipes[i].CommissaryInventory?.ItemName</span>
+                                                <span class="font-bold text-gray-800 dark:text-white">@recipes[i].CommissaryInventory?.ItemName</span>
                                             </div>
                                         </td>
                                         <td>
-                                            <input type="text" name="SkuHeader.SkuRecipes[@i].QuantityNeeded" value="@recipes[i].QuantityNeeded" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24]">
+                                            <input type="text" name="SkuHeader.SkuRecipes[@i].QuantityNeeded" value="@recipes[i].QuantityNeeded" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
                                         </td>
                                         <td>
-                                            <select name="SkuHeader.SkuRecipes[@i].Uom" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer">
+                                            <select name="SkuHeader.SkuRecipes[@i].Uom" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
                                                 <option value="Grams" selected="@(recipes[i].Uom == "Grams")">Grams</option>
                                                 <option value="ML" selected="@(recipes[i].Uom == "ML")">ML</option>
                                                 <option value="PCS" selected="@(recipes[i].Uom == "PCS")">PCS</option>
                                             </select>
                                         </td>
                                         <td class="text-right pr-4">
-                                            <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors">
+                                            <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
                                                 <i class="bi bi-trash3"></i>
                                             </button>
                                         </td>
@@ -240,19 +240,19 @@
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
             <div class="p-8">
                 <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest">@(Model.SkuHeader?.ItemName ?? "Product") - Add recipe item</h3>
-                    <button onclick="closeRecipeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">@(Model.SkuHeader?.ItemName ?? "Product") - Add recipe item</h3>
+                    <button onclick="closeRecipeModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                         <i class="bi bi-x-lg text-lg"></i>
                     </button>
                 </div>
 
                 <div class="relative mb-6">
-                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search Item" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400">
-                    <i class="bi bi-grid-3x3-gap absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search Item" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
+                    <i class="bi bi-grid-3x3-gap absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
                 </div>
 
                 <div class="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
@@ -260,27 +260,27 @@
                     {
                         @foreach (var item in Model.AvailableItems)
                         {
-                            <div class="item-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group" onclick="toggleItemSelection(this)">
-                                <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded group-hover:border-[#C41E24] transition-all checkbox-container">
+                            <div class="item-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group dark:hover:bg-slate-700/50" onclick="toggleItemSelection(this)">
+                                <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded group-hover:border-[#C41E24] transition-all checkbox-container dark:border-gray-600">
                                     <input type="checkbox" class="hidden item-checkbox" value="@item.ComId" data-name="@item.ItemName">
                                     <i class="bi bi-check-lg text-white text-xs opacity-0"></i>
                                 </div>
                                 <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
                                 </div>
-                                <span class="flex-1 font-bold text-gray-800">@item.ItemName</span>
+                                <span class="flex-1 font-bold text-gray-800 dark:text-white">@item.ItemName</span>
                             </div>
                         }
                     }
                     else
                     {
-                        <div class="p-6 text-center text-gray-400 font-medium text-sm italic">
+                        <div class="p-6 text-center text-gray-400 font-medium text-sm italic dark:text-gray-500">
                             No commissary items available. Please add items to the inventory first.
                         </div>
                     }
                 </div>
             </div>
-            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
-                <button onclick="closeRecipeModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors">Cancel</button>
+            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
+                <button onclick="closeRecipeModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
                 <button onclick="addSelectedItems()" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Confirm Selection</button>
             </div>
         </div>
@@ -351,21 +351,21 @@
                                 <input type="hidden" name="SkuHeader.SkuRecipes[${index}].ComId" value="${comId}" />
                                 <div class="flex items-center space-x-4">
                                     <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                                    <span class="font-bold text-gray-800">${itemName}</span>
+                                    <span class="font-bold text-gray-800 dark:text-white">${itemName}</span>
                                 </div>
                             </td>
                             <td>
-                                <input type="text" name="SkuHeader.SkuRecipes[${index}].QuantityNeeded" value="1" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24]">
+                                <input type="text" name="SkuHeader.SkuRecipes[${index}].QuantityNeeded" value="1" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
                             </td>
                             <td>
-                                <select name="SkuHeader.SkuRecipes[${index}].Uom" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer">
+                                <select name="SkuHeader.SkuRecipes[${index}].Uom" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
                                     <option value="Grams">Grams</option>
                                     <option value="ML">ML</option>
                                     <option value="PCS">PCS</option>
                                 </select>
                             </td>
                             <td class="text-right pr-4">
-                                <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors">
+                                <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </td>

@@ -19,48 +19,48 @@
         <form method="post" asp-page-handler="EditAccount" id="edit-account-form" class="space-y-8 max-w-4xl">
             <!-- Full Name -->
             <div class="grid grid-cols-[200px_1fr_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide">Account Full Name</label>
+                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Account Full Name</label>
                 <div class="w-full">
-                    <input type="text" asp-for="FirstName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                    <input type="text" asp-for="FirstName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
                 <div class="w-full">
-                    <input type="text" asp-for="LastName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                    <input type="text" asp-for="LastName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
             </div>
             
             <!-- Middle Name -->
             <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide">Middle Name</label>
+                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Middle Name</label>
                 <div class="max-w-[calc(50%-12px)]">
-                    <input type="text" asp-for="MiddleName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                    <input type="text" asp-for="MiddleName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
             </div>
 
             <!-- Role (Uneditable) -->
             <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide">Role</label>
+                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Role</label>
                 <div class="w-full">
-                    <input type="text" value="@Model.Role" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none transition-colors duration-200" readonly>
+                    <input type="text" value="@Model.Role" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
             </div>
 
             <!-- Email Address -->
             <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide">Email Address</label>
+                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Email Address</label>
                 <div class="max-w-[calc(50%-12px)]">
-                    <input type="email" asp-for="Email" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200" readonly>
+                    <input type="email" asp-for="Email" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
             </div>
 
             <!-- Edit / Save Actions -->
-            <div class="flex justify-end pt-8 mt-4 border-t border-gray-50 transition-colors duration-200">
+            <div class="flex justify-end pt-8 mt-4 border-t border-gray-50 transition-colors duration-200 dark:border-gray-700">
                 <div id="start-edit-actions">
-                    <button type="button" onclick="enableEdit()" class="px-5 py-2.5 bg-white border-2 border-[#C41E24] text-[#C41E24] rounded font-bold text-sm shadow-sm hover:bg-red-50 active:scale-95 transition-all">
+                    <button type="button" onclick="enableEdit()" class="px-5 py-2.5 bg-white border-2 border-[#C41E24] text-[#C41E24] rounded font-bold text-sm shadow-sm hover:bg-red-50 active:scale-95 transition-all dark:bg-slate-800">
                         Edit Details
                     </button>
                 </div>
                 <div id="save-edit-actions" class="hidden flex space-x-4">
-                    <button type="button" onclick="cancelEdit()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded font-bold text-sm shadow-sm hover:bg-gray-300 active:scale-95 transition-all">
+                    <button type="button" onclick="cancelEdit()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded font-bold text-sm shadow-sm hover:bg-gray-300 active:scale-95 transition-all dark:text-gray-200">
                         Cancel
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-[#C41E24] text-white rounded font-bold text-sm shadow hover:bg-[#a51a1f] active:scale-95 transition-all">
@@ -72,13 +72,13 @@
 
         <!-- Delete Account Form Separate -->
         <div class="max-w-4xl space-y-8 mt-4">
-            <div class="grid grid-cols-[200px_1fr] gap-6 items-center pt-8 border-t border-gray-50 transition-colors duration-200">
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center pt-8 border-t border-gray-50 transition-colors duration-200 dark:border-gray-700">
                 <div class="flex items-center">
                     <label class="text-xs font-bold text-red-600 tracking-wide">Danger Zone</label>
                 </div>
                 <div class="flex justify-end">
                     <form method="post" asp-page-handler="DeleteAccount" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone and you will be logged out immediately.');">
-                        <button type="submit" class="px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded font-bold text-sm shadow-sm hover:bg-red-50 hover:border-red-400 active:scale-95 transition-all">
+                        <button type="submit" class="px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded font-bold text-sm shadow-sm hover:bg-red-50 hover:border-red-400 active:scale-95 transition-all dark:bg-slate-800">
                             Delete Account
                         </button>
                     </form>
@@ -91,9 +91,9 @@
     <div id="content-feature" class="p-8 hidden">
         <div class="space-y-8 max-w-4xl">
             <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide">Privileges</label>
+                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Privileges</label>
                 <div class="max-w-[calc(50%-12px)]">
-                    <input type="text" value="@Model.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none" readonly>
+                    <input type="text" value="@Model.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 italic mt-4 pl-[224px]">Your current access level restricts or permits actions across different modules.</p>

@@ -14,51 +14,51 @@
 
 <div class="space-y-6">
     <!-- Users List Card -->
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
-            <h2 class="text-lg font-bold text-gray-800">User Management</h2>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white">User Management</h2>
             <div class="relative">
-                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                <input type="text" placeholder="Search for user..." class="pl-11 pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 w-64 transition-all">
+                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm dark:text-gray-500"></i>
+                <input type="text" placeholder="Search for user..." class="pl-11 pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 w-64 transition-all dark:bg-slate-700">
             </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-gray-50/50 border-b border-gray-100">
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">User ID</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">First Name</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Last Name</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Role</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Branch Name</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                    <tr class="bg-gray-50/50 border-b border-gray-100 dark:border-gray-700">
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">User ID</th>
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name</th>
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Last Name</th>
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-500">Status</th>
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-500">Role</th>
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-500">Branch Name</th>
+                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right dark:text-gray-500">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
                     @if (Model.AllUsers != null && Model.AllUsers.Any())
                     {
                         foreach (var user in Model.AllUsers)
                         {
                             <tr class="hover:bg-gray-50/50 transition-colors group">
                                 <td class="px-8 py-5 text-sm font-bold text-[#C41E24]">@user.UserSystemId</td>
-                                <td class="px-8 py-5 text-sm font-semibold text-gray-700">@user.FirstName</td>
-                                <td class="px-8 py-5 text-sm font-semibold text-gray-700">@user.LastName</td>
+                                <td class="px-8 py-5 text-sm font-semibold text-gray-700 dark:text-gray-200">@user.FirstName</td>
+                                <td class="px-8 py-5 text-sm font-semibold text-gray-700 dark:text-gray-200">@user.LastName</td>
                                 <td class="px-8 py-5 text-center">
                                     <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider @(user.Status.ToLower() == "active" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")">
                                         @user.Status
                                     </span>
                                 </td>
                                 <td class="px-8 py-5 text-center">
-                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold uppercase tracking-wider dark:bg-slate-700 dark:text-gray-300">
                                         @user.Role
                                     </span>
                                 </td>
-                                <td class="px-8 py-5 text-center text-sm font-medium text-gray-500">@user.BranchName</td>
+                                <td class="px-8 py-5 text-center text-sm font-medium text-gray-500 dark:text-gray-400">@user.BranchName</td>
                                 <td class="px-8 py-5 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <button onclick='openEditModal(@Json.Serialize(user))' class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all">Update</button>
+                                        <button onclick='openEditModal(@Json.Serialize(user))' class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-300">Update</button>
                                         <form method="post" asp-page-handler="ToggleStatus" class="inline">
                                             <input type="hidden" name="id" value="@user.Id" />
                                             <input type="hidden" name="type" value="@user.Type" />
@@ -69,7 +69,7 @@
                                         <form method="post" asp-page-handler="Delete" class="inline">
                                             <input type="hidden" name="id" value="@user.Id" />
                                             <input type="hidden" name="type" value="@user.Type" />
-                                            <button type="submit" onclick="return confirm('Delete this user?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all">Delete</button>
+                                            <button type="submit" onclick="return confirm('Delete this user?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all dark:bg-slate-700 dark:text-gray-500">Delete</button>
                                         </form>
                                     </div>
                                 </td>
@@ -79,7 +79,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="px-8 py-16 text-center text-gray-400 italic text-sm">
+                            <td colspan="7" class="px-8 py-16 text-center text-gray-400 italic text-sm dark:text-gray-500">
                                 - No users found -
                             </td>
                         </tr>
@@ -89,17 +89,17 @@
         </div>
         
         <!-- Pagination Footer -->
-        <div class="p-6 border-t border-gray-100 flex items-center justify-between">
-            <p class="text-sm text-gray-400 font-medium italic">Showing 1 - @(Model.AllUsers?.Count ?? 0) of @(Model.AllUsers?.Count ?? 0)</p>
+        <div class="p-6 border-t border-gray-100 flex items-center justify-between dark:border-gray-700">
+            <p class="text-sm text-gray-400 font-medium italic dark:text-gray-500">Showing 1 - @(Model.AllUsers?.Count ?? 0) of @(Model.AllUsers?.Count ?? 0)</p>
             <div class="flex items-center space-x-6">
                 <div class="flex items-center space-x-3">
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Records per page</span>
-                    <div class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-600">10</div>
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest dark:text-gray-500">Records per page</span>
+                    <div class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-600 dark:bg-slate-700 dark:text-gray-300">10</div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all"><i class="bi bi-chevron-left text-xs"></i></button>
+                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-500"><i class="bi bi-chevron-left text-xs"></i></button>
                     <button class="w-8 h-8 flex items-center justify-center bg-[#C41E24] text-white rounded-lg shadow-md font-bold text-sm">1</button>
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all"><i class="bi bi-chevron-right text-xs"></i></button>
+                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-500"><i class="bi bi-chevron-right text-xs"></i></button>
                 </div>
             </div>
         </div>
@@ -108,57 +108,57 @@
 
 <!-- Create User Modal -->
 <div id="createUserModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
-            <h3 class="text-xl font-bold text-gray-800">Create User</h3>
-            <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Create User</h3>
+            <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
         <form method="post" asp-page-handler="Create" class="p-8 space-y-5">
             <div class="grid grid-cols-3 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">First Name*</label>
-                    <input asp-for="NewUser.FirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" placeholder="John" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name*</label>
+                    <input asp-for="NewUser.FirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. John" required>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Middle Name</label>
-                    <input asp-for="NewUser.MiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" placeholder="Quincy">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Middle Name</label>
+                    <input asp-for="NewUser.MiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Quincy">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Last Name*</label>
-                    <input asp-for="NewUser.LastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" placeholder="Doe" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Last Name*</label>
+                    <input asp-for="NewUser.LastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Doe" required>
                 </div>
             </div>
             
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Address*</label>
-                    <input asp-for="NewUser.Email" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" placeholder="email@example.com" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Email Address*</label>
+                    <input asp-for="NewUser.Email" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="email@example.com" required>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Number*</label>
-                    <input asp-for="NewUser.ContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" placeholder="0912..." required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Contact Number*</label>
+                    <input asp-for="NewUser.ContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="09..." required>
                 </div>
             </div>
 
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Password*</label>
-                <input asp-for="NewUser.Password" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" placeholder="Create a password" required>
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Password*</label>
+                <input asp-for="NewUser.Password" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
             </div>
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Role*</label>
-                    <select asp-for="NewUser.Role" id="newRole" onchange="toggleNewUserFields()" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Role*</label>
+                    <select asp-for="NewUser.Role" id="newRole" onchange="toggleNewUserFields()" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                         <option value="Admin">Admin</option>
                         <option value="Branch Manager">Branch Manager</option>
                         <option value="Staff">Staff</option>
                     </select>
                 </div>
                 <div class="space-y-2 hidden" id="newBranchContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Branch Location</label>
-                    <select asp-for="NewUser.BranchId" id="newBranchId" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Branch Location</label>
+                    <select asp-for="NewUser.BranchId" id="newBranchId" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                         <option value="">Select Branch</option>
                         @foreach(var branch in Model.Branches) {
                             <option value="@branch.BranchId">@branch.BranchName</option>
@@ -166,8 +166,8 @@
                     </select>
                 </div>
                 <div class="space-y-2" id="newPrivilegesContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Privileges</label>
-                    <select asp-for="NewUser.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Privileges</label>
+                    <select asp-for="NewUser.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                         <option value="Full Access">Full Access</option>
                         <option value="Manage Users Only">Manage Users Only</option>
                         <option value="Reports Only">Reports Only</option>
@@ -175,8 +175,8 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
-                <button type="button" onclick="closeCreateModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all">Cancel</button>
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onclick="closeCreateModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all dark:bg-slate-700 dark:text-gray-300">Cancel</button>
                 <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Submit</button>
             </div>
         </form>
@@ -185,10 +185,10 @@
 
 <!-- Edit User Modal -->
 <div id="editUserModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
-            <h3 class="text-xl font-bold text-gray-800">Update User</h3>
-            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Update User</h3>
+            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -198,47 +198,47 @@
             
             <div class="grid grid-cols-3 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">First Name*</label>
-                    <input asp-for="EditUser.FirstName" id="editFirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name*</label>
+                    <input asp-for="EditUser.FirstName" id="editFirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Middle Name</label>
-                    <input asp-for="EditUser.MiddleName" id="editMiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Middle Name</label>
+                    <input asp-for="EditUser.MiddleName" id="editMiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Last Name*</label>
-                    <input asp-for="EditUser.LastName" id="editLastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Last Name*</label>
+                    <input asp-for="EditUser.LastName" id="editLastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Address*</label>
-                    <input asp-for="EditUser.Email" id="editEmail" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Email Address*</label>
+                    <input asp-for="EditUser.Email" id="editEmail" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Number*</label>
-                    <input asp-for="EditUser.ContactNum" id="editContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Contact Number*</label>
+                    <input asp-for="EditUser.ContactNum" id="editContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                 </div>
             </div>
 
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600">New Password (leave blank to keep current)</label>
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500">New Password (leave blank to keep current)</label>
                 <input asp-for="EditUser.Password" type="password" class="w-full px-4 py-3 bg-green-50/30 border border-green-100 rounded-xl text-sm focus:ring-2 focus:ring-green-100 focus:border-green-400 transition-all">
             </div>
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Role*</label>
-                    <select asp-for="EditUser.Role" id="editRole" onchange="toggleEditUserFields()" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Role*</label>
+                    <select asp-for="EditUser.Role" id="editRole" onchange="toggleEditUserFields()" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                         <option value="Admin">Admin</option>
                         <option value="Branch Manager">Branch Manager</option>
                         <option value="Staff">Staff</option>
                     </select>
                 </div>
                 <div class="space-y-2 hidden" id="editBranchContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Branch</label>
-                    <select asp-for="EditUser.BranchId" id="editBranchId" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Branch</label>
+                    <select asp-for="EditUser.BranchId" id="editBranchId" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                         <option value="">Select Branch</option>
                         @foreach(var branch in Model.Branches) {
                             <option value="@branch.BranchId">@branch.BranchName</option>
@@ -246,8 +246,8 @@
                     </select>
                 </div>
                 <div class="space-y-2" id="editPrivilegesContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Privileges</label>
-                    <select asp-for="EditUser.Privileges" id="editPrivileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Privileges</label>
+                    <select asp-for="EditUser.Privileges" id="editPrivileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                         <option value="Full Access">Full Access</option>
                         <option value="Manage Users Only">Manage Users Only</option>
                         <option value="Reports Only">Reports Only</option>
@@ -256,15 +256,15 @@
             </div>
 
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Account Status</label>
-                <select asp-for="EditUser.Status" id="editStatus" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Account Status</label>
+                <select asp-for="EditUser.Status" id="editStatus" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                     <option value="Active">Active</option>
                     <option value="Deactivated">Deactivated</option>
                 </select>
             </div>
 
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
-                <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all">Cancel</button>
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all dark:bg-slate-700 dark:text-gray-300">Cancel</button>
                 <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Save Changes</button>
             </div>
         </form>

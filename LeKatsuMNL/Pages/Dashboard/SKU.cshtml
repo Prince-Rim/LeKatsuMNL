@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LeKatsuMNL.Pages.Dashboard.SKUModel
 @{
     ViewData["Title"] = "Inventory Items";
@@ -10,42 +10,42 @@
     </button>
 }
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
     <!-- Tabs -->
-    <div class="flex border-b border-gray-200">
-        <a href="/Dashboard/Items" class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all">Recipe</a>
+    <div class="flex border-b border-gray-200 dark:border-gray-700">
+        <a href="/Dashboard/Items" class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all dark:text-gray-500">Recipe</a>
         <button class="px-10 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">SKU</button>
     </div>
 
     <!-- Toolbar -->
-    <div class="p-5 flex items-center space-x-4 bg-white border-b border-gray-100">
+    <div class="p-5 flex items-center space-x-4 bg-white border-b border-gray-100 dark:bg-slate-800 dark:border-gray-700">
         <div class="relative inline-block text-left">
-            <button onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white hover:bg-gray-50 outline-none transition-all">
+            <button onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <span>Actions</span>
                 <i class="bi bi-chevron-down text-xs"></i>
             </button>
-            <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all">
-                <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors">
+            <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
+                <button onclick="handleArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
                     Archive
                 </button>
-                <button class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
+                <button onclick="openRejectModal()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
                     Reject
                 </button>
             </div>
         </div>
 
         <div class="relative flex-1 max-w-md">
-            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400" placeholder="Search...">
+            <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search...">
         </div>
 
         <div class="flex items-center space-x-3">
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer">
+            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
                 <option>Sub-Category</option>
             </select>
-            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <i class="bi bi-arrow-clockwise text-base"></i>
                 <span>Refresh</span>
             </button>
@@ -55,9 +55,9 @@
     <!-- Table -->
     <div class="overflow-x-auto">
         <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4 w-12"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></th>
+                    <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
                     <th class="px-6 py-4">Image</th>
                     <th class="px-6 py-4">Product Name</th>
                     <th class="px-6 py-4">Category</th>
@@ -67,39 +67,39 @@
                     <th class="px-6 py-4">Selling Price</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
                 @if (Model.SkuHeaders != null && Model.SkuHeaders.Any())
                 {
                     foreach (var sku in Model.SkuHeaders)
                     {
                         <tr class="hover:bg-gray-50/50 transition-colors group">
-                            <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 border-gray-300 text-[#C41E24] focus:ring-[#C41E24]"></td>
+                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-item-name="@sku.ItemName" onchange="updateSelectAll()"></td>
                             <td class="px-6 py-5">
-                                <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors">
+                                <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
                                     <i class="bi bi-image text-2xl"></i>
                                 </div>
                             </td>
                             <td class="px-6 py-5">
                                 <a href="/Dashboard/SkuDetails/@sku.SkuId" class="font-bold text-[#C41E24] hover:underline text-sm">@sku.ItemName</a>
                             </td>
-                            <td class="px-6 py-5 text-gray-600">@(sku.Category?.CategoryName ?? "-")</td>
-                            <td class="px-6 py-5 text-gray-600">@(string.IsNullOrEmpty(sku.SubClass) ? "-" : sku.SubClass)</td>
-                            <td class="px-6 py-5 text-gray-600 font-semibold uppercase">
+                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.Category?.CategoryName ?? "-")</td>
+                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(string.IsNullOrEmpty(sku.SubClass) ? "-" : sku.SubClass)</td>
+                            <td class="px-6 py-5 text-gray-600 font-semibold uppercase dark:text-gray-300">
                                 @if(!string.IsNullOrEmpty(sku.PackagingType)) {
                                     @($"{sku.PackagingType} / {sku.PackSize}{sku.PackagingUnit}")
                                 } else {
                                     @("-")
                                 }
                             </td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight">@(sku.SellingPrice.HasValue ? $"₱ {sku.SellingPrice.Value:0.00}" : "-")</td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">@(sku.SellingPrice.HasValue ? $"₱ {sku.SellingPrice.Value:0.00}" : "-")</td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-semibold italic">No SKU products found. Create a new product to get started.</td>
+                        <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No SKU products found. Create a new product to get started.</td>
                     </tr>
                 }
             </tbody>
@@ -107,19 +107,19 @@
     </div>
 
     <!-- Pagination -->
-    <div class="bg-white p-5 flex justify-between items-center text-xs text-gray-500 font-bold border-t border-gray-100 uppercase tracking-widest">
+    <div class="bg-white p-5 flex justify-between items-center text-xs text-gray-500 font-bold border-t border-gray-100 uppercase tracking-widest dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
         <div>Showing 1 - 5 of 10</div>
         <div class="flex items-center space-x-6">
             <div class="flex items-center space-x-3">
                 <span>Records per page</span>
-                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center">
+                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
                     <span>10</span>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&lt;</button>
-                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md">1</button>
-                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors">&gt;</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&lt;</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md dark:border-gray-700">1</button>
+                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&gt;</button>
             </div>
         </div>
     </div>
@@ -127,11 +127,11 @@
 
 <!-- Modal: Create New Product -->
 <div id="newProductModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 font-sans">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
         <!-- Header -->
-        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white">
-            <h3 class="text-base font-bold text-gray-900">Create New Product</h3>
-            <button onclick="closeModal('newProductModal')" class="text-gray-500 hover:text-gray-700 transition-colors">
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
+            <h3 class="text-base font-bold text-gray-900 dark:text-white">Create New Product</h3>
+            <button onclick="closeModal('newProductModal')" class="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400">
                 <i class="bi bi-x-lg text-lg"></i>
             </button>
         </div>
@@ -140,16 +140,16 @@
             <div class="grid grid-cols-2 gap-x-6 gap-y-4">
                 <!-- Name -->
                 <div class="col-span-2 space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Name</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Name</label>
                     <input type="text" name="ProductName" placeholder="Product Name" required
-                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                 </div>
 
                 <!-- Category -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Category</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Category</label>
                     <div class="relative">
-                        <select name="CategoryId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                        <select name="CategoryId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Select Category</option>
                             @if(Model.Categories != null) {
                                 foreach(var cat in Model.Categories) {
@@ -157,79 +157,79 @@
                                 }
                             }
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
                     </div>
                 </div>
 
                 <!-- Sub-Class -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Sub-Class</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Sub-Class</label>
                     <div class="relative">
-                        <select name="SubClass" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                        <select name="SubClass" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Sub-Class</option>
                             <option value="Food">Food</option>
                             <option value="Beverage">Beverage</option>
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
                     </div>
                 </div>
 
                 <!-- Packaging Type -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Packaging Type</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Packaging Type</label>
                     <div class="relative">
-                        <select name="PackagingType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                        <select name="PackagingType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Packaging Type</option>
                             <option value="Can">Can</option>
                             <option value="Bottle">Bottle</option>
                             <option value="Box">Box</option>
                             <option value="Pack">Pack</option>
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
                     </div>
                 </div>
 
                 <!-- Packaging Unit -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Packaging Unit</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Packaging Unit</label>
                     <div class="relative">
-                        <select name="PackagingUnit" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                        <select name="PackagingUnit" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Packaging Unit</option>
                             <option value="kg">kg</option>
                             <option value="grams">grams</option>
                             <option value="pcs">pcs</option>
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
                     </div>
                 </div>
 
                 <!-- Pack Size -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Pack Size</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Pack Size</label>
                     <input type="text" name="PackSize" placeholder="00"
-                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                 </div>
 
                 <!-- Unit of Measurement -->
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Unit of Measurement</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
                     <div class="relative">
-                        <select name="UOM" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                        <select name="UOM" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>UOM</option>
                             <option value="kg">kg</option>
                             <option value="grams">grams</option>
                             <option value="pack">pack</option>
                             <option value="pcs">pcs</option>
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
                     </div>
                 </div>
 
                 <!-- Supplier -->
                 <div class="col-span-2 space-y-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Supplier</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
                     <div class="relative">
-                        <select name="Supplier" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none">
+                        <select name="Supplier" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Supplier</option>
                             @if(Model.Vendors != null) {
                                 foreach(var vendor in Model.Vendors) {
@@ -237,41 +237,95 @@
                                 }
                             }
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
                     </div>
                 </div>
 
                 <!-- Selling Price Checkbox -->
                 <div class="col-span-2 flex items-center space-x-3 pt-2">
                     <input type="checkbox" id="sellingPriceSku" onchange="toggleSkuPriceFields()" 
-                           class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer">
-                    <label for="sellingPriceSku" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1">Selling Price</label>
+                           class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
+                    <label for="sellingPriceSku" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
                 </div>
 
                 <!-- Conditional Price Fields -->
                 <div id="skuPriceContainer" class="col-span-2 grid grid-cols-2 gap-x-6 hidden">
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Selling Price</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
                         <input type="text" name="SellingPrice" placeholder="₱ 0.00"
-                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
+                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Unit Cost</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Cost</label>
                         <input type="text" name="UnitCost" placeholder="₱ 0.00"
-                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium">
+                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                 </div>
             </div>
 
             <!-- Buttons -->
-            <div class="flex justify-end space-x-4 pt-8 border-t border-gray-50">
+            <div class="flex justify-end space-x-4 pt-8 border-t border-gray-50 dark:border-gray-700">
                 <button type="button" onclick="closeModal('newProductModal')" 
-                        class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all">
+                        class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
                     Cancel
                 </button>
                 <button type="submit" 
                         class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
                     Save Item
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="rejectItemModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
+            <h3 class="text-base font-bold text-gray-900 dark:text-white">Reject SKU</h3>
+            <button type="button" onclick="closeModal('rejectItemModal')" class="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400">
+                <i class="bi bi-x-lg text-xl"></i>
+            </button>
+        </div>
+
+        <form method="post" asp-page-handler="Reject" class="p-8 space-y-5">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">SKU Name</label>
+                <input type="text" name="RejectName" placeholder="SKU Name" 
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Quantity</label>
+                    <input type="number" name="RejectQty" placeholder="0" 
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit (UOM)</label>
+                    <div class="relative">
+                        <select name="RejectUOM" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                            <option value="" disabled selected hidden>UOM</option>
+                            <option value="kg">kg</option>
+                            <option value="grams">grams</option>
+                            <option value="pack">pack</option>
+                            <option value="pcs">pcs</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm dark:text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Reason</label>
+                <textarea name="RejectReason" rows="3" placeholder="Reason for rejection..." 
+                          class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all resize-none placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700"></textarea>
+            </div>
+            <div class="flex justify-end space-x-4 pt-8 border-t border-gray-50 dark:border-gray-700">
+                <button type="button" onclick="closeModal('rejectItemModal')" 
+                        class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
+                    Submit Reject
                 </button>
             </div>
         </form>
@@ -324,6 +378,35 @@
             } else {
                 container.classList.add('hidden');
             }
+        }
+
+        function openRejectModal() {
+            actionsMenu.classList.add('hidden');
+            // Get checked item names and populate the reject modal
+            const checked = document.querySelectorAll('.row-checkbox:checked');
+            if (checked.length === 0) {
+                alert('Please select at least one SKU to reject.');
+                return;
+            }
+            const names = Array.from(checked).map(cb => cb.dataset.itemName);
+            const nameInput = document.querySelector('#rejectItemModal input[name="RejectName"]');
+            if (nameInput) {
+                nameInput.value = names.join(', ');
+            }
+            openModal('rejectItemModal');
+        }
+
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function updateSelectAll() {
+            const all = document.querySelectorAll('.row-checkbox');
+            const checked = document.querySelectorAll('.row-checkbox:checked');
+            const selectAll = document.getElementById('selectAll');
+            selectAll.checked = all.length > 0 && all.length === checked.length;
+            selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
         }
 
         document.addEventListener('click', function (event) {
