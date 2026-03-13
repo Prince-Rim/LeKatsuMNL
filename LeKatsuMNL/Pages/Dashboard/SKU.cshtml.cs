@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -18,15 +19,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public IList<SkuHeader> SkuHeaders { get; set; } = new List<SkuHeader>();
+        public PaginatedList<SkuHeader> SkuHeaders { get; set; } = default!;
         public IList<Category> Categories { get; set; } = new List<Category>();
         public IList<VendorInfo> Vendors { get; set; } = new List<VendorInfo>();
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(int? pageIndex)
         {
-            SkuHeaders = await _context.SkuHeaders
+            var query = _context.SkuHeaders
                 .Include(s => s.Category)
-                .ToListAsync();
+                .OrderByDescending(s => s.SkuId);
+
+            SkuHeaders = await PaginatedList<SkuHeader>.CreateAsync(query, pageIndex ?? 1, 10);
 
             Categories = await _context.Categories.ToListAsync();
             Vendors = await _context.VendorInfos.ToListAsync();
@@ -45,6 +48,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             decimal? SellingPrice,
             decimal? UnitCost)
         {
+            if (!PermissionHelper.HasPermission(User, "SKU", 'C')) return Forbid();
+
             if (string.IsNullOrWhiteSpace(ProductName))
             {
                 ModelState.AddModelError("", "Product Name is required.");
@@ -79,13 +84,65 @@ namespace LeKatsuMNL.Pages.Dashboard
             return RedirectToPage();
         }
 
+        public async Task<IActionResult> OnPostUpdateAsync(
+            int SkuId,
+            string ProductName,
+            int CategoryId,
+            string SubClass,
+            string PackagingType,
+            string PackagingUnit,
+            string PackSize,
+            string UOM,
+            string Supplier,
+            string sellingPriceSku,
+            decimal? SellingPrice,
+            decimal? UnitCost)
+        {
+            if (!PermissionHelper.HasPermission(User, "SKU", 'U')) return Forbid();
+
+            var sku = await _context.SkuHeaders.FindAsync(SkuId);
+            if (sku == null)
+            {
+                return RedirectToPage();
+            }
+
+            if (string.IsNullOrWhiteSpace(ProductName))
+            {
+                ModelState.AddModelError("", "Product Name is required.");
+                return await InitializeAndReturnPage();
+            }
+
+            sku.ItemName = ProductName.Trim();
+            sku.CategoryId = CategoryId;
+            sku.SubClass = SubClass ?? "";
+            sku.PackagingType = PackagingType ?? "";
+            sku.PackagingUnit = PackagingUnit ?? "";
+            sku.PackSize = PackSize ?? "";
+            sku.Uom = UOM ?? "";
+            sku.Supplier = Supplier ?? "";
+            sku.IsSellingPriceEnabled = sellingPriceSku == "on" || sellingPriceSku == "true";
+            sku.SellingPrice = SellingPrice;
+            sku.UnitCost = UnitCost;
+
+            if (!sku.IsSellingPriceEnabled)
+            {
+                sku.SellingPrice = null;
+                sku.UnitCost = null;
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
         private async Task<IActionResult> InitializeAndReturnPage()
         {
-            await OnGetAsync();
+            await OnGetAsync(1);
             return Page();
         }
         public async Task<IActionResult> OnPostRejectAsync(string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
         {
+            if (!PermissionHelper.HasPermission(User, "Rejects", 'C')) return Forbid();
+
             if (string.IsNullOrEmpty(RejectName) || RejectQty <= 0)
             {
                 return await InitializeAndReturnPage();

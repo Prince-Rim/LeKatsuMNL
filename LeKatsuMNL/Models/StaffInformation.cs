@@ -30,10 +30,6 @@ namespace LeKatsuMNL.Models
         public string Email { get; set; }
 
         [Required]
-        [MaxLength(50)]
-        public string Privileges { get; set; }
-
-        [Required]
         [MaxLength(20)]
         public string Status { get; set; }
 

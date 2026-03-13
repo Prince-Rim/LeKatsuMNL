@@ -1,5 +1,11 @@
+@using LeKatsuMNL.Helpers
 @{
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+
+    bool HasPermission(string module, char action = '\0')
+    {
+        return PermissionHelper.HasPermission(User, module, action);
+    }
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -155,65 +161,95 @@
                 <i class="bi bi-grid-1x2-fill mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Dashboard</span>
             </a>
 
-            <div class="space-y-1">
-                <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Transaction">
-                    <i class="bi bi-node-plus mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Transaction</span>
-                </a>
+@if (HasPermission("Transactions"))
+{
+    <div class="space-y-1">
+        <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Transaction">
+            <i class="bi bi-node-plus mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Transaction</span>
+        </a>
 
-                @if (currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails"))
-                {
-                    <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
-                        <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/ReceivedStocks") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Received Stocks</span></a>
-                        @* Stays active for both the list view and the details view *@
-                        <a href="/Dashboard/BranchOrders" class="@(currentPage.Contains("/BranchOrders") || currentPage.Contains("/OrderDetails") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Branch Orders</span></a>
-                    </div>
-                }
+        @if (currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails"))
+        {
+            <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
+                <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/ReceivedStocks") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Received Stocks</span></a>
+                @* Stays active for both the list view and the details view *@
+                <a href="/Dashboard/BranchOrders" class="@(currentPage.Contains("/BranchOrders") || currentPage.Contains("/OrderDetails") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Branch Orders</span></a>
             </div>
+        }
+    </div>
+}
 
-            <div class="space-y-1">
-                <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Inventory">
-                    <i class="bi bi-box-seam mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Inventory</span>
-                </a>
+@if (HasPermission("Inventory"))
+{
+    <div class="space-y-1">
+        <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Inventory">
+            <i class="bi bi-box-seam mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Inventory</span>
+        </a>
 
-                @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))
+        @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))
+        {
+            <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
+                @if (HasPermission("Items"))
                 {
-                    <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
-                        <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") || Context.Request.Path.StartsWithSegments("/Dashboard/SKU") || Context.Request.Path.StartsWithSegments("/Dashboard/SkuDetails") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
-                            <span class="sidebar-text">Items</span>
-                        </a>
-                        <a href="/Dashboard/Category" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Category") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
-                            <span class="sidebar-text">Categories</span>
-                        </a>
-                        <a href="/Dashboard/Rejects" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Rejects") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
-                            <span class="sidebar-text">Rejects</span>
-                        </a>
-                    </div>
+                    <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") || Context.Request.Path.StartsWithSegments("/Dashboard/SKU") || Context.Request.Path.StartsWithSegments("/Dashboard/SkuDetails") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                        <span class="sidebar-text">Items</span>
+                    </a>
                 }
+                @if (HasPermission("Category"))
+                {
+                    <a href="/Dashboard/Category" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Category") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                        <span class="sidebar-text">Categories</span>
+                    </a>
+                }
+                <a href="/Dashboard/Rejects" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Rejects") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                    <span class="sidebar-text">Rejects</span>
+                </a>
             </div>
+        }
+    </div>
+}
 
-            <a href="/Dashboard/Analytics" class="@(currentPage.Contains("/Dashboard/Analytics") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Analytics">
-                <i class="bi bi-graph-up mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Analytics</span>
-            </a>
+@if (HasPermission("Analytics"))
+{
+    <a href="/Dashboard/Analytics" class="@(currentPage.Contains("/Dashboard/Analytics") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Analytics">
+        <i class="bi bi-graph-up mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Analytics</span>
+    </a>
+}
 
-            <a href="/Dashboard/Reports" class="@(currentPage.Contains("/Dashboard/Reports") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Reports">
-                <i class="bi bi-file-earmark-text mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Reports</span>
-            </a>
+@if (HasPermission("Reports"))
+{
+    <a href="/Dashboard/Reports" class="@(currentPage.Contains("/Dashboard/Reports") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Reports">
+        <i class="bi bi-file-earmark-text mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Reports</span>
+    </a>
+}
 
-            <a href="/Dashboard/Branches" class="@(currentPage.Contains("/Dashboard/Branches") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Branches">
-                <i class="bi bi-geo-alt mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Branches</span>
-            </a>
+@if (HasPermission("Branches"))
+{
+    <a href="/Dashboard/Branches" class="@(currentPage.Contains("/Dashboard/Branches") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Branches">
+        <i class="bi bi-geo-alt mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Branches</span>
+    </a>
+}
 
-            <a href="/Dashboard/Supplier" class="@(currentPage.Contains("/Dashboard/Supplier") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Supplier">
-                <i class="bi bi-truck mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Supplier</span>
-            </a>
+@if (HasPermission("Suppliers"))
+{
+    <a href="/Dashboard/Supplier" class="@(currentPage.Contains("/Dashboard/Supplier") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Supplier">
+        <i class="bi bi-truck mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Supplier</span>
+    </a>
+}
 
-            <a href="/Dashboard/Users" class="@(currentPage.Contains("/Dashboard/Users") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Users">
-                <i class="bi bi-person-badge mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Users</span>
-            </a>
+@if (HasPermission("Users"))
+{
+    <a href="/Dashboard/Users" class="@(currentPage.Contains("/Dashboard/Users") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Users">
+        <i class="bi bi-person-badge mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Users</span>
+    </a>
+}
 
-            <a href="/Dashboard/Billing" class="@(currentPage.Contains("/Dashboard/Billing") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Billing">
-                <i class="bi bi-wallet2 mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Billing</span>
-            </a>
+@if (HasPermission("Billing"))
+{
+    <a href="/Dashboard/Billing" class="@(currentPage.Contains("/Dashboard/Billing") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Billing">
+        <i class="bi bi-wallet2 mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Billing</span>
+    </a>
+}
 
             <a href="/Dashboard/Settings" class="@(currentPage.Contains("/Dashboard/Settings") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Settings">
                 <i class="bi bi-gear mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Settings</span>

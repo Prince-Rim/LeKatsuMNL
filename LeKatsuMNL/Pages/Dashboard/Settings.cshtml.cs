@@ -84,7 +84,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     LastName = staff.LastName;
                     Email = staff.Email ?? "N/A";
                     MiddleName = staff.MiddleName;
-                    Privileges = staff.Privileges;
+                    Privileges = "N/A";
                     AccountType = "Staff";
                 }
             }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -17,12 +18,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public List<CommissaryInventory> Items { get; set; } = new List<CommissaryInventory>();
+        public PaginatedList<CommissaryInventory> Items { get; set; } = default!;
         public List<Category> Categories { get; set; } = new List<Category>();
         public List<VendorInfo> Vendors { get; set; } = new List<VendorInfo>();
 
-        [BindProperty]
         public InputModel NewItem { get; set; } = new InputModel();
+        public UpdateModel UpdateItem { get; set; } = new UpdateModel();
+
+        public class UpdateModel : InputModel
+        {
+            public int ComId { get; set; }
+        }
 
         public class InputModel
         {
@@ -36,45 +42,56 @@ namespace LeKatsuMNL.Pages.Dashboard
             public decimal? UnitPrice { get; set; }
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
-            Items = await _context.CommissaryInventories
+            var query = _context.CommissaryInventories
                 .Include(i => i.Category)
                 .Include(i => i.Vendor)
-                .ToListAsync();
+                .OrderByDescending(i => i.ComId);
 
+            Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, 10);
+            
             Categories = await _context.Categories.ToListAsync();
             Vendors = await _context.VendorInfos.ToListAsync();
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostCreateAsync()
+        public async Task<IActionResult> OnPostCreateAsync(
+            string ItemName,
+            int CategoryId,
+            int VendorId,
+            string PackagingType,
+            string PackagingUnit,
+            string PackSize,
+            string UOM,
+            decimal? UnitPrice)
         {
-            if (!ModelState.IsValid)
+            if (!PermissionHelper.HasPermission(User, "Items", 'C')) return Forbid();
+
+            if (string.IsNullOrWhiteSpace(ItemName))
             {
                 return RedirectToPage();
             }
 
             // Yield logic -> Type / Size + Unit
-            // Example from user image: Type + Unit + Size = Yield. Like "Pack/10g"
             string calculatedYield = string.Empty;
-            if (!string.IsNullOrEmpty(NewItem.PackagingType) && 
-                !string.IsNullOrEmpty(NewItem.PackSize) && 
-                !string.IsNullOrEmpty(NewItem.PackagingUnit))
+            if (!string.IsNullOrEmpty(PackagingType) && 
+                !string.IsNullOrEmpty(PackSize) && 
+                !string.IsNullOrEmpty(PackagingUnit))
             {
-                calculatedYield = $"{NewItem.PackagingType}/{NewItem.PackSize}{NewItem.PackagingUnit}";
+                calculatedYield = $"{PackagingType}/{PackSize}{PackagingUnit}";
             }
 
             var item = new CommissaryInventory
             {
-                ItemName = NewItem.ItemName,
-                CategoryId = NewItem.CategoryId,
-                VendorId = NewItem.VendorId,
+                ItemName = ItemName,
+                CategoryId = CategoryId,
+                VendorId = VendorId,
                 Yield = calculatedYield,
-                Uom = NewItem.UOM ?? "pack",
-                Price = NewItem.UnitPrice ?? 0,
-                Stock = 0 // Initial logic
+                Uom = UOM ?? "pack",
+                Price = UnitPrice ?? 0,
+                Stock = 0
             };
 
             _context.CommissaryInventories.Add(item);
@@ -82,8 +99,54 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             return RedirectToPage();
         }
+
+        public async Task<IActionResult> OnPostUpdateAsync(
+            int ComId,
+            string ItemName,
+            int CategoryId,
+            int VendorId,
+            string PackagingType,
+            string PackagingUnit,
+            string PackSize,
+            string UOM,
+            decimal? UnitPrice)
+        {
+            if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
+
+            var item = await _context.CommissaryInventories.FindAsync(ComId);
+            if (item == null)
+            {
+                return RedirectToPage();
+            }
+
+            if (string.IsNullOrWhiteSpace(ItemName))
+            {
+                return RedirectToPage();
+            }
+
+            // Yield logic -> Type / Size + Unit
+            string calculatedYield = string.Empty;
+            if (!string.IsNullOrEmpty(PackagingType) && 
+                !string.IsNullOrEmpty(PackSize) && 
+                !string.IsNullOrEmpty(PackagingUnit))
+            {
+                calculatedYield = $"{PackagingType}/{PackSize}{PackagingUnit}";
+            }
+
+            item.ItemName = ItemName;
+            item.CategoryId = CategoryId;
+            item.VendorId = VendorId;
+            item.Yield = calculatedYield;
+            item.Uom = UOM ?? "pack";
+            item.Price = UnitPrice ?? 0;
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
         public async Task<IActionResult> OnPostRejectAsync(string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
         {
+            if (!PermissionHelper.HasPermission(User, "Rejects", 'C')) return Forbid();
+
             if (string.IsNullOrEmpty(RejectName) || RejectQty <= 0)
             {
                 return RedirectToPage();

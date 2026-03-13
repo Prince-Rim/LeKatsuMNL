@@ -20,13 +20,13 @@ namespace LeKatsuMNL.Models
         public string MiddleName { get; set; }
 
         [MaxLength(255)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [MaxLength(50)]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
-        [MaxLength(50)]
-        public string Privileges { get; set; }
+        [MaxLength(500)]
+        public string? Privileges { get; set; }
 
         [MaxLength(20)]
         public string Status { get; set; }

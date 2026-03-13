@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -18,12 +19,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public IList<RejectItem> RejectLogs { get; set; } = new List<RejectItem>();
+        public PaginatedList<RejectItem> RejectLogs { get; set; } = default!;
 
         [BindProperty(SupportsGet = true)]
         public string Tab { get; set; } = "recipe";
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(int? pageIndex)
         {
             if (Tab != "recipe" && Tab != "sku")
             {
@@ -41,9 +42,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 query = query.Where(r => r.RejectType == "SKU");
             }
 
-            RejectLogs = await query
-                .OrderByDescending(r => r.RejectedAt)
-                .ToListAsync();
+            RejectLogs = await PaginatedList<RejectItem>.CreateAsync(
+                query.OrderByDescending(r => r.RejectedAt), 
+                pageIndex ?? 1, 10);
         }
     }
 }

@@ -5,6 +5,7 @@ using LeKatsuMNL.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -17,7 +18,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public IList<BranchLocation> Branches { get; set; } = default!;
+        public PaginatedList<BranchLocation> Branches { get; set; } = default!;
 
         [BindProperty]
         public BranchLocation NewBranch { get; set; } = default!;
@@ -25,24 +26,33 @@ namespace LeKatsuMNL.Pages.Dashboard
         [TempData]
         public string ErrorMessage { get; set; }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
-            Branches = await _context.BranchLocations
+            var query = _context.BranchLocations
                 .Include(b => b.BranchManagers)
-                .ToListAsync();
+                .OrderByDescending(b => b.CreatedAt);
+
+            Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, 10);
             return Page();
         }
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "Branches", 'C'))
+            {
+                return Forbid();
+            }
+
             // Remove BranchLocationAddress from validation since it's computed on the server
             ModelState.Remove("NewBranch.BranchLocationAddress");
 
             if (!ModelState.IsValid)
             {
-                Branches = await _context.BranchLocations
+                var query = _context.BranchLocations
                     .Include(b => b.BranchManagers)
-                    .ToListAsync();
+                    .OrderByDescending(b => b.CreatedAt);
+                Branches = await PaginatedList<BranchLocation>.CreateAsync(query, 1, 10);
+                
                 var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 ErrorMessage = $"Validation Failed: {errors}";
                 return Page();
@@ -62,9 +72,11 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
             catch (Exception ex)
             {
-                Branches = await _context.BranchLocations
+                var query = _context.BranchLocations
                     .Include(b => b.BranchManagers)
-                    .ToListAsync();
+                    .OrderByDescending(b => b.CreatedAt);
+                Branches = await PaginatedList<BranchLocation>.CreateAsync(query, 1, 10);
+
                 ErrorMessage = $"Database Error: {ex.Message} {(ex.InnerException != null ? " | Inner: " + ex.InnerException.Message : "")}";
                 return Page();
             }
@@ -72,6 +84,11 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostEditAsync(int BranchId, string BranchName, string IslandGroup, string Region, string Province, string CityMunicipality, string Barangay, string StreetAddress, string ZipCode)
         {
+            if (!PermissionHelper.HasPermission(User, "Branches", 'U'))
+            {
+                return Forbid();
+            }
+
             if (string.IsNullOrWhiteSpace(BranchName) || string.IsNullOrWhiteSpace(CityMunicipality) || string.IsNullOrWhiteSpace(Barangay))
             {
                 ErrorMessage = "Branch name, city, and barangay cannot be empty.";
@@ -124,6 +141,11 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
+            if (!PermissionHelper.HasPermission(User, "Branches", 'D'))
+            {
+                return Forbid();
+            }
+
             var branch = await _context.BranchLocations.FindAsync(id);
             if (branch != null)
             {

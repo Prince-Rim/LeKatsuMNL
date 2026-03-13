@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LeKatsuMNL.Pages.Dashboard.BranchOrdersModel
 @{
     ViewData["Title"] = "Transaction / Branch Orders";
@@ -23,7 +23,7 @@
                 <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                     <i class="bi bi-search text-sm"></i>
                 </span>
-                <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search orders...">
+                <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:text-gray-800 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search orders...">
             </div>
         </div>
 
@@ -51,47 +51,43 @@
                     <th class="px-8 py-4">Invoice Status</th>
                     <th class="px-8 py-4">Status</th>
                     <th class="px-8 py-4">Order Date</th>
+                    <th class="px-8 py-4">Expected Date</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                @* Sample data rows based on your wireframe *@
-                @for (int i = 1; i <= 3; i++)
+                @if (Model.Orders != null && Model.Orders.Any())
                 {
-                    <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                        <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
-                        <td class="px-8 py-5">
-                            <a href="/Dashboard/OrderDetails?id=FO-0000@i"
-                               class="text-[#C41E24] font-bold underline hover:text-red-800 transition-colors text-sm">
-                                FO-0000@i
-                            </a>
-                        </td>
-                        <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">Branch name</td>
-                        <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">Manager name</td>
-                        <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">-</td>
-                        <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">-</td>
-                        <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">December 25, 2026</td>
+                    foreach (var order in Model.Orders)
+                    {
+                        string formattedOrderId = $"FO-{order.OrderId:D5}";
+                        <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
+                            <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
+                            <td class="px-8 py-5">
+                                <a href="/Dashboard/OrderDetails?id=@formattedOrderId"
+                                   class="text-[#C41E24] font-bold underline hover:text-red-800 transition-colors text-sm">
+                                    @formattedOrderId
+                                </a>
+                            </td>
+                            <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@order.BranchManager?.BranchLocation?.BranchName</td>
+                            <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@(order.BranchManager?.FirstName) @(order.BranchManager?.LastName)</td>
+                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">-</td>
+                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@(order.DeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</td>
+                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@order.Status</td>
+                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@order.OrderDate.ToString("MMMM dd, yyyy")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="px-8 py-10 text-center text-gray-400 italic">No orders found.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 
-    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold uppercase tracking-widest border-t border-gray-100 dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
-        <div>Showing 1 - 5 of 10</div>
-        <div class="flex items-center space-x-8">
-            <div class="flex items-center space-x-3">
-                <span>Records per page</span>
-                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                    <span>10</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&lt;</button>
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md dark:border-gray-700">1</button>
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&gt;</button>
-            </div>
-        </div>
-    </div>
+    <partial name="_Pagination" model="Model.Orders" />
 
 @section Scripts {
     <script>

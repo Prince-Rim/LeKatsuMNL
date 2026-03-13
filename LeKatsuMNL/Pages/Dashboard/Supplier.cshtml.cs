@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -19,7 +20,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public IList<VendorInfo> Vendors { get; set; }
+        public PaginatedList<VendorInfo> Vendors { get; set; }
 
         [BindProperty]
         public VendorInfo NewVendor { get; set; }
@@ -27,15 +28,19 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public VendorInfo EditVendor { get; set; }
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(int? pageIndex)
         {
-            Vendors = await _context.VendorInfos
-                .OrderByDescending(v => v.CreatedAt)
-                .ToListAsync();
+            var query = _context.VendorInfos.OrderByDescending(v => v.CreatedAt);
+            Vendors = await PaginatedList<VendorInfo>.CreateAsync(query, pageIndex ?? 1, 10);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "Supplier", 'C'))
+            {
+                return Forbid();
+            }
+
             if (string.IsNullOrWhiteSpace(NewVendor.VendorName))
             {
                 return RedirectToPage(); // Failed basic validation
@@ -58,6 +63,11 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostUpdateAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "Supplier", 'U'))
+            {
+                return Forbid();
+            }
+
             var vendorToUpdate = await _context.VendorInfos.FindAsync(EditVendor.VendorId);
 
             if (vendorToUpdate == null)
@@ -75,6 +85,11 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
+            if (!PermissionHelper.HasPermission(User, "Supplier", 'D'))
+            {
+                return Forbid();
+            }
+
             var vendorToDelete = await _context.VendorInfos.FindAsync(id);
 
             if (vendorToDelete != null)
