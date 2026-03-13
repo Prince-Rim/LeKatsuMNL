@@ -1,13 +1,17 @@
 @page
 @model LeKatsuMNL.Pages.Dashboard.ItemsModel
+@using LeKatsuMNL.Helpers
 @{
     ViewData["Title"] = "Inventory Items";
 }
 
 @section TitleActions {
-    <button onclick="openNewItemModal()" class="bg-[#C41E24] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
-        + New Item
-    </button>
+    @if (PermissionHelper.HasPermission(User, "Items", 'C'))
+    {
+        <button onclick="openNewItemModal()" class="bg-[#C41E24] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
+            + New Item
+        </button>
+    }
 }
 
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
@@ -25,12 +29,18 @@
                 <i class="bi bi-chevron-down text-xs"></i>
             </button>
             <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
-                <button onclick="handleArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                    Archive
-                </button>
-                <button onclick="openRejectModal()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
-                    Reject
-                </button>
+                @if (PermissionHelper.HasPermission(User, "Items", 'D'))
+                {
+                    <button onclick="handleArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
+                        Archive
+                    </button>
+                }
+                @if (PermissionHelper.HasPermission(User, "Rejects", 'C'))
+                {
+                    <button onclick="openRejectModal()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
+                        Reject
+                    </button>
+                }
             </div>
         </div>
 
@@ -68,6 +78,7 @@
                     <th class="px-6 py-4">Yield</th>
                     <th class="px-6 py-4">In Stock</th>
                     <th class="px-6 py-4">Unit Price</th>
+                    <th class="px-6 py-4">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -90,6 +101,22 @@
                                 <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold border border-blue-100">@item.Stock @item.Uom</span>
                             </td>
                             <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.Price)</td>
+                            <td class="px-6 py-5">
+                                @if (PermissionHelper.HasPermission(User, "Items", 'U'))
+                                {
+                                    <button onclick='openEditItemModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
+                                        comId = item.ComId, 
+                                        itemName = item.ItemName, 
+                                        categoryId = item.CategoryId, 
+                                        vendorId = item.VendorId,
+                                        uom = item.Uom,
+                                        price = item.Price,
+                                        yield = item.Yield
+                                    })))' class="text-blue-500 hover:text-blue-700 transition-colors">
+                                        <i class="bi bi-pencil-square text-lg"></i>
+                                    </button>
+                                }
+                            </td>
                         </tr>
                     }
                 }
@@ -103,23 +130,7 @@
         </table>
     </div>
 
-    <!-- Pagination -->
-    <div class="bg-white p-5 flex justify-between items-center text-xs text-gray-500 font-bold border-t border-gray-100 uppercase tracking-widest dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
-        <div>Showing 1 - 5 of 10</div>
-        <div class="flex items-center space-x-6">
-            <div class="flex items-center space-x-3">
-                <span>Records per page</span>
-                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                    <span>10</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&lt;</button>
-                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md dark:border-gray-700">1</button>
-                <button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&gt;</button>
-            </div>
-        </div>
-    </div>
+    <partial name="_Pagination" model="Model.Items" />
 </div>
 
 <!-- Create New Item Modal -->
@@ -136,7 +147,7 @@
             <!-- Item Name -->
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Item Name</label>
-                <input type="text" asp-for="NewItem.ItemName" placeholder="Item name" required
+                <input type="text" name="ItemName" id="newItemName" placeholder="Item name" required
                        class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
             </div>
 
@@ -145,7 +156,7 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Category</label>
                     <div class="relative">
-                        <select asp-for="NewItem.CategoryId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                        <select name="CategoryId" id="newCategoryId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Select Category</option>
                             @if(Model.Categories != null) {
                                 foreach(var cat in Model.Categories) {
@@ -159,7 +170,7 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
                     <div class="relative">
-                        <select asp-for="NewItem.VendorId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                        <select name="VendorId" id="newVendorId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Select Supplier</option>
                             @if(Model.Vendors != null) {
                                 foreach(var vendor in Model.Vendors) {
@@ -177,7 +188,7 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Type</label>
                     <div class="relative">
-                        <select asp-for="NewItem.PackagingType" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                        <select name="PackagingType" id="newPackagingType" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Type</option>
                             <option value="Plastic">Plastic</option>
                             <option value="Box">Box</option>
@@ -189,7 +200,7 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
                     <div class="relative">
-                        <select asp-for="NewItem.PackagingUnit" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                        <select name="PackagingUnit" id="newPackagingUnit" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>Unit</option>
                             <option value="bundle">bundle</option>
                             <option value="roll">roll</option>
@@ -202,7 +213,7 @@
                 </div>
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Pack Size</label>
-                    <input type="text" asp-for="NewItem.PackSize" placeholder="0" required
+                    <input type="text" name="PackSize" id="newPackSize" placeholder="0" required
                            class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                 </div>
             </div>
@@ -212,7 +223,7 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">UOM</label>
                     <div class="relative">
-                        <select asp-for="NewItem.UOM" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                        <select name="UOM" id="newUOM" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
                             <option value="" disabled selected hidden>UOM</option>
                             <option value="kg">kg</option>
                             <option value="grams">grams</option>
@@ -225,7 +236,7 @@
                 <!-- Unit Price (hidden by default) -->
                 <div id="unitPriceContainer" class="space-y-1.5 hidden">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
-                    <input type="number" step="0.01" asp-for="NewItem.UnitPrice" placeholder="00.00" 
+                    <input type="number" step="0.01" name="UnitPrice" id="newUnitPrice" placeholder="00.00" 
                            class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                 </div>
             </div>
@@ -246,6 +257,132 @@
                 <button type="submit" 
                         class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
                     Save Item
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div id="editItemModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 font-sans">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
+            <h3 class="text-base font-bold text-gray-900 dark:text-white">Edit Item</h3>
+            <button onclick="closeModal('editItemModal')" class="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400">
+                <i class="bi bi-x-lg text-xl"></i>
+            </button>
+        </div>
+
+        <form method="post" asp-page-handler="Update" class="p-8 space-y-5">
+            <input type="hidden" name="ComId" id="editComId">
+            
+            <!-- Item Name -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Item Name</label>
+                <input type="text" name="ItemName" id="editItemName" placeholder="Item name" required
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+            </div>
+
+            <!-- Category & Supplier -->
+            <div class="grid grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Category</label>
+                    <div class="relative">
+                        <select name="CategoryId" id="editCategoryId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                            <option value="" disabled selected hidden>Select Category</option>
+                            @if(Model.Categories != null) {
+                                foreach(var cat in Model.Categories) {
+                                    <option value="@cat.CategoryId">@cat.CategoryName</option>
+                                }
+                            }
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
+                    <div class="relative">
+                        <select name="VendorId" id="editVendorId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                            <option value="" disabled selected hidden>Select Supplier</option>
+                            @if(Model.Vendors != null) {
+                                foreach(var vendor in Model.Vendors) {
+                                    <option value="@vendor.VendorId">@vendor.VendorName</option>
+                                }
+                            }
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packaging Type, Unit, Pack Size -->
+            <div class="grid grid-cols-3 gap-5">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Type</label>
+                    <div class="relative">
+                        <select name="PackagingType" id="editPackagingType" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                            <option value="" disabled selected hidden>Type</option>
+                            <option value="Plastic">Plastic</option>
+                            <option value="Box">Box</option>
+                            <option value="Pack">Pack</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
+                    <div class="relative">
+                        <select name="PackagingUnit" id="editPackagingUnit" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                            <option value="" disabled selected hidden>Unit</option>
+                            <option value="bundle">bundle</option>
+                            <option value="roll">roll</option>
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="pcs">pcs</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Pack Size</label>
+                    <input type="text" name="PackSize" id="editPackSize" placeholder="0" required
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                </div>
+            </div>
+
+            <!-- UOM & Unit Price Toggle -->
+            <div class="grid grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">UOM</label>
+                    <div class="relative">
+                        <select name="UOM" id="editUOM" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                            <option value="" disabled selected hidden>UOM</option>
+                            <option value="kg">kg</option>
+                            <option value="grams">grams</option>
+                            <option value="pack">pack</option>
+                            <option value="pcs">pcs</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                    </div>
+                </div>
+                <!-- Unit Price -->
+                <div id="editUnitPriceContainer" class="space-y-1.5 ">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
+                    <input type="number" step="0.01" name="UnitPrice" id="editUnitPrice" placeholder="00.00" 
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                </div>
+                <input type="hidden" name="UpdateUnitPrice" id="editUpdateUnitPrice" value="true">
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4 pt-8 border-t border-gray-50 dark:border-gray-700">
+                <button type="button" onclick="closeModal('editItemModal')" 
+                        class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
+                    Update Item
                 </button>
             </div>
         </form>
@@ -369,6 +506,29 @@
                 nameInput.value = names.join(', ');
             }
             openModal('rejectItemModal');
+        }
+
+        function openEditItemModal(item) {
+            document.getElementById('editComId').value = item.comId;
+            document.getElementById('editItemName').value = item.itemName;
+            document.getElementById('editCategoryId').value = item.categoryId;
+            document.getElementById('editVendorId').value = item.vendorId;
+            document.getElementById('editUOM').value = item.uom;
+            document.getElementById('editUnitPrice').value = item.price;
+
+            // Parse yield: "Pack/10g"
+            if (item.yield && item.yield.includes('/')) {
+                const parts = item.yield.split('/');
+                document.getElementById('editPackagingType').value = parts[0];
+                const sizeWithUnit = parts[1];
+                const sizeMatch = sizeWithUnit.match(/^(\d+)(.*)$/);
+                if (sizeMatch) {
+                    document.getElementById('editPackSize').value = sizeMatch[1];
+                    document.getElementById('editPackagingUnit').value = sizeMatch[2];
+                }
+            }
+
+            openModal('editItemModal');
         }
 
         function toggleSelectAll(source) {

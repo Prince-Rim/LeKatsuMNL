@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LeKatsuMNL.Pages.Dashboard.ReceivedStocksModel
 @{
     ViewData["Title"] = "Transaction / Received Stocks";
@@ -13,34 +13,57 @@
         </button>
     </div>
 
-    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
-        <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-x-auto dark:bg-slate-800 dark:border-gray-700 custom-scrollbar">
+        <table class="w-full text-left text-xs whitespace-nowrap min-w-[1200px]">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
                 <tr>
+                    <th class="px-8 py-4 w-10"><input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:bg-slate-800 dark:border-gray-600"></th>
                     <th class="px-8 py-4">Item Name</th>
                     <th class="px-8 py-4">Supplier</th>
+                    <th class="px-8 py-4">Order Date</th>
+                    <th class="px-8 py-4">Expected Date</th>
+                    <th class="px-8 py-4">Arrival Date</th>
                     <th class="px-8 py-4">Quantity Received</th>
                     <th class="px-8 py-4">Receiving Unit</th>
+                    <th class="px-8 py-4">Status</th>
                     <th class="px-8 py-4 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                 <tr class="bg-gray-50/50">
+                    <td class="px-8 py-4"></td>
                     <td class="px-5 py-4">
-                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
+                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium dark:bg-white dark:text-gray-800 dark:border-gray-700">
                             <option>Select Item</option>
                         </select>
                     </td>
                     <td class="px-5 py-4">
-                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
+                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium dark:bg-white dark:text-gray-800 dark:border-gray-700">
                             <option>Select Supplier</option>
                         </select>
                     </td>
                     <td class="px-5 py-4">
-                        <input type="number" placeholder="Input Quantity" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium dark:border-gray-700">
+                        <input type="date" class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium bg-white dark:bg-white dark:text-gray-800 dark:border-gray-700">
                     </td>
                     <td class="px-5 py-4">
-                        <input type="text" placeholder="Receiving Unit" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium dark:border-gray-700">
+                        <input type="date" class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium bg-white dark:bg-white dark:text-gray-800 dark:border-gray-700">
+                    </td>
+                    <td class="px-5 py-4">
+                        <input type="date" class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium bg-white dark:bg-white dark:text-gray-800 dark:border-gray-700">
+                    </td>
+                    <td class="px-5 py-4">
+                        <input type="number" placeholder="Input Quantity" class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium bg-white dark:bg-white dark:text-gray-800 dark:border-gray-700 dark:placeholder:text-gray-400">
+                    </td>
+                    <td class="px-5 py-4">
+                        <input type="text" placeholder="Receiving Unit" class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none font-medium bg-white dark:bg-white dark:text-gray-800 dark:border-gray-700 dark:placeholder:text-gray-400">
+                    </td>
+                    <td class="px-5 py-4">
+                        <select class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-500 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white font-medium dark:bg-white dark:text-gray-800 dark:border-gray-700">
+                            <option>Select Status</option>
+                            <option>In Transit</option>
+                            <option>Received</option>
+                            <option>Delayed</option>
+                        </select>
                     </td>
                     <td class="px-5 py-4 text-center">
                         <button class="text-green-500 hover:text-green-700 transition-colors">
@@ -49,47 +72,47 @@
                     </td>
                 </tr>
 
-                <tr class="hover:bg-gray-50 transition-colors border-t border-gray-50 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">Item name sample</td>
-                    <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">Supplier sample</td>
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">25</td>
-                    <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">Pack</td>
-                    <td class="px-8 py-5 text-center space-x-4">
-                        <button class="text-gray-400 hover:text-gray-700 transition-colors dark:text-gray-500"><i class="bi bi-pencil-square text-lg"></i></button>
-                        <button class="text-red-400 hover:text-red-700 transition-colors"><i class="bi bi-trash text-lg"></i></button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-gray-50 transition-colors border-t border-gray-50 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">Item name sample</td>
-                    <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">Supplier sample</td>
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">25</td>
-                    <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">Pack</td>
-                    <td class="px-8 py-5 text-center space-x-4">
-                        <button class="text-gray-400 hover:text-gray-700 transition-colors dark:text-gray-500"><i class="bi bi-pencil-square text-lg"></i></button>
-                        <button class="text-red-400 hover:text-red-700 transition-colors"><i class="bi bi-trash text-lg"></i></button>
-                    </td>
-                </tr>
+                @if (Model.ReceivedItems != null && Model.ReceivedItems.Any())
+                {
+                    foreach (var item in Model.ReceivedItems)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-50 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@item.ItemName</td>
+                            <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@item.Supplier</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@item.OrderDate</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@item.ExpectedDate</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@item.ArrivalDate</td>
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@item.Quantity</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@item.Unit</td>
+                            <td class="px-8 py-5 text-center">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider @(item.Status == "Received" ? "bg-green-50 text-green-600" : "bg-orange-50 text-orange-600")">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-center space-x-4">
+                                <button class="text-gray-400 hover:text-gray-700 transition-colors dark:text-gray-500"><i class="bi bi-pencil-square text-lg"></i></button>
+                                <button class="text-red-400 hover:text-red-700 transition-colors"><i class="bi bi-trash text-lg"></i></button>
+                            </td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
     </div>
 
-    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold uppercase tracking-widest border-t border-gray-100 dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
-        <button class="hover:text-gray-800 transition-colors flex items-center space-x-3">
+    <div class="bg-white border-x border-b border-gray-200 p-5 dark:bg-slate-800 dark:border-gray-700">
+        <button class="text-gray-500 hover:text-gray-800 transition-colors flex items-center space-x-3 text-xs font-bold uppercase tracking-widest">
             <i class="bi bi-plus-lg text-sm"></i> <span>Add Row</span>
         </button>
-
-        <div class="flex items-center space-x-8">
-            <span>Showing 1 - 5 of 10</span>
-            <div class="flex items-center space-x-3">
-                <span>Records per page</span>
-                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                    <span>10</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&lt;</button>
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md dark:border-gray-700">1</button>
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&gt;</button>
-            </div>
-        </div>
     </div>
+
+    <partial name="_Pagination" model="Model.ReceivedItems" />
+@section Scripts {
+    <script>
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+}

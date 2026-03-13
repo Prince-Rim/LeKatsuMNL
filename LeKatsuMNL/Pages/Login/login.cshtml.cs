@@ -90,7 +90,8 @@ namespace LeKatsuMNL.Pages.Login
                             return Page();
                         }
                         
-                        await SignInUserAsync(admin.ManagerId.ToString(), "Admin", admin.FirstName + " " + admin.LastName);
+                        string privileges = admin.IsSuperAdmin ? "All" : admin.Privileges;
+                        await SignInUserAsync(admin.ManagerId.ToString(), "Admin", admin.FirstName + " " + admin.LastName, privileges);
                         return RedirectToPage("/Dashboard/Index");
                     }
                 }
@@ -110,7 +111,7 @@ namespace LeKatsuMNL.Pages.Login
                             return Page();
                         }
 
-                        await SignInUserAsync(manager.BManagerId.ToString(), "BranchManager", manager.FirstName + " " + manager.LastName);
+                        await SignInUserAsync(manager.BManagerId.ToString(), "BranchManager", manager.FirstName + " " + manager.LastName, "All");
                         return RedirectToPage("/Dashboard/Index");
                     }
                 }
@@ -130,7 +131,7 @@ namespace LeKatsuMNL.Pages.Login
                             return Page();
                         }
 
-                        await SignInUserAsync(staff.StaffId.ToString(), "Staff", staff.FirstName + " " + staff.LastName);
+                        await SignInUserAsync(staff.StaffId.ToString(), "Staff", staff.FirstName + " " + staff.LastName, "All");
                         return RedirectToPage("/Dashboard/Index");
                     }
                 }
@@ -140,13 +141,14 @@ namespace LeKatsuMNL.Pages.Login
             return Page();
         }
 
-        private async Task SignInUserAsync(string id, string role, string name)
+        private async Task SignInUserAsync(string id, string role, string name, string privileges)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, id),
                 new Claim(ClaimTypes.Name, name),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role),
+                new Claim("Permissions", privileges ?? "")
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

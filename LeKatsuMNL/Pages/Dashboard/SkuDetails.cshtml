@@ -1,5 +1,6 @@
 @page "{id:int?}"
 @model LeKatsuMNL.Pages.Dashboard.SkuDetailsModel
+@using LeKatsuMNL.Helpers
 @{
     Layout = "_DashboardLayout";
     ViewData["Title"] = $"Inventory Items / {Model.SkuHeader?.ItemName ?? "SKU Details"}";
@@ -44,9 +45,12 @@
 
 @section TitleActions {
     <div class="flex items-center space-x-3">
-        <button type="submit" form="skuForm" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100 flex items-center">
-            <i class="bi bi-floppy mr-2 text-sm"></i> Save Changes
-        </button>
+        @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
+        {
+            <button type="submit" form="skuForm" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100 flex items-center">
+                <i class="bi bi-floppy mr-2 text-sm"></i> Save Changes
+            </button>
+        }
     </div>
 }
 
@@ -68,9 +72,12 @@
                 <div class="flex-1 max-w-md">
                     <input type="text" placeholder="Enter Image URL" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 shadow-sm dark:bg-slate-800 dark:placeholder:text-gray-500 dark:border-gray-700">
                 </div>
-                <button type="button" class="p-2.5 bg-[#C41E24] text-white rounded-lg hover:bg-red-700 transition-all shadow-md">
-                    <i class="bi bi-floppy text-lg"></i>
-                </button>
+                @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
+                {
+                    <button type="button" class="p-2.5 bg-[#C41E24] text-white rounded-lg hover:bg-red-700 transition-all shadow-md">
+                        <i class="bi bi-floppy text-lg"></i>
+                    </button>
+                }
             </div>
         </div>
     </div>
@@ -155,11 +162,14 @@
                     </div>
                 </div>
 
-                <div class="pt-4">
-                    <button type="button" class="px-8 py-3 bg-[#FFF5F5] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all border border-red-100/50 shadow-sm flex items-center">
-                        <i class="bi bi-trash3 mr-2 text-sm"></i> Archive this Product
-                    </button>
-                </div>
+                @if (PermissionHelper.HasPermission(User, "SKU", 'D'))
+                {
+                    <div class="pt-4">
+                        <button type="button" class="px-8 py-3 bg-[#FFF5F5] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all border border-red-100/50 shadow-sm flex items-center">
+                            <i class="bi bi-trash3 mr-2 text-sm"></i> Archive this Product
+                        </button>
+                    </div>
+                }
             </div>
         </div>
 
@@ -170,16 +180,22 @@
                     <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">Stock keeping Unit Sub Category</h3>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <button type="button" onclick="openRecipeModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                                <i class="bi bi-plus-lg mr-2"></i> Add a recipe item
-                            </button>
-                            <button type="button" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                                <i class="bi bi-arrow-repeat mr-2"></i> Update
-                            </button>
+                            @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
+                            {
+                                <button type="button" onclick="openRecipeModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                                    <i class="bi bi-plus-lg mr-2"></i> Add a recipe item
+                                </button>
+                                <button type="button" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                                    <i class="bi bi-arrow-repeat mr-2"></i> Update
+                                </button>
+                            }
                         </div>
-                        <button type="button" class="px-5 py-2.5 bg-white border border-[#C41E24] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all flex items-center dark:bg-slate-800">
-                            <i class="bi bi-file-earmark-x mr-2"></i> Detach SKU
-                        </button>
+                        @if (PermissionHelper.HasPermission(User, "SKU", 'D'))
+                        {
+                            <button type="button" class="px-5 py-2.5 bg-white border border-[#C41E24] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all flex items-center dark:bg-slate-800">
+                                <i class="bi bi-file-earmark-x mr-2"></i> Detach SKU
+                            </button>
+                        }
                     </div>
                 </div>
 
@@ -218,9 +234,12 @@
                                             </select>
                                         </td>
                                         <td class="text-right pr-4">
-                                            <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
-                                                <i class="bi bi-trash3"></i>
-                                            </button>
+                                            @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
+                                            {
+                                                <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 }

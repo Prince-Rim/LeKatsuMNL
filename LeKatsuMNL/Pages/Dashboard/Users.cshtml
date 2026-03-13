@@ -3,161 +3,188 @@
 @{
     ViewData["Title"] = "Users";
     Layout = "_DashboardLayout";
+    var modules = new[] { "Transactions", "Inventory", "Users", "Branches", "Suppliers", "Billing", "Category", "Items", "SKU", "Rejects", "Received Stocks", "Reports" };
 }
 
 @section TitleActions {
-    <button onclick="openCreateModal()" class="px-6 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all flex items-center group">
-        <i class="bi bi-person-plus-fill mr-2 group-hover:rotate-12 transition-transform"></i>
-        New User
-    </button>
+    @if (LeKatsuMNL.Helpers.PermissionHelper.HasPermission(User, "Users", 'C'))
+    {
+        <button onclick="openCreateModal()" class="px-6 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all flex items-center group">
+            <i class="bi bi-person-plus-fill mr-2 group-hover:rotate-12 transition-transform"></i>
+            New User
+        </button>
+    }
 }
 
-<div class="space-y-6">
-    <!-- Users List Card -->
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
-            <h2 class="text-lg font-bold text-gray-800 dark:text-white">User Management</h2>
-            <div class="relative">
-                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm dark:text-gray-500"></i>
-                <input type="text" placeholder="Search for user..." class="pl-11 pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 w-64 transition-all dark:bg-slate-700">
-            </div>
+<div class="h-[calc(100vh-12rem)] flex flex-col">
+    <!-- Top toolbar -->
+    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
+        <div class="relative flex-1 max-w-lg">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                <i class="bi bi-search text-sm"></i>
+            </span>
+            <input type="text" id="userSearchInput" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" placeholder="Search for user...">
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50/50 border-b border-gray-100 dark:border-gray-700">
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">User ID</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Last Name</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-500">Status</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-500">Role</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-500">Branch Name</th>
-                        <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right dark:text-gray-500">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
-                    @if (Model.AllUsers != null && Model.AllUsers.Any())
+        <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+            <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
+        </button>
+    </div>
+
+    <!-- Table content -->
+    <div class="flex-1 overflow-auto bg-white border-x border-b border-gray-200 shadow-sm dark:bg-slate-800 dark:border-gray-700 custom-scrollbar">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
+                <tr>
+                    <th class="px-8 py-4">User ID</th>
+                    <th class="px-8 py-4">First Name</th>
+                    <th class="px-8 py-4">Last Name</th>
+                    <th class="px-8 py-4 text-center">Status</th>
+                    <th class="px-8 py-4 text-center">Role</th>
+                    <th class="px-8 py-4 text-center">Branch Name</th>
+                    <th class="px-8 py-4 text-right w-24">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700" id="userTableBody">
+                @if (Model.AllUsers != null && Model.AllUsers.Any())
+                {
+                    foreach (var user in Model.AllUsers)
                     {
-                        foreach (var user in Model.AllUsers)
-                        {
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-8 py-5 text-sm font-bold text-[#C41E24]">@user.UserSystemId</td>
-                                <td class="px-8 py-5 text-sm font-semibold text-gray-700 dark:text-gray-200">@user.FirstName</td>
-                                <td class="px-8 py-5 text-sm font-semibold text-gray-700 dark:text-gray-200">@user.LastName</td>
-                                <td class="px-8 py-5 text-center">
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider @(user.Status.ToLower() == "active" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")">
-                                        @user.Status
-                                    </span>
-                                </td>
-                                <td class="px-8 py-5 text-center">
-                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold uppercase tracking-wider dark:bg-slate-700 dark:text-gray-300">
-                                        @user.Role
-                                    </span>
-                                </td>
-                                <td class="px-8 py-5 text-center text-sm font-medium text-gray-500 dark:text-gray-400">@user.BranchName</td>
-                                <td class="px-8 py-5 text-right">
-                                    <div class="flex items-center justify-end space-x-2">
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-[#C41E24]">@user.UserSystemId</td>
+                            <td class="px-8 py-5 font-semibold text-gray-700 dark:text-gray-200">@user.FirstName</td>
+                            <td class="px-8 py-5 font-semibold text-gray-700 dark:text-gray-200">@user.LastName</td>
+                            <td class="px-8 py-5 text-center">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider @(user.Status.ToLower() == "active" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")">
+                                    @user.Status
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">
+                                <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold uppercase tracking-wider dark:bg-slate-700 dark:text-gray-300">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-center text-gray-500 dark:text-gray-400 font-medium">@user.BranchName</td>
+                            <td class="px-8 py-5 text-right">
+                                <div class="flex items-center justify-end space-x-2">
+                                    @if (LeKatsuMNL.Helpers.PermissionHelper.HasPermission(User, "Users", 'U'))
+                                    {
                                         <button onclick='openEditModal(@Json.Serialize(user))' class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-300">Update</button>
-                                        <form method="post" asp-page-handler="ToggleStatus" class="inline">
+                                        <form method="post" asp-page-handler="ToggleStatus" class="inline m-0">
                                             <input type="hidden" name="id" value="@user.Id" />
                                             <input type="hidden" name="type" value="@user.Type" />
                                             <button type="submit" onclick="return confirm('@(user.Status.ToLower() == "active" ? "Deactivate" : "Activate") this user?')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all @(user.Status.ToLower() == "active" ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-600 hover:bg-green-100")">
-                                                @(user.Status.ToLower() == "active" ? "Deactivate" : "Activate")
+                                                @(user.Status.ToLower() == "active" ? "Deact" : "Act")
                                             </button>
                                         </form>
-                                        <form method="post" asp-page-handler="Delete" class="inline">
+                                    }
+                                    @if (LeKatsuMNL.Helpers.PermissionHelper.HasPermission(User, "Users", 'D'))
+                                    {
+                                        <form method="post" asp-page-handler="Delete" class="inline m-0">
                                             <input type="hidden" name="id" value="@user.Id" />
                                             <input type="hidden" name="type" value="@user.Type" />
                                             <button type="submit" onclick="return confirm('Delete this user?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all dark:bg-slate-700 dark:text-gray-500">Delete</button>
                                         </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="px-8 py-16 text-center text-gray-400 italic text-sm dark:text-gray-500">
-                                - No users found -
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination Footer -->
-        <div class="p-6 border-t border-gray-100 flex items-center justify-between dark:border-gray-700">
-            <p class="text-sm text-gray-400 font-medium italic dark:text-gray-500">Showing 1 - @(Model.AllUsers?.Count ?? 0) of @(Model.AllUsers?.Count ?? 0)</p>
-            <div class="flex items-center space-x-6">
-                <div class="flex items-center space-x-3">
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest dark:text-gray-500">Records per page</span>
-                    <div class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-600 dark:bg-slate-700 dark:text-gray-300">10</div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-500"><i class="bi bi-chevron-left text-xs"></i></button>
-                    <button class="w-8 h-8 flex items-center justify-center bg-[#C41E24] text-white rounded-lg shadow-md font-bold text-sm">1</button>
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-500"><i class="bi bi-chevron-right text-xs"></i></button>
-                </div>
-            </div>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="px-8 py-16 text-center text-gray-400 italic text-sm dark:text-gray-500">
+                            - No users found -
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
+    
+    <partial name="_Pagination" model="Model.AllUsers" />
 </div>
 
-<!-- Create User Modal -->
+<!-- Create User Modal Step 1: Basic Info -->
 <div id="createUserModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
         <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Create User</h3>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Create User - Step 1</h3>
             <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
-        <form method="post" asp-page-handler="Create" class="p-8 space-y-5">
+        <div class="p-8 space-y-5">
             <div class="grid grid-cols-3 gap-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name*</label>
-                    <input asp-for="NewUser.FirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. John" required>
+                    <input id="newFirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. John" required>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Middle Name</label>
-                    <input asp-for="NewUser.MiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Quincy">
+                    <input id="newMiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Quincy">
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Last Name*</label>
-                    <input asp-for="NewUser.LastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Doe" required>
+                    <input id="newLastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Doe" required>
                 </div>
             </div>
             
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Email Address*</label>
-                    <input asp-for="NewUser.Email" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="email@example.com" required>
+                    <input id="newEmail" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="email@example.com" required>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Contact Number*</label>
-                    <input asp-for="NewUser.ContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="09..." required>
+                    <input id="newContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="09..." required>
                 </div>
             </div>
 
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Password*</label>
-                <input asp-for="NewUser.Password" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
+                <input id="newPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
             </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onclick="closeCreateModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all dark:bg-slate-700 dark:text-gray-300">Cancel</button>
+                <button type="button" onclick="openCreateStep2()" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Set Role</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal Step 2: Role & Permissions -->
+<div id="createUserStep2Modal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[110] backdrop-blur-[2px] transition-all duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white" id="step2Title">Role & Permissions</h3>
+            <button onclick="closeCreateStep2()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form method="post" asp-page-handler="Create" id="createForm" class="p-8 space-y-6 overflow-y-auto max-h-[80vh]">
+            <!-- Hidden Step 1 Data -->
+            <input type="hidden" asp-for="NewUser.FirstName" id="hiddenFirstName" />
+            <input type="hidden" asp-for="NewUser.MiddleName" id="hiddenMiddleName" />
+            <input type="hidden" asp-for="NewUser.LastName" id="hiddenLastName" />
+            <input type="hidden" asp-for="NewUser.Email" id="hiddenEmail" />
+            <input type="hidden" asp-for="NewUser.ContactNum" id="hiddenContactNum" />
+            <input type="hidden" asp-for="NewUser.Password" id="hiddenPassword" />
+            <input type="hidden" asp-for="NewUser.Privileges" id="hiddenPrivileges" />
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Role*</label>
-                    <select asp-for="NewUser.Role" id="newRole" onchange="toggleNewUserFields()" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Select Role*</label>
+                    <select asp-for="NewUser.Role" id="newRole" onchange="togglePermissionsUI('new')" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                         <option value="Admin">Admin</option>
                         <option value="Branch Manager">Branch Manager</option>
                         <option value="Staff">Staff</option>
                     </select>
                 </div>
                 <div class="space-y-2 hidden" id="newBranchContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Branch Location</label>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Assign Branch*</label>
                     <select asp-for="NewUser.BranchId" id="newBranchId" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
                         <option value="">Select Branch</option>
                         @foreach(var branch in Model.Branches) {
@@ -165,37 +192,71 @@
                         }
                     </select>
                 </div>
-                <div class="space-y-2" id="newPrivilegesContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Privileges</label>
-                    <select asp-for="NewUser.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
-                        <option value="Full Access">Full Access</option>
-                        <option value="Manage Users Only">Manage Users Only</option>
-                        <option value="Reports Only">Reports Only</option>
-                    </select>
+            </div>
+
+            <div class="space-y-4 hidden" id="newPermissionsContainer">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2 dark:border-gray-700">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Module Access Permissions</label>
+                    <div class="flex text-[10px] font-bold text-gray-400 uppercase">
+                        <span class="w-40">Module Access</span>
+                        <div class="flex">
+                            <span class="w-12 text-center">Create</span>
+                            <span class="w-12 text-center">Edit</span>
+                            <span class="w-12 text-center">Delete</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="newPermissionsGrid">
+                    @{
+                        foreach (var mod in modules)
+                        {
+                            <div class="space-y-2 p-3 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <input type="checkbox" id="mod_new_@mod" onchange="toggleModuleGranular('new', '@mod')" class="mod-master-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
+                                        <label for="mod_new_@mod" class="text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer">@mod</label>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-12 flex justify-center">
+                                            <input type="checkbox" data-mod="@mod" data-perm="C" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Create">
+                                        </div>
+                                        <div class="w-12 flex justify-center">
+                                            <input type="checkbox" data-mod="@mod" data-perm="U" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Edit">
+                                        </div>
+                                        <div class="w-12 flex justify-center">
+                                            <input type="checkbox" data-mod="@mod" data-perm="D" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Delete">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
             </div>
 
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button type="button" onclick="closeCreateModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all dark:bg-slate-700 dark:text-gray-300">Cancel</button>
-                <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Submit</button>
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onclick="backToStep1()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all dark:bg-slate-700 dark:text-gray-300">Back</button>
+                <button type="submit" onclick="assemblePermissions('new')" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Complete User Creation</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Edit User Modal -->
+<!-- Edit User Modal (Updated for Granular Permissions) -->
 <div id="editUserModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700">
         <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 dark:border-gray-700">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Update User</h3>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Update User & Permissions</h3>
             <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
-        <form method="post" asp-page-handler="Update" class="p-8 space-y-5">
+        <form method="post" asp-page-handler="Update" id="editForm" class="p-8 space-y-5 overflow-y-auto max-h-[80vh]">
             <input type="hidden" asp-for="EditUser.Id" id="editUserId" />
             <input type="hidden" asp-for="EditUser.Type" id="editUserType" />
-            
+            <input type="hidden" asp-for="EditUser.Privileges" id="editPrivileges" />
+
             <div class="grid grid-cols-3 gap-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name*</label>
@@ -229,8 +290,8 @@
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Role*</label>
-                    <select asp-for="EditUser.Role" id="editRole" onchange="toggleEditUserFields()" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Account Role*</label>
+                    <select asp-for="EditUser.Role" id="editRole" onchange="togglePermissionsUI('edit')" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" required>
                         <option value="Admin">Admin</option>
                         <option value="Branch Manager">Branch Manager</option>
                         <option value="Staff">Staff</option>
@@ -245,27 +306,50 @@
                         }
                     </select>
                 </div>
-                <div class="space-y-2" id="editPrivilegesContainer">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Privileges</label>
-                    <select asp-for="EditUser.Privileges" id="editPrivileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
-                        <option value="Full Access">Full Access</option>
-                        <option value="Manage Users Only">Manage Users Only</option>
-                        <option value="Reports Only">Reports Only</option>
-                    </select>
+            </div>
+
+            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700 hidden" id="editPermissionsContainer">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2 dark:border-gray-700">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Module Access Permissions</label>
+                    <div class="flex text-[10px] font-bold text-gray-400 uppercase">
+                        <span class="w-40">Module Access</span>
+                        <div class="flex">
+                            <span class="w-12 text-center">Create</span>
+                            <span class="w-12 text-center">Edit</span>
+                            <span class="w-12 text-center">Delete</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="editPermissionsGrid">
+                    @foreach (var mod in modules)
+                    {
+                        <div class="space-y-2 p-3 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" id="mod_edit_@mod" onchange="toggleModuleGranular('edit', '@mod')" class="mod-master-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
+                                    <label for="mod_edit_@mod" class="text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer">@mod</label>
+                                </div>
+                                <div class="flex">
+                                    <div class="w-12 flex justify-center">
+                                        <input type="checkbox" data-mod="@mod" data-perm="C" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Create">
+                                    </div>
+                                    <div class="w-12 flex justify-center">
+                                        <input type="checkbox" data-mod="@mod" data-perm="U" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Edit">
+                                    </div>
+                                    <div class="w-12 flex justify-center">
+                                        <input type="checkbox" data-mod="@mod" data-perm="D" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Delete">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Account Status</label>
-                <select asp-for="EditUser.Status" id="editStatus" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700">
-                    <option value="Active">Active</option>
-                    <option value="Deactivated">Deactivated</option>
-                </select>
-            </div>
-
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-100 dark:border-gray-700">
                 <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition-all dark:bg-slate-700 dark:text-gray-300">Cancel</button>
-                <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Save Changes</button>
+                <button type="submit" onclick="assemblePermissions('edit')" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-xl font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">Save Changes</button>
             </div>
         </form>
     </div>
@@ -273,46 +357,118 @@
 
 @section Scripts {
     <script>
-        function toggleNewUserFields() {
-            const role = document.getElementById('newRole').value;
-            const branchContainer = document.getElementById('newBranchContainer');
-            const privContainer = document.getElementById('newPrivilegesContainer');
+        // Search functionality
+        document.getElementById('userSearchInput')?.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#userTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Permission assembly logic
+        function assemblePermissions(type) {
+            const gridId = type === 'new' ? 'newPermissionsGrid' : 'editPermissionsGrid';
+            const hiddenId = type === 'new' ? 'hiddenPrivileges' : 'editPrivileges';
+            const checkboxes = document.querySelectorAll(`#${gridId} .perm-check`);
+            
+            let permissionString = "";
+            const modules = {};
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const mod = cb.getAttribute('data-mod');
+                    const perm = cb.getAttribute('data-perm');
+                    if (!modules[mod]) modules[mod] = "";
+                    modules[mod] += perm;
+                }
+            });
+            
+            const pairs = [];
+            for (const mod in modules) {
+                pairs.push(`${mod}:${modules[mod]}`);
+            }
+            
+            permissionString = pairs.join(';');
+            document.getElementById(hiddenId).value = permissionString || "N/A";
+        }
+
+        // Parse permission string into grid
+        function parsePermissions(type, permissionString) {
+            const gridId = type === 'new' ? 'newPermissionsGrid' : 'editPermissionsGrid';
+            const masterChecks = document.querySelectorAll(`#${gridId} .mod-master-check`);
+            const checkboxes = document.querySelectorAll(`#${gridId} .perm-check`);
+            
+            // Clear all
+            masterChecks.forEach(cb => cb.checked = false);
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                cb.classList.add('opacity-30', 'pointer-events-none');
+            });
+            
+            if (!permissionString || permissionString === "N/A") return;
+            
+            const modules = permissionString.split(';');
+            modules.forEach(pair => {
+                const [mod, perms] = pair.split(':');
+                if (mod && perms) {
+                    const masterCb = document.getElementById(`mod_${type}_${mod}`);
+                    if (masterCb) {
+                        masterCb.checked = true;
+                        perms.split('').forEach(p => {
+                            const cb = document.querySelector(`#${gridId} .perm-check[data-mod="${mod}"][data-perm="${p}"]`);
+                            if (cb) {
+                                cb.checked = true;
+                                cb.classList.remove('opacity-30', 'pointer-events-none');
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function togglePermissionsUI(type) {
+            const roleId = type === 'new' ? 'newRole' : 'editRole';
+            const branchContainerId = type === 'new' ? 'newBranchContainer' : 'editBranchContainer';
+            const permissionsContainerId = type === 'new' ? 'newPermissionsContainer' : 'editPermissionsContainer';
+            const role = document.getElementById(roleId).value;
+            const branchContainer = document.getElementById(branchContainerId);
+            const permissionsContainer = document.getElementById(permissionsContainerId);
             
             if (role === 'Branch Manager') {
                 branchContainer.classList.remove('hidden');
-                privContainer.classList.add('hidden');
+                permissionsContainer.classList.add('hidden');
             } else if (role === 'Admin') {
                 branchContainer.classList.add('hidden');
-                privContainer.classList.remove('hidden');
+                permissionsContainer.classList.remove('hidden');
             } else {
                 branchContainer.classList.add('hidden');
-                privContainer.classList.add('hidden');
+                permissionsContainer.classList.add('hidden');
             }
         }
 
-        function toggleEditUserFields() {
-            const role = document.getElementById('editRole').value;
-            const branchContainer = document.getElementById('editBranchContainer');
-            const privContainer = document.getElementById('editPrivilegesContainer');
+        function toggleModuleGranular(type, mod) {
+            const gridId = type === 'new' ? 'newPermissionsGrid' : 'editPermissionsGrid';
+            const masterId = `mod_${type}_${mod}`;
+            const isChecked = document.getElementById(masterId).checked;
+            const checkboxes = document.querySelectorAll(`#${gridId} .perm-check[data-mod="${mod}"]`);
             
-            if (role === 'Branch Manager') {
-                branchContainer.classList.remove('hidden');
-                privContainer.classList.add('hidden');
-            } else if (role === 'Admin') {
-                branchContainer.classList.add('hidden');
-                privContainer.classList.remove('hidden');
-            } else {
-                branchContainer.classList.add('hidden');
-                privContainer.classList.add('hidden');
-            }
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                if (isChecked) {
+                    cb.classList.remove('opacity-30', 'pointer-events-none');
+                } else {
+                    cb.classList.add('opacity-30', 'pointer-events-none');
+                }
+            });
         }
 
+        // Modal Logic
         function openCreateModal() {
             const modal = document.getElementById('createUserModal');
             const content = modal.querySelector('div');
-            document.getElementById('newRole').value = 'Admin';
-            toggleNewUserFields();
-
             modal.classList.remove('hidden');
             setTimeout(() => {
                 content.classList.remove('opacity-0', 'scale-95');
@@ -328,6 +484,49 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
+        function openCreateStep2() {
+            // Validate Step 1
+            if (!document.getElementById('newFirstName').value || !document.getElementById('newLastName').value || !document.getElementById('newEmail').value || !document.getElementById('newPassword').value) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            // Move data to hidden inputs in Step 2 form
+            document.getElementById('hiddenFirstName').value = document.getElementById('newFirstName').value;
+            document.getElementById('hiddenMiddleName').value = document.getElementById('newMiddleName').value;
+            document.getElementById('hiddenLastName').value = document.getElementById('newLastName').value;
+            document.getElementById('hiddenEmail').value = document.getElementById('newEmail').value;
+            document.getElementById('hiddenContactNum').value = document.getElementById('newContactNum').value;
+            document.getElementById('hiddenPassword').value = document.getElementById('newPassword').value;
+
+            // Close Step 1, Open Step 2
+            closeCreateModal();
+            setTimeout(() => {
+                const modal = document.getElementById('createUserStep2Modal');
+                const content = modal.querySelector('div');
+                modal.classList.remove('hidden');
+                togglePermissionsUI('new');
+                parsePermissions('new', ""); // Clear permissions
+                setTimeout(() => {
+                    content.classList.remove('opacity-0', 'scale-95');
+                    content.classList.add('opacity-100', 'scale-100');
+                }, 10);
+            }, 350);
+        }
+
+        function closeCreateStep2() {
+            const modal = document.getElementById('createUserStep2Modal');
+            const content = modal.querySelector('div');
+            content.classList.remove('opacity-100', 'scale-100');
+            content.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function backToStep1() {
+            closeCreateStep2();
+            setTimeout(openCreateModal, 350);
+        }
+
         function openEditModal(user) {
             document.getElementById('editUserId').value = user.id;
             document.getElementById('editUserType').value = user.type;
@@ -337,15 +536,14 @@
             document.getElementById('editEmail').value = user.email;
             document.getElementById('editContactNum').value = user.contactNum || "";
             document.getElementById('editRole').value = user.role;
-            document.getElementById('editStatus').value = user.status;
-            document.getElementById('editPrivileges').value = user.privileges || "Full Access";
+            document.getElementById('editPrivileges').value = user.privileges || "N/A";
             
-            toggleEditUserFields();
+            togglePermissionsUI('edit');
+            parsePermissions('edit', user.privileges);
             
             // Handle branch selection if applicable
             const branchSelect = document.getElementById('editBranchId');
             if (user.branchName !== "Main / All") {
-                // Find and select by text for simplicity in this mockup/demo
                 for (let i = 0; i < branchSelect.options.length; i++) {
                     if (branchSelect.options[i].text === user.branchName) {
                         branchSelect.selectedIndex = i;
@@ -373,9 +571,9 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        // Close on outside click
         window.onclick = function(event) {
             if (event.target.id === 'createUserModal') closeCreateModal();
+            if (event.target.id === 'createUserStep2Modal') closeCreateStep2();
             if (event.target.id === 'editUserModal') closeEditModal();
         }
     </script>

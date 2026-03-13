@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
 
+using LeKatsuMNL.Helpers;
+
 namespace LeKatsuMNL.Pages.Dashboard
 {
     public class SkuDetailsModel : PageModel
@@ -60,6 +62,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "SKU", 'U')) return Forbid();
+
             if (SkuHeader == null || SkuHeader.SkuId == 0)
             {
                 return Page();

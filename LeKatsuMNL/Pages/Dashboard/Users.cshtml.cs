@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -34,7 +35,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Type { get; set; } // "Admin" or "Manager"
         }
 
-        public IList<UserViewModel> AllUsers { get; set; }
+        public PaginatedList<UserViewModel> AllUsers { get; set; }
         public IList<BranchLocation> Branches { get; set; }
 
         [BindProperty]
@@ -59,13 +60,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Type { get; set; } // "Admin" or "Manager"
         }
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(int? pageIndex)
         {
             Branches = await _context.BranchLocations.ToListAsync();
-            await LoadUsersAsync();
+            await LoadUsersAsync(pageIndex ?? 1);
         }
 
-        private async Task LoadUsersAsync()
+        private async Task LoadUsersAsync(int pageIndex)
         {
             var admins = await _context.AdminAccounts
                 .Where(a => !a.IsSuperAdmin)
@@ -96,23 +97,41 @@ namespace LeKatsuMNL.Pages.Dashboard
                     Email = m.Email,
                     ContactNum = m.ContactNum,
                     Role = m.Role,
-                    Privileges = "N/A",
+                    Privileges = "N/A", // Managers no longer have granular privileges
                     Status = m.Status,
                     BranchName = m.BranchLocation != null ? m.BranchLocation.BranchName : "N/A",
                     Type = "Manager"
                 }).ToListAsync();
 
-            AllUsers = admins.Concat(managers).OrderBy(u => u.LastName).ToList();
+            var staff = await _context.StaffInformations
+                .Select(s => new UserViewModel
+                {
+                    Id = s.StaffId,
+                    FirstName = s.FirstName,
+                    MiddleName = s.MiddleName,
+                    LastName = s.LastName,
+                    UserSystemId = "STF-" + s.StaffId.ToString("D4"),
+                    Email = s.Email,
+                    ContactNum = s.ContactNum,
+                    Role = "Staff",
+                    Privileges = "N/A",
+                    Status = s.Status,
+                    BranchName = "N/A",
+                    Type = "Staff"
+                }).ToListAsync();
+
+            var combined = admins.Concat(managers).Concat(staff).OrderBy(u => u.LastName);
+            AllUsers = PaginatedList<UserViewModel>.Create(combined.AsQueryable(), pageIndex, 10);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "Users", 'C')) return Forbid();
+
             if (NewUser.Role == "Branch Manager")
             {
                 if (!NewUser.BranchId.HasValue || NewUser.BranchId <= 0)
                 {
-                    // Fallback to avoid FK constraint error.
-                    // Ideally handled via UI validation.
                     var firstBranch = await _context.BranchLocations.FirstOrDefaultAsync();
                     if (firstBranch != null) NewUser.BranchId = firstBranch.BranchId;
                 }
@@ -126,9 +145,24 @@ namespace LeKatsuMNL.Pages.Dashboard
                     ContactNum = NewUser.ContactNum ?? "N/A",
                     Password = BCrypt.Net.BCrypt.HashPassword(NewUser.Password),
                     BranchId = NewUser.BranchId ?? 0,
-                    Status = "Active"
+                    Status = "Active",
+                    Role = "Branch Manager"
                 };
                 _context.BranchManagers.Add(manager);
+            }
+            else if (NewUser.Role == "Staff")
+            {
+                var staff = new StaffInformation
+                {
+                    FirstName = NewUser.FirstName,
+                    MiddleName = NewUser.MiddleName ?? "",
+                    LastName = NewUser.LastName,
+                    Email = NewUser.Email,
+                    ContactNum = NewUser.ContactNum ?? "N/A",
+                    Password = BCrypt.Net.BCrypt.HashPassword(NewUser.Password),
+                    Status = "Active"
+                };
+                _context.StaffInformations.Add(staff);
             }
             else
             {
@@ -140,7 +174,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     Email = NewUser.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(NewUser.Password),
                     Role = NewUser.Role,
-                    Privileges = NewUser.Role == "Admin" ? (NewUser.Privileges ?? "Full Access") : "N/A",
+                    Privileges = NewUser.Privileges ?? "N/A",
                     Status = "Active",
                     IsSuperAdmin = false
                 };
@@ -153,6 +187,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostUpdateAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "Users", 'U')) return Forbid();
+
             if (EditUser.Type == "Admin")
             {
                 var admin = await _context.AdminAccounts.FindAsync(EditUser.Id);
@@ -163,12 +199,12 @@ namespace LeKatsuMNL.Pages.Dashboard
                     admin.LastName = EditUser.LastName;
                     admin.Email = EditUser.Email;
                     admin.Role = EditUser.Role;
-                    admin.Privileges = EditUser.Role == "Admin" ? (EditUser.Privileges ?? admin.Privileges) : "N/A";
+                    admin.Privileges = EditUser.Privileges ?? admin.Privileges;
                     admin.Status = EditUser.Status;
                     if (!string.IsNullOrEmpty(EditUser.Password)) admin.Password = BCrypt.Net.BCrypt.HashPassword(EditUser.Password);
                 }
             }
-            else
+            else if (EditUser.Type == "Manager")
             {
                 var manager = await _context.BranchManagers.FindAsync(EditUser.Id);
                 if (manager != null)
@@ -178,7 +214,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     manager.LastName = EditUser.LastName;
                     manager.Email = EditUser.Email;
                     manager.ContactNum = EditUser.ContactNum ?? manager.ContactNum;
-                    
+
                     if (EditUser.BranchId.HasValue && EditUser.BranchId > 0)
                     {
                         manager.BranchId = EditUser.BranchId.Value;
@@ -188,6 +224,20 @@ namespace LeKatsuMNL.Pages.Dashboard
                     if (!string.IsNullOrEmpty(EditUser.Password)) manager.Password = BCrypt.Net.BCrypt.HashPassword(EditUser.Password);
                 }
             }
+            else if (EditUser.Type == "Staff")
+            {
+                var staff = await _context.StaffInformations.FindAsync(EditUser.Id);
+                if (staff != null)
+                {
+                    staff.FirstName = EditUser.FirstName;
+                    staff.MiddleName = EditUser.MiddleName ?? "";
+                    staff.LastName = EditUser.LastName;
+                    staff.Email = EditUser.Email;
+                    staff.ContactNum = EditUser.ContactNum ?? staff.ContactNum;
+                    staff.Status = EditUser.Status;
+                    if (!string.IsNullOrEmpty(EditUser.Password)) staff.Password = BCrypt.Net.BCrypt.HashPassword(EditUser.Password);
+                }
+            }
 
             await _context.SaveChangesAsync();
             return RedirectToPage();
@@ -195,6 +245,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostToggleStatusAsync(int id, string type)
         {
+            if (!PermissionHelper.HasPermission(User, "Users", 'U')) return Forbid();
+
             if (type == "Admin")
             {
                 var admin = await _context.AdminAccounts.FindAsync(id);
@@ -203,12 +255,20 @@ namespace LeKatsuMNL.Pages.Dashboard
                     admin.Status = admin.Status.ToLower() == "active" ? "Deactivated" : "Active";
                 }
             }
-            else
+            else if (type == "Manager")
             {
                 var manager = await _context.BranchManagers.FindAsync(id);
                 if (manager != null)
                 {
                     manager.Status = manager.Status.ToLower() == "active" ? "Deactivated" : "Active";
+                }
+            }
+            else if (type == "Staff")
+            {
+                var staff = await _context.StaffInformations.FindAsync(id);
+                if (staff != null)
+                {
+                    staff.Status = staff.Status.ToLower() == "active" ? "Deactivated" : "Active";
                 }
             }
 
@@ -218,15 +278,22 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostDeleteAsync(int id, string type)
         {
+            if (!PermissionHelper.HasPermission(User, "Users", 'D')) return Forbid();
+
             if (type == "Admin")
             {
                 var admin = await _context.AdminAccounts.FindAsync(id);
                 if (admin != null) _context.AdminAccounts.Remove(admin);
             }
-            else
+            else if (type == "Manager")
             {
                 var manager = await _context.BranchManagers.FindAsync(id);
                 if (manager != null) _context.BranchManagers.Remove(manager);
+            }
+            else if (type == "Staff")
+            {
+                var staff = await _context.StaffInformations.FindAsync(id);
+                if (staff != null) _context.StaffInformations.Remove(staff);
             }
 
             await _context.SaveChangesAsync();

@@ -1,0 +1,85 @@
+@model dynamic
+@{
+    var pageIndex = (int)Model.PageIndex;
+    var totalPages = (int)Model.TotalPages;
+    var hasPreviousPage = (bool)Model.HasPreviousPage;
+    var hasNextPage = (bool)Model.HasNextPage;
+    var totalItems = (int)Model.TotalItems;
+    var pageSize = 10; 
+    
+    var startRecord = totalItems == 0 ? 0 : (pageIndex - 1) * pageSize + 1;
+    var endRecord = Math.Min(pageIndex * pageSize, totalItems);
+    
+    int startPage = Math.Max(1, pageIndex - 2);
+    int endPage = Math.Min(totalPages, pageIndex + 2);
+
+    // Create a dictionary for route data to preserve existing query parameters (like tab, search, etc.)
+    var routeData = new Dictionary<string, string>();
+    foreach (var key in Context.Request.Query.Keys)
+    {
+        routeData[key] = Context.Request.Query[key];
+    }
+}
+
+<div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold uppercase tracking-widest border-t border-gray-100 dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
+    <div class="flex items-center space-x-2">
+        @if (totalItems > 0)
+        {
+            <span>Showing <span class="text-gray-900 dark:text-white font-black">@startRecord</span> - <span class="text-gray-900 dark:text-white font-black">@endRecord</span> of <span class="text-gray-900 dark:text-white font-black">@totalItems</span></span>
+        }
+        else
+        {
+            <span>No records found</span>
+        }
+    </div>
+
+    <div class="flex items-center space-x-8">
+        <div class="hidden sm:flex items-center space-x-3">
+            <span>Records per page</span>
+            <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
+                <span>@pageSize</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+            @{
+                var prevRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex - 1).ToString() };
+            }
+            <a asp-all-route-data="prevRoute" 
+               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasPreviousPage ? "pointer-events-none opacity-50" : "")">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+
+            @if (startPage > 1)
+            {
+                var firstRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1" };
+                <a asp-all-route-data="firstRoute" class="w-9 h-9 sort-btn flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">1</a>
+                @if (startPage > 2) { <span class="px-1 text-gray-300 dark:text-gray-600">...</span> }
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                var pageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = i.ToString() };
+                <a asp-all-route-data="pageRoute"
+                   class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg transition-all @(i == pageIndex ? "bg-[#C41E24] text-white shadow-md border-[#C41E24]" : "text-gray-400 bg-gray-50 hover:bg-gray-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700")">
+                    @i
+                </a>
+            }
+
+            @if (endPage < totalPages)
+            {
+                @if (endPage < totalPages - 1) { <span class="px-1 text-gray-300 dark:text-gray-600">...</span> }
+                var lastRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString() };
+                <a asp-all-route-data="lastRoute" class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">@totalPages</a>
+            }
+
+            @{
+                var nextRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex + 1).ToString() };
+            }
+            <a asp-all-route-data="nextRoute"
+               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasNextPage ? "pointer-events-none opacity-50" : "")">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

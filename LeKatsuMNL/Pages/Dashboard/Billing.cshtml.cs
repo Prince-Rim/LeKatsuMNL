@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
+using LeKatsuMNL.Helpers;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -19,14 +20,15 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
-        public IList<Invoice> Invoices { get; set; }
+        public PaginatedList<Invoice> Invoices { get; set; }
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(int? pageIndex)
         {
-            Invoices = await _context.Invoices
+            var query = _context.Invoices
                 .Include(i => i.OrderInfo)
-                .OrderByDescending(i => i.InvoiceDate)
-                .ToListAsync();
+                .OrderByDescending(i => i.InvoiceDate);
+            
+            Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, 10);
         }
     }
 }

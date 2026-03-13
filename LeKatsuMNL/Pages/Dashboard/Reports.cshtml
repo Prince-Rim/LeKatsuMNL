@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LeKatsuMNL.Pages.Dashboard.ReportsModel
 @{
     ViewData["Title"] = "Inventory Reports";
@@ -33,47 +33,28 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">Marinated Chicken (kg)</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">150</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">120</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">50</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">80</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">0</td>
-                </tr>
-                <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">Cooking Oil (18L)</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">40</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">32</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">10</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">18</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">0</td>
-                </tr>
-                <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">Breading Mix (kg)</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">25</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">20</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">5</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">10</td>
-                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">0</td>
-                </tr>
+                @if (Model.InventoryReports != null && Model.InventoryReports.Any())
+                {
+                    foreach (var report in Model.InventoryReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Ending</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Received</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Consumed</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Rejected</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No inventory reports found.</td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
 
-    <div class="bg-white rounded-b-xl border-x border-b border-gray-200 p-5 flex justify-between items-center text-xs text-gray-500 font-bold uppercase tracking-widest border-t border-gray-100 dark:bg-slate-800 dark:text-gray-400 dark:border-gray-700">
-        <div>Showing 1 - 3 of 10</div>
-        <div class="flex items-center space-x-8">
-            <div class="flex items-center space-x-3">
-                <span>Records per page</span>
-                <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                    <span>10</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&lt;</button>
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-gray-600 text-white shadow-md dark:border-gray-700">1</button>
-                <button class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">&gt;</button>
-            </div>
-        </div>
-    </div>
+    <partial name="_Pagination" model="Model.InventoryReports" />
