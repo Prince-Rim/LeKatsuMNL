@@ -4,6 +4,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeKatsuMNL.Migrations
 {
     [DbContext(typeof(LeKatsuDb))]
-    partial class LeKatsuDbModelSnapshot : ModelSnapshot
+    [Migration("20260314033955_UpdateCategoryAndPrice")]
+    partial class UpdateCategoryAndPrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -909,9 +912,6 @@ namespace LeKatsuMNL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RejectId"));
 
-                    b.Property<int?>("ComId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ItemName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -930,18 +930,11 @@ namespace LeKatsuMNL.Migrations
                     b.Property<DateTime>("RejectedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("SkuId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Uom")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RejectId");
-
-                    b.HasIndex("ComId");
-
-                    b.HasIndex("SkuId");
 
                     b.ToTable("RejectItems");
                 });
@@ -1932,21 +1925,6 @@ namespace LeKatsuMNL.Migrations
                         .IsRequired();
 
                     b.Navigation("OrderInfo");
-
-                    b.Navigation("SkuHeader");
-                });
-
-            modelBuilder.Entity("LeKatsuMNL.Models.RejectItem", b =>
-                {
-                    b.HasOne("LeKatsuMNL.Models.CommissaryInventory", "CommissaryInventory")
-                        .WithMany()
-                        .HasForeignKey("ComId");
-
-                    b.HasOne("LeKatsuMNL.Models.SkuHeader", "SkuHeader")
-                        .WithMany()
-                        .HasForeignKey("SkuId");
-
-                    b.Navigation("CommissaryInventory");
 
                     b.Navigation("SkuHeader");
                 });

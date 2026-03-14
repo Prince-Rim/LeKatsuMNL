@@ -14,7 +14,7 @@ namespace LeKatsuMNL.Models
         public string CategoryName { get; set; }
 
         [MaxLength(200)]
-        public string Description { get; set; }
+        public string SubCategoryNames { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

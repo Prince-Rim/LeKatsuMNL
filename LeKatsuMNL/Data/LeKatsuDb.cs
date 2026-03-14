@@ -98,6 +98,13 @@ namespace LeKatsuMNL.Data
                 .HasForeignKey(ci => ci.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // SubCategory -> CommissaryInventory (1:M)
+            modelBuilder.Entity<CommissaryInventory>()
+                .HasOne(ci => ci.SubCategory)
+                .WithMany()
+                .HasForeignKey(ci => ci.SubCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // SkuHeader -> CommissaryInventory (1:M)
             modelBuilder.Entity<CommissaryInventory>()
                 .HasOne(ci => ci.SkuHeader)

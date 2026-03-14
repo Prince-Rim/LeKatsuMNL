@@ -17,8 +17,16 @@ namespace LeKatsuMNL.Models
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 
+        public int? SubCategoryId { get; set; }
+        public SubCategory SubCategory { get; set; }
+
+        public string? SubClass { get; set; }
+
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; }
+        public decimal CostPrice { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal SellingPrice { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Stock { get; set; }

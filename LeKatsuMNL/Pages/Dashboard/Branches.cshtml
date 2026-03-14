@@ -51,10 +51,12 @@
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" id="searchInput" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" placeholder="Search branches...">
+            <input type="text" id="branchSearchInput" 
+                   class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
+                   placeholder="Search branches...">
         </div>
 
-        <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+        <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
             <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
         </button>
     </div>
@@ -71,7 +73,7 @@
                     <th class="px-8 py-4 text-right w-24">Action</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700" id="branchTableBody">
                 @if (Model.Branches != null && Model.Branches.Any())
                 {
                     foreach (var branch in Model.Branches)
@@ -241,6 +243,19 @@
 
 @section Scripts {
     <script>
+        // Search functionality (Live Search)
+        document.getElementById('branchSearchInput')?.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#branchTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                // Skip the "No branches found" row if it exists
+                if (row.querySelector('td[colspan]')) return;
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
         const overlay = document.getElementById('modalOverlay');
         const branchModal = document.getElementById('branchModal');
         const form = document.getElementById('branchForm');

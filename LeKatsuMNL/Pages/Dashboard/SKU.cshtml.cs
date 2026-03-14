@@ -139,21 +139,28 @@ namespace LeKatsuMNL.Pages.Dashboard
             await OnGetAsync(1);
             return Page();
         }
-        public async Task<IActionResult> OnPostRejectAsync(string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
+        public async Task<IActionResult> OnPostRejectAsync(int RejectId, string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
         {
             if (!PermissionHelper.HasPermission(User, "Rejects", 'C')) return Forbid();
 
-            if (string.IsNullOrEmpty(RejectName) || RejectQty <= 0)
+            if (RejectId <= 0 || RejectQty <= 0)
+            {
+                return await InitializeAndReturnPage();
+            }
+
+            var sku = await _context.SkuHeaders.FindAsync(RejectId);
+            if (sku == null)
             {
                 return await InitializeAndReturnPage();
             }
 
             var reject = new RejectItem
             {
-                ItemName = RejectName,
+                SkuId = RejectId,
+                ItemName = sku.ItemName,
                 Quantity = RejectQty,
-                Uom = RejectUOM,
-                Reason = RejectReason,
+                Uom = sku.Uom,
+                Reason = string.IsNullOrWhiteSpace(RejectReason) ? "N/A" : RejectReason,
                 RejectedAt = System.DateTime.Now,
                 RejectType = "SKU"
             };
