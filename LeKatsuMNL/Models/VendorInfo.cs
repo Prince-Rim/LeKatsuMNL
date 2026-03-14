@@ -22,6 +22,9 @@ namespace LeKatsuMNL.Models
         [MaxLength(20)]
         public string SecondVendorCn { get; set; }
 
+        [MaxLength(20)]
+        public string SupplierType { get; set; } = "Main";
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation property for One-to-Many

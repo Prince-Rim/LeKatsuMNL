@@ -28,9 +28,23 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public VendorInfo EditVendor { get; set; }
 
-        public async Task OnGetAsync(int? pageIndex)
+        public string SearchString { get; set; }
+
+        public async Task OnGetAsync(int? pageIndex, string searchString)
         {
-            var query = _context.VendorInfos.OrderByDescending(v => v.CreatedAt);
+            SearchString = searchString;
+            IQueryable<VendorInfo> query = _context.VendorInfos
+                .Include(v => v.CommissaryInventories)
+                .OrderByDescending(v => v.CreatedAt);
+
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                var search = SearchString.ToLower();
+                query = query.Where(v => v.VendorName.ToLower().Contains(search) || 
+                                       v.ContactNum.ToLower().Contains(search) ||
+                                       v.CommissaryInventories.Any(ci => ci.ItemName.ToLower().Contains(search)));
+            }
+
             Vendors = await PaginatedList<VendorInfo>.CreateAsync(query, pageIndex ?? 1, 10);
         }
 
@@ -52,6 +66,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 ContactNum = NewVendor.ContactNum ?? "",
                 SecondVendorName = NewVendor.SecondVendorName ?? "",
                 SecondVendorCn = NewVendor.SecondVendorCn ?? "",
+                SupplierType = NewVendor.SupplierType ?? "Main",
                 CreatedAt = DateTime.Now
             };
 
@@ -77,6 +92,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             vendorToUpdate.VendorName = EditVendor.VendorName;
             vendorToUpdate.ContactNum = EditVendor.ContactNum ?? "";
+            vendorToUpdate.SupplierType = EditVendor.SupplierType ?? "Main";
 
             await _context.SaveChangesAsync();
 

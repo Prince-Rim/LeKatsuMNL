@@ -10,7 +10,6 @@
     <!-- Tabs -->
     <div class="flex border-b border-gray-100 dark:border-gray-700 px-6">
         <button id="tab-account" onclick="switchTab('account')" class="px-6 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">Account</button>
-        <button id="tab-feature" onclick="switchTab('feature')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Feature Access</button>
         <button id="tab-appearance" onclick="switchTab('appearance')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Appearance</button>
     </div>
 
@@ -18,21 +17,16 @@
     <div id="content-account" class="p-8">
         <form method="post" asp-page-handler="EditAccount" id="edit-account-form" class="space-y-8 max-w-4xl">
             <!-- Full Name -->
-            <div class="grid grid-cols-[200px_1fr_1fr] gap-6 items-center">
+            <div class="grid grid-cols-[200px_1fr_1fr_1fr] gap-6 items-center">
                 <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Account Full Name</label>
                 <div class="w-full">
-                    <input type="text" asp-for="FirstName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
+                    <input type="text" asp-for="FirstName" placeholder="First Name" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
                 <div class="w-full">
-                    <input type="text" asp-for="LastName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
+                    <input type="text" asp-for="MiddleName" placeholder="Middle Name" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
-            </div>
-            
-            <!-- Middle Name -->
-            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Middle Name</label>
-                <div class="max-w-[calc(50%-12px)]">
-                    <input type="text" asp-for="MiddleName" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
+                <div class="w-full">
+                    <input type="text" asp-for="LastName" placeholder="Last Name" class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
                 </div>
             </div>
 
@@ -87,18 +81,6 @@
         </div>
     </div>
 
-    <!-- Feature Access Tab Content -->
-    <div id="content-feature" class="p-8 hidden">
-        <div class="space-y-8 max-w-4xl">
-            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
-                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Privileges</label>
-                <div class="max-w-[calc(50%-12px)]">
-                    <input type="text" value="@Model.Privileges" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none pointer-events-none dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" readonly>
-                </div>
-            </div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 italic mt-4 pl-[224px]">Your current access level restricts or permits actions across different modules.</p>
-        </div>
-    </div>
 
     <!-- Appearance Tab Content -->
     <div id="content-appearance" class="p-8 hidden">
@@ -161,7 +143,7 @@
         }
 
         function switchTab(tab) {
-            const tabs = ['account', 'feature', 'appearance'];
+            const tabs = ['account', 'appearance'];
             
             tabs.forEach(t => {
                 const tabEl = document.getElementById(`tab-${t}`);

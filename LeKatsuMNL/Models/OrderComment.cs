@@ -12,8 +12,11 @@ namespace LeKatsuMNL.Models
         public int OrderId { get; set; }
         public OrderInfo OrderInfo { get; set; }
 
-        public int BranchManagerId { get; set; }
-        public BranchManager BranchManager { get; set; }
+        public int? BranchManagerId { get; set; }
+        public BranchManager? BranchManager { get; set; }
+
+        public int? AdminAccountId { get; set; }
+        public AdminAccount? AdminAccount { get; set; }
 
         [Required]
         [MaxLength(1000)]

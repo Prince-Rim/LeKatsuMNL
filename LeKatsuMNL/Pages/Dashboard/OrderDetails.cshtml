@@ -1,16 +1,11 @@
 @page
 @model LeKatsuMNL.Pages.Dashboard.OrderDetailsModel
 @{
-    string formattedOrderId = $"FO-{Model.Order.OrderId:D5}";
+    string formattedOrderId = $"ORD-{Model.Order.OrderId:D5}";
     ViewData["Title"] = $"Transaction / Branch Orders / {formattedOrderId}";
 }
 
-<div class="flex items-center space-x-4 mb-6">
-    <a href="/Dashboard/BranchOrders" class="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-full shadow-sm text-[#C41E24] hover:bg-gray-50 transition-all dark:bg-slate-800 dark:border-gray-700">
-        <i class="bi bi-chevron-left"></i>
-    </a>
-    <h2 class="text-lg font-bold text-gray-800 dark:text-white">Transaction / Branch Orders/Order Details</h2>
-</div>
+
 
 
 
@@ -22,9 +17,18 @@
             </div>
             @if (Model.Order.Status == "Pending")
             {
-                <button class="bg-[#C41E24] text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all flex items-center shadow-sm">
-                    <i class="bi bi-plus-lg mr-3 text-sm"></i> Mark as approved
-                </button>
+                <form method="post" asp-page-handler="ApproveOrder">
+                    <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
+                    <button type="submit" class="bg-[#C41E24] text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all flex items-center shadow-sm">
+                        <i class="bi bi-check-lg mr-3 text-sm"></i> Mark as approved
+                    </button>
+                </form>
+            }
+            else if (Model.Order.Status == "Approved")
+            {
+                <span class="bg-green-100 text-green-700 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center shadow-sm">
+                    <i class="bi bi-check-circle-fill mr-3 text-sm"></i> Approved
+                </span>
             }
         </div>
 
@@ -35,7 +39,9 @@
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
                 <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Manager ID</span>
-                <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">@Model.Order.BranchManager?.BManagerId</span>
+                <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">
+                    @(Model.Order.BranchManager != null ? $"BRCH-{Model.Order.BranchManager.BManagerId:D4}" : "-")
+                </span>
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
                 <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Order date</span>
@@ -122,8 +128,20 @@
                             </div>
                             <div class="flex-1 space-y-2">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-gray-800 dark:text-white">@(comment.BranchManager?.FirstName) @(comment.BranchManager?.LastName) - @(comment.BranchManager?.BranchLocation?.BranchName)</span>
-                                    <span class="text-[10px] font-bold text-gray-400 uppercase">@(comment.BranchManager?.Role)</span>
+                                    @if (comment.AdminAccount != null)
+                                    {
+                                        <span class="text-sm font-bold text-gray-800 dark:text-white">@(comment.AdminAccount.FirstName) @(comment.AdminAccount.LastName) - Main Office</span>
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase">@(comment.AdminAccount.Role)</span>
+                                    }
+                                    else if (comment.BranchManager != null)
+                                    {
+                                        <span class="text-sm font-bold text-gray-800 dark:text-white">@(comment.BranchManager.FirstName) @(comment.BranchManager.LastName) - @(comment.BranchManager.BranchLocation?.BranchName)</span>
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase">Branch Manager</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-sm font-bold text-gray-800 dark:text-white">Unknown User</span>
+                                    }
                                 </div>
                                 <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 dark:bg-slate-700/50 dark:border-gray-600 max-w-2xl">
                                     <p class="text-sm text-gray-600 leading-relaxed dark:text-gray-300">@comment.Comment</p>
@@ -193,6 +211,17 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
         }
+
+        // On load, check for tab parameter
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                // If the parameter is 'issues' but the button ID is 'issues', 
+                // and switchTab expects the slug, this should work.
+                switchTab(tabParam);
+            }
+        });
     </script>
 }
     

@@ -95,13 +95,11 @@ namespace LeKatsuMNL.Pages.Dashboard
             // Update recipes: Clear and re-add for simplicity
             _context.SkuRecipes.RemoveRange(skuToUpdate.SkuRecipes);
             
+            decimal totalUnitCost = 0;
             if (SkuHeader.SkuRecipes != null)
             {
-                System.Console.WriteLine("---- DEBUGGING SKU POST ----");
                 foreach (var recipe in SkuHeader.SkuRecipes)
                 {
-                    System.Console.WriteLine($"Recipe attached: ComId={recipe.ComId}, Quantity={recipe.QuantityNeeded}");
-                    
                     // Defensive check: Ignore invalid IDs
                     if (recipe.ComId <= 0) continue;
                     
@@ -113,13 +111,20 @@ namespace LeKatsuMNL.Pages.Dashboard
                     {
                         SkuId = skuToUpdate.SkuId,
                         ComId = recipe.ComId,
-                        CommissaryInventory = inventoryItem, // Force EF to populate shadow FK
+                        CommissaryInventory = inventoryItem,
                         QuantityNeeded = recipe.QuantityNeeded,
                         Uom = recipe.Uom
                     });
+
+                    // Convert recipe UOM to inventory UOM, then multiply by cost
+                    decimal convertedQty = Helpers.UomConverter.Convert(
+                        recipe.QuantityNeeded, recipe.Uom, inventoryItem.Uom);
+                    totalUnitCost += convertedQty * inventoryItem.CostPrice;
                 }
-                System.Console.WriteLine("----------------------------");
             }
+            
+            // Set the calculated unit cost
+            skuToUpdate.UnitCost = totalUnitCost;
 
             await _context.SaveChangesAsync();
 

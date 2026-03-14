@@ -3,7 +3,17 @@
 @{
     ViewData["Title"] = "Users";
     Layout = "_DashboardLayout";
-    var modules = new[] { "Transactions", "Inventory", "Users", "Branches", "Suppliers", "Billing", "Category", "Items", "SKU", "Rejects", "Received Stocks", "Reports" };
+    
+    // Grouped modules for better UI organization
+    var groupedModules = new Dictionary<string, (string Icon, string[] Modules)>
+    {
+        { "Inventory", ("bi bi-box-seam", new[] { "Items", "SKU", "Category", "Rejects" }) },
+        { "Transactions", ("bi bi-node-plus", new[] { "Received Stocks", "Branch Orders" }) },
+        { "Management", ("bi bi-person-badge", new[] { "Users", "Branches", "Suppliers", "Billing", "Reports" }) }
+    };
+    
+    // Fallback flat list for backward compatibility in scripts if needed
+    var modules = groupedModules.SelectMany(g => g.Value.Modules).ToArray();
 }
 
 @section TitleActions {
@@ -18,18 +28,40 @@
 
 <div class="h-[calc(100vh-12rem)] flex flex-col">
     <!-- Top toolbar -->
-    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="relative flex-1 max-w-lg">
-            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                <i class="bi bi-search text-sm"></i>
-            </span>
-            <input type="text" id="userSearchInput" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" placeholder="Search for user...">
+    <form id="userFilterForm" method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 space-x-4">
+        <div class="flex-1 flex items-center space-x-4 max-w-4xl">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" id="userSearchLive" name="searchString" value="@Model.SearchString" 
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
+                       placeholder="Search name, email, or branch..."
+                       autofocus onfocus="this.value = this.value;">
+            </div>
+
+            <select name="roleFilter" onchange="this.form.submit()" 
+                    class="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:text-gray-300 dark:border-gray-600">
+                <option value="All" selected="@(Model.RoleFilter == "All")">All Roles</option>
+                <option value="Admin" selected="@(Model.RoleFilter == "Admin")">Admin</option>
+                <option value="Branch Manager" selected="@(Model.RoleFilter == "Branch Manager")">Branch Manager</option>
+                <option value="Staff" selected="@(Model.RoleFilter == "Staff")">Staff</option>
+            </select>
+
+            <select name="statusFilter" onchange="this.form.submit()" 
+                    class="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:text-gray-300 dark:border-gray-600">
+                <option value="All" selected="@(Model.StatusFilter == "All")">All Status</option>
+                <option value="Active" selected="@(Model.StatusFilter == "Active")">Active</option>
+                <option value="Deactivated" selected="@(Model.StatusFilter == "Deactivated")">Deactivated</option>
+            </select>
+            
+            <button type="submit" class="hidden">Search</button>
         </div>
 
-        <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
-            <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
-        </button>
-    </div>
+        <a href="/Dashboard/Users" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+            <i class="bi bi-arrow-clockwise text-base"></i> <span>Clear Filters</span>
+        </a>
+    </form>
 
     <!-- Table content -->
     <div class="flex-1 overflow-auto bg-white border-x border-b border-gray-200 shadow-sm dark:bg-slate-800 dark:border-gray-700 custom-scrollbar">
@@ -207,30 +239,53 @@
                     </div>
                 </div>
 
-                <div class="space-y-2" id="newPermissionsGrid">
-                    @{
-                        foreach (var mod in modules)
-                        {
-                            <div class="space-y-2 p-3 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-3">
-                                        <input type="checkbox" id="mod_new_@mod" onchange="toggleModuleGranular('new', '@mod')" class="mod-master-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
-                                        <label for="mod_new_@mod" class="text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer">@mod</label>
-                                    </div>
-                                    <div class="flex">
-                                        <div class="w-12 flex justify-center">
-                                            <input type="checkbox" data-mod="@mod" data-perm="C" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Create">
-                                        </div>
-                                        <div class="w-12 flex justify-center">
-                                            <input type="checkbox" data-mod="@mod" data-perm="U" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Edit">
-                                        </div>
-                                        <div class="w-12 flex justify-center">
-                                            <input type="checkbox" data-mod="@mod" data-perm="D" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Delete">
-                                        </div>
+                <div class="space-y-3" id="newPermissionsGrid">
+                    @foreach (var group in groupedModules)
+                    {
+                        <div class="border border-gray-100 rounded-xl overflow-hidden dark:border-gray-700">
+                            <!-- Group Header -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-slate-700/30">
+                                <div class="flex items-center space-x-3">
+                                    <button type="button" onclick="togglePermissionGroup('new', '@group.Key')" class="p-1 hover:bg-gray-200 rounded transition-colors dark:hover:bg-slate-600">
+                                        <i id="icon_new_@group.Key" class="bi bi-chevron-right text-gray-400"></i>
+                                    </button>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="@group.Value.Icon text-[#C41E24]"></i>
+                                        <span class="text-sm font-bold text-gray-800 dark:text-white">@group.Key</span>
                                     </div>
                                 </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase mr-2">Toggle All</span>
+                                    <input type="checkbox" onchange="toggleEntireGroup('new', '@group.Key', this.checked)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
+                                </div>
                             </div>
-                        }
+
+                            <!-- Group Content (Modules) -->
+                            <div id="group_new_@group.Key" class="hidden divide-y divide-gray-50 dark:divide-gray-700 bg-white dark:bg-slate-800/50">
+                                @foreach (var mod in group.Value.Modules)
+                                {
+                                    <div class="p-4 pl-12 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <input type="checkbox" id="mod_new_@mod" onchange="toggleModuleGranular('new', '@mod')" class="mod-master-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
+                                                <label for="mod_new_@mod" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">@mod</label>
+                                            </div>
+                                            <div class="flex">
+                                                <div class="w-12 flex justify-center">
+                                                    <input type="checkbox" data-mod="@mod" data-perm="C" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Create">
+                                                </div>
+                                                <div class="w-12 flex justify-center">
+                                                    <input type="checkbox" data-mod="@mod" data-perm="U" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Edit">
+                                                </div>
+                                                <div class="w-12 flex justify-center">
+                                                    <input type="checkbox" data-mod="@mod" data-perm="D" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Delete">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     }
                 </div>
             </div>
@@ -321,26 +376,51 @@
                     </div>
                 </div>
 
-                <div class="space-y-2" id="editPermissionsGrid">
-                    @foreach (var mod in modules)
+                <div class="space-y-3" id="editPermissionsGrid">
+                    @foreach (var group in groupedModules)
                     {
-                        <div class="space-y-2 p-3 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
-                            <div class="flex items-center justify-between">
+                        <div class="border border-gray-100 rounded-xl overflow-hidden dark:border-gray-700">
+                            <!-- Group Header -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-slate-700/30">
                                 <div class="flex items-center space-x-3">
-                                    <input type="checkbox" id="mod_edit_@mod" onchange="toggleModuleGranular('edit', '@mod')" class="mod-master-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
-                                    <label for="mod_edit_@mod" class="text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer">@mod</label>
-                                </div>
-                                <div class="flex">
-                                    <div class="w-12 flex justify-center">
-                                        <input type="checkbox" data-mod="@mod" data-perm="C" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Create">
-                                    </div>
-                                    <div class="w-12 flex justify-center">
-                                        <input type="checkbox" data-mod="@mod" data-perm="U" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Edit">
-                                    </div>
-                                    <div class="w-12 flex justify-center">
-                                        <input type="checkbox" data-mod="@mod" data-perm="D" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Delete">
+                                    <button type="button" onclick="togglePermissionGroup('edit', '@group.Key')" class="p-1 hover:bg-gray-200 rounded transition-colors dark:hover:bg-slate-600">
+                                        <i id="icon_edit_@group.Key" class="bi bi-chevron-right text-gray-400"></i>
+                                    </button>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="@group.Value.Icon text-[#C41E24]"></i>
+                                        <span class="text-sm font-bold text-gray-800 dark:text-white">@group.Key</span>
                                     </div>
                                 </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase mr-2">Toggle All</span>
+                                    <input type="checkbox" onchange="toggleEntireGroup('edit', '@group.Key', this.checked)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
+                                </div>
+                            </div>
+
+                            <!-- Group Content (Modules) -->
+                            <div id="group_edit_@group.Key" class="hidden divide-y divide-gray-50 dark:divide-gray-700 bg-white dark:bg-slate-800/50">
+                                @foreach (var mod in group.Value.Modules)
+                                {
+                                    <div class="p-4 pl-12 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <input type="checkbox" id="mod_edit_@mod" onchange="toggleModuleGranular('edit', '@mod')" class="mod-master-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24]">
+                                                <label for="mod_edit_@mod" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">@mod</label>
+                                            </div>
+                                            <div class="flex">
+                                                <div class="w-12 flex justify-center">
+                                                    <input type="checkbox" data-mod="@mod" data-perm="C" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Create">
+                                                </div>
+                                                <div class="w-12 flex justify-center">
+                                                    <input type="checkbox" data-mod="@mod" data-perm="U" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Edit">
+                                                </div>
+                                                <div class="w-12 flex justify-center">
+                                                    <input type="checkbox" data-mod="@mod" data-perm="D" class="perm-check w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] opacity-30 pointer-events-none transition-opacity" title="Delete">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }
@@ -357,16 +437,31 @@
 
 @section Scripts {
     <script>
-        // Search functionality
-        document.getElementById('userSearchInput')?.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#userTableBody tr');
-            
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+        // Debounced Live Search
+        let searchTimeout;
+        const searchInput = document.getElementById('userSearchLive');
+        const filterForm = document.getElementById('userFilterForm');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    filterForm.submit();
+                }, 500); // 500ms debounce
             });
-        });
+
+            // Set cursor to end of text on focus
+            searchInput.addEventListener('focus', function() {
+                const val = this.value;
+                this.value = '';
+                this.value = val;
+            });
+            
+            // Auto-focus on page load if there's a search string
+            if (searchInput.value) {
+                searchInput.focus();
+            }
+        }
 
         // Permission assembly logic
         function assemblePermissions(type) {
@@ -462,6 +557,36 @@
                 } else {
                     cb.classList.add('opacity-30', 'pointer-events-none');
                 }
+            });
+        }
+
+        function togglePermissionGroup(type, groupName) {
+            const content = document.getElementById(`group_${type}_${groupName}`);
+            const icon = document.getElementById(`icon_${type}_${groupName}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+            }
+        }
+
+        function toggleEntireGroup(type, groupName, isChecked) {
+            const content = document.getElementById(`group_${type}_${groupName}`);
+            const masterChecks = content.querySelectorAll('.mod-master-check');
+            
+            // Show content if checking all
+            if (isChecked && content.classList.contains('hidden')) {
+                togglePermissionGroup(type, groupName);
+            }
+
+            masterChecks.forEach(mc => {
+                mc.checked = isChecked;
+                // Trigger the granular toggle logic for each module
+                const modName = mc.id.replace(`mod_${type}_`, '');
+                toggleModuleGranular(type, modName);
             });
         }
 

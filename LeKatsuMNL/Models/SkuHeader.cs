@@ -38,10 +38,10 @@ namespace LeKatsuMNL.Models
         public bool IsSellingPriceEnabled { get; set; }
         public bool IsReorderLevelEnabled { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal? SellingPrice { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal? UnitCost { get; set; }
 
         public int CategoryId { get; set; }

@@ -50,8 +50,7 @@
                             <td class="px-8 py-5">
                                 <div class="flex flex-wrap gap-2">
                                     @{
-                                        var subCats = string.IsNullOrEmpty(category.
-                                            goryNames) 
+                                        var subCats = string.IsNullOrEmpty(category.SubCategoryNames) 
                                             ? new[] { "-" } 
                                             : category.SubCategoryNames.Split(',', StringSplitOptions.RemoveEmptyEntries);
                                         

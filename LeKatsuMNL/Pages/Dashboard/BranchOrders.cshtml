@@ -28,6 +28,9 @@
         </div>
 
         <div class="flex items-center space-x-4">
+            <button onclick="openCreateOrderModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                <i class="bi bi-plus-lg mr-2"></i> Create New Order
+            </button>
             <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white outline-none cursor-pointer font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-600">
                 <option>Status</option>
                 <option>Pending</option>
@@ -59,7 +62,7 @@
                 {
                     foreach (var order in Model.Orders)
                     {
-                        string formattedOrderId = $"FO-{order.OrderId:D5}";
+                        string formattedOrderId = $"ORD-{order.OrderId:D5}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
                             <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
                             <td class="px-8 py-5">
@@ -71,9 +74,23 @@
                             <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@order.BranchManager?.BranchLocation?.BranchName</td>
                             <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@(order.BranchManager?.FirstName) @(order.BranchManager?.LastName)</td>
                             <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">-</td>
-                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@(order.DeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</td>
-                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@order.Status</td>
+                            <td class="px-8 py-5">
+                                @{
+                                    var statusClass = order.Status?.ToLower() switch
+                                    {
+                                        "approved" => "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+                                        "pending" => "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+                                        "cancelled" => "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+                                        "completed" => "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
+                                        _ => "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600"
+                                    };
+                                }
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border @statusClass">
+                                    @(order.Status ?? "Unknown")
+                                </span>
+                            </td>
                             <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@order.OrderDate.ToString("MMMM dd, yyyy")</td>
+                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@(order.DeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</td>
                         </tr>
                     }
                 }
@@ -101,5 +118,99 @@
                 actionsMenu.classList.add('hidden');
             }
         }
+
+        function openCreateOrderModal() {
+            document.getElementById('createOrderModal').classList.remove('hidden');
+        }
+
+        function closeCreateOrderModal() {
+            document.getElementById('createOrderModal').classList.add('hidden');
+        }
+
+        function addOrderItemRow() {
+            const container = document.getElementById('orderItemsContainer');
+            const rowCount = container.querySelectorAll('.order-item-row').length;
+            const newRow = `
+                <div class="flex items-center space-x-3 mb-3 order-item-row">
+                    <select name="SkuIds" class="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        <option value="">Select SKU</option>
+                        ${Array.from(document.querySelectorAll('#skuTemplate option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+                    </select>
+                    <input type="number" name="Quantities" placeholder="Qty" step="0.01" class="w-24 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    <button type="button" onclick="this.closest('.order-item-row').remove()" class="text-gray-400 hover:text-red-500 transition-colors">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', newRow);
+        }
     </script>
 }
+
+<!-- Create Order Modal -->
+<div id="createOrderModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm" onclick="closeCreateOrderModal()"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+            <form method="post" asp-page-handler="CreateOrder">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">Create New Branch Order</h3>
+                        <button type="button" onclick="closeCreateOrderModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
+                            <i class="bi bi-x-lg text-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Branch Manager / Branch</label>
+                            <select name="BranchManagerId" required class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                <option value="">Select Branch Manager</option>
+                                @foreach (var bm in Model.BranchManagers)
+                                {
+                                    <option value="@bm.BManagerId">@bm.FirstName @bm.LastName (@bm.BranchLocation?.BranchName)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-2 ml-1">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">Order Items</label>
+                                <button type="button" onclick="addOrderItemRow()" class="text-[10px] font-black text-[#C41E24] uppercase tracking-widest hover:text-red-700 transition-colors">Add Item</button>
+                            </div>
+                            <div id="orderItemsContainer">
+                                <div class="flex items-center space-x-3 mb-3 order-item-row">
+                                    <select name="SkuIds" required class="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                        <option value="">Select SKU</option>
+                                        @foreach (var sku in Model.AvailableSkus)
+                                        {
+                                            <option value="@sku.SkuId">@sku.ItemName (@sku.PackSize)</option>
+                                        }
+                                    </select>
+                                    <input type="number" name="Quantities" placeholder="Qty" step="0.01" required class="w-24 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <div class="w-6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
+                    <button type="button" onclick="closeCreateOrderModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
+                    <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Create Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden template for SKU options -->
+<select id="skuTemplate" class="hidden">
+    @foreach (var sku in Model.AvailableSkus)
+    {
+        <option value="@sku.SkuId">@sku.ItemName (@sku.PackSize)</option>
+    }
+</select>

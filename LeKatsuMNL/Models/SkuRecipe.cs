@@ -17,7 +17,7 @@ namespace LeKatsuMNL.Models
         public int ComId { get; set; }
         public CommissaryInventory CommissaryInventory { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal QuantityNeeded { get; set; }
 
         [Required]

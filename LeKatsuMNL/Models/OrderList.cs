@@ -15,10 +15,10 @@ namespace LeKatsuMNL.Models
         public int SkuId { get; set; }
         public SkuHeader SkuHeader { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal Quantity { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal TotalPrice { get; set; }
     }
 }
