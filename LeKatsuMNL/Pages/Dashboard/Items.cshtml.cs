@@ -20,6 +20,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<CommissaryInventory> Items { get; set; } = default!;
         public List<Category> Categories { get; set; } = new List<Category>();
+        public List<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
         public List<VendorInfo> Vendors { get; set; } = new List<VendorInfo>();
 
         public InputModel NewItem { get; set; } = new InputModel();
@@ -34,24 +35,29 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             public string ItemName { get; set; }
             public int CategoryId { get; set; }
+            public int? SubCategoryId { get; set; }
             public string PackagingType { get; set; }
             public string PackagingUnit { get; set; }
             public string PackSize { get; set; }
             public string UOM { get; set; }
             public int VendorId { get; set; }
-            public decimal? UnitPrice { get; set; }
+            public decimal? CostPrice { get; set; }
+            public decimal? SellingPrice { get; set; }
+            public decimal Stock { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
             var query = _context.CommissaryInventories
                 .Include(i => i.Category)
+                .Include(i => i.SubCategory)
                 .Include(i => i.Vendor)
                 .OrderByDescending(i => i.ComId);
 
             Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, 10);
             
             Categories = await _context.Categories.ToListAsync();
+            SubCategories = await _context.SubCategories.ToListAsync();
             Vendors = await _context.VendorInfos.ToListAsync();
 
             return Page();
@@ -60,12 +66,15 @@ namespace LeKatsuMNL.Pages.Dashboard
         public async Task<IActionResult> OnPostCreateAsync(
             string ItemName,
             int CategoryId,
+            int? SubCategoryId,
             int VendorId,
             string PackagingType,
             string PackagingUnit,
             string PackSize,
             string UOM,
-            decimal? UnitPrice)
+            decimal? CostPrice,
+            decimal? SellingPrice,
+            decimal Stock)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'C')) return Forbid();
 
@@ -87,11 +96,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 ItemName = ItemName,
                 CategoryId = CategoryId,
+                SubCategoryId = SubCategoryId,
+                SubClass = "",
                 VendorId = VendorId,
                 Yield = calculatedYield,
                 Uom = UOM ?? "pack",
-                Price = UnitPrice ?? 0,
-                Stock = 0
+                CostPrice = CostPrice ?? 0,
+                SellingPrice = SellingPrice ?? 0,
+                Stock = Stock
             };
 
             _context.CommissaryInventories.Add(item);
@@ -104,12 +116,15 @@ namespace LeKatsuMNL.Pages.Dashboard
             int ComId,
             string ItemName,
             int CategoryId,
+            int? SubCategoryId,
             int VendorId,
             string PackagingType,
             string PackagingUnit,
             string PackSize,
             string UOM,
-            decimal? UnitPrice)
+            decimal? CostPrice,
+            decimal? SellingPrice,
+            decimal Stock)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
 
@@ -135,29 +150,52 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             item.ItemName = ItemName;
             item.CategoryId = CategoryId;
+            item.SubCategoryId = SubCategoryId;
+            item.SubClass = "";
             item.VendorId = VendorId;
             item.Yield = calculatedYield;
             item.Uom = UOM ?? "pack";
-            item.Price = UnitPrice ?? 0;
+            item.CostPrice = CostPrice ?? 0;
+            item.SellingPrice = SellingPrice ?? 0;
+            item.Stock = Stock;
 
             await _context.SaveChangesAsync();
             return RedirectToPage();
         }
-        public async Task<IActionResult> OnPostRejectAsync(string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
+        public async Task<IActionResult> OnPostRejectAsync(int RejectId, string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
         {
             if (!PermissionHelper.HasPermission(User, "Rejects", 'C')) return Forbid();
 
-            if (string.IsNullOrEmpty(RejectName) || RejectQty <= 0)
+            if (RejectId <= 0 || RejectQty <= 0)
             {
                 return RedirectToPage();
             }
 
+            var item = await _context.CommissaryInventories.FindAsync(RejectId);
+            if (item == null)
+            {
+                return RedirectToPage();
+            }
+
+            // Validate stock
+            if (RejectQty > item.Stock)
+            {
+                return RedirectToPage(); // Ideally add ModelError, but page has many Redirects
+            }
+
+            // Deduct Stock
+            item.Stock -= RejectQty;
+
+            // Log Transaction (Optional, but good practice if available)
+            // _context.InventoryTransactions.Add(new InventoryTransaction { ... });
+
             var reject = new RejectItem
             {
-                ItemName = RejectName,
+                ComId = RejectId,
+                ItemName = item.ItemName,
                 Quantity = RejectQty,
-                Uom = RejectUOM,
-                Reason = RejectReason,
+                Uom = item.Uom,
+                Reason = string.IsNullOrWhiteSpace(RejectReason) ? "N/A" : RejectReason,
                 RejectedAt = System.DateTime.Now,
                 RejectType = "Recipe"
             };

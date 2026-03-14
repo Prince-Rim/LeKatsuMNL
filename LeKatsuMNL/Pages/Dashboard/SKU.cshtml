@@ -67,7 +67,7 @@
                     <th class="px-6 py-4">Category</th>
                     <th class="px-6 py-4">Sub-Class</th>
                     <th class="px-6 py-4">Yield</th>
-                    <th class="px-6 py-4">Updated Cost</th>
+                    <th class="px-6 py-4">Unit Cost</th>
                     <th class="px-6 py-4">Selling Price</th>
                     <th class="px-6 py-4">Action</th>
                 </tr>
@@ -78,7 +78,7 @@
                     foreach (var sku in Model.SkuHeaders)
                     {
                         <tr class="hover:bg-gray-50/50 transition-colors group">
-                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-item-name="@sku.ItemName" onchange="updateSelectAll()"></td>
+                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-id="@sku.SkuId" data-item-name="@sku.ItemName" data-uom="@sku.Uom" onchange="updateSelectAll()"></td>
                             <td class="px-6 py-5">
                                 <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
                                     <i class="bi bi-image text-2xl"></i>
@@ -454,8 +454,9 @@
         <form method="post" asp-page-handler="Reject" class="p-8 space-y-5">
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">SKU Name</label>
-                <input type="text" name="RejectName" placeholder="SKU Name" 
-                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                <input type="hidden" name="RejectId" id="rejectComId">
+                <input type="text" name="RejectName" id="rejectItemName" readonly 
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none bg-gray-50 text-gray-800 shadow-sm font-medium dark:bg-slate-700/50 dark:text-white dark:border-gray-700 cursor-default">
             </div>
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-1.5">
@@ -465,16 +466,8 @@
                 </div>
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit (UOM)</label>
-                    <div class="relative">
-                        <select name="RejectUOM" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
-                            <option value="" disabled selected hidden>UOM</option>
-                            <option value="kg">kg</option>
-                            <option value="grams">grams</option>
-                            <option value="pack">pack</option>
-                            <option value="pcs">pcs</option>
-                        </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm dark:text-gray-400"></i>
-                    </div>
+                    <input type="text" name="RejectUOM" id="rejectUOM" readonly
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none bg-gray-50 text-gray-800 shadow-sm font-medium dark:bg-slate-700/50 dark:text-white dark:border-gray-700 cursor-default">
                 </div>
             </div>
             <div class="space-y-1.5">
@@ -545,18 +538,28 @@
         }
 
         function openRejectModal() {
-            actionsMenu.classList.add('hidden');
-            // Get checked item names and populate the reject modal
+            const actionsMenu = document.getElementById('actionsMenu');
+            if (actionsMenu) actionsMenu.classList.add('hidden');
+
             const checked = document.querySelectorAll('.row-checkbox:checked');
             if (checked.length === 0) {
-                alert('Please select at least one SKU to reject.');
+                alert('Please select an SKU to reject.');
                 return;
             }
-            const names = Array.from(checked).map(cb => cb.dataset.itemName);
-            const nameInput = document.querySelector('#rejectItemModal input[name="RejectName"]');
-            if (nameInput) {
-                nameInput.value = names.join(', ');
+            if (checked.length > 1) {
+                alert('Please select only one SKU at a time for rejection.');
+                return;
             }
+
+            const item = checked[0];
+            const id = item.dataset.id;
+            const name = item.dataset.itemName;
+            const uom = item.dataset.uom;
+
+            document.getElementById('rejectComId').value = id;
+            document.getElementById('rejectItemName').value = name;
+            document.getElementById('rejectUOM').value = uom;
+
             openModal('rejectItemModal');
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LeKatsuMNL.Models
 {
@@ -13,6 +14,16 @@ namespace LeKatsuMNL.Models
         public string Reason { get; set; }
         public DateTime RejectedAt { get; set; }
         
+        // Optional links to Item or SKU
+        public int? ComId { get; set; }
+        public int? SkuId { get; set; }
+
+        // Navigation properties (optional)
+        [ForeignKey("ComId")]
+        public CommissaryInventory? CommissaryInventory { get; set; }
+        [ForeignKey("SkuId")]
+        public SkuHeader? SkuHeader { get; set; }
+
         // Distinguishes between "Recipe" (Item) and "SKU"
         public string RejectType { get; set; } = "Recipe"; 
     }

@@ -50,6 +50,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.Categories.Add(NewCategory);
             await _context.SaveChangesAsync();
 
+            await SyncSubCategories(NewCategory.CategoryId, NewCategory.SubCategoryNames);
+
             return RedirectToPage();
         }
 
@@ -68,9 +70,11 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             categoryToUpdate.CategoryName = EditCategory.CategoryName;
-            categoryToUpdate.Description = EditCategory.Description;
+            categoryToUpdate.SubCategoryNames = EditCategory.SubCategoryNames;
 
             await _context.SaveChangesAsync();
+
+            await SyncSubCategories(categoryToUpdate.CategoryId, categoryToUpdate.SubCategoryNames);
 
             return RedirectToPage();
         }
@@ -91,6 +95,52 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             return RedirectToPage();
+        }
+
+        private async Task SyncSubCategories(int categoryId, string subCategoryNamesString)
+        {
+            if (string.IsNullOrWhiteSpace(subCategoryNamesString))
+            {
+                // Remove all subcategories for this category if the string is empty
+                var existing = await _context.SubCategories.Where(sc => sc.CategoryId == categoryId).ToListAsync();
+                _context.SubCategories.RemoveRange(existing);
+                await _context.SaveChangesAsync();
+                return;
+            }
+
+            var nameList = subCategoryNamesString.Split(',', System.StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(s => s.Trim())
+                                                .Where(s => !string.IsNullOrEmpty(s))
+                                                .Distinct()
+                                                .ToList();
+
+            var existingSubCats = await _context.SubCategories
+                .Where(sc => sc.CategoryId == categoryId)
+                .ToListAsync();
+
+            // Remove subcategories that are no longer in the list
+            foreach (var existing in existingSubCats)
+            {
+                if (!nameList.Any(n => n.Equals(existing.SubCategoryName, System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    _context.SubCategories.Remove(existing);
+                }
+            }
+
+            // Add new subcategories
+            foreach (var name in nameList)
+            {
+                if (!existingSubCats.Any(sc => sc.SubCategoryName.Equals(name, System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    _context.SubCategories.Add(new SubCategory
+                    {
+                        CategoryId = categoryId,
+                        SubCategoryName = name
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
