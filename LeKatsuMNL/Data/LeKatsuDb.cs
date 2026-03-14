@@ -136,7 +136,7 @@ namespace LeKatsuMNL.Data
             // SkuHeader -> OrderList (1:M)
             modelBuilder.Entity<OrderList>()
                 .HasOne(ol => ol.SkuHeader)
-                .WithMany() // Assuming SkuHeader doesn't have an OrderLists collection navigation property
+                .WithMany(s => s.OrderLists)
                 .HasForeignKey(ol => ol.SkuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -152,6 +152,15 @@ namespace LeKatsuMNL.Data
                 .HasOne(oc => oc.BranchManager)
                 .WithMany(bm => bm.OrderComments)
                 .HasForeignKey(oc => oc.BranchManagerId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AdminAccount -> OrderComment (1:M)
+            modelBuilder.Entity<OrderComment>()
+                .HasOne(oc => oc.AdminAccount)
+                .WithMany() // AdminAccount doesn't have OrderComments collection yet, but we can add it later if needed
+                .HasForeignKey(oc => oc.AdminAccountId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // OrderInfo -> Invoice (1:M)
@@ -278,6 +287,20 @@ namespace LeKatsuMNL.Data
                 .HasOne(ce => ce.ExpenseType)
                 .WithMany(et => et.CashExpenses)
                 .HasForeignKey(ce => ce.ExpenseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SkuHeader -> SkuRecipe (1:M)
+            modelBuilder.Entity<SkuRecipe>()
+                .HasOne(sr => sr.SkuHeader)
+                .WithMany(sh => sh.SkuRecipes)
+                .HasForeignKey(sr => sr.SkuId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // CommissaryInventory -> SkuRecipe (1:M)
+            modelBuilder.Entity<SkuRecipe>()
+                .HasOne(sr => sr.CommissaryInventory)
+                .WithMany(ci => ci.SkuRecipes)
+                .HasForeignKey(sr => sr.ComId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

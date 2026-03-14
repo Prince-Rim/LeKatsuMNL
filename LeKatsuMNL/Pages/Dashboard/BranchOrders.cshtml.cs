@@ -20,6 +20,8 @@ namespace LeKatsuMNL.Pages.Dashboard
         }
 
         public PaginatedList<OrderInfo> Orders { get; set; } = default!;
+        public List<BranchManager> BranchManagers { get; set; } = new();
+        public List<SkuHeader> AvailableSkus { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
@@ -29,7 +31,55 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .OrderByDescending(o => o.OrderDate);
             
             Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, 10);
+            
+            BranchManagers = await _context.BranchManagers
+                .Include(bm => bm.BranchLocation)
+                .Where(bm => bm.Status == "Active")
+                .ToListAsync();
+
+            AvailableSkus = await _context.SkuHeaders
+                .OrderBy(s => s.ItemName)
+                .ToListAsync();
+
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostCreateOrderAsync(int BranchManagerId, List<int> SkuIds, List<decimal> Quantities)
+        {
+            if (BranchManagerId <= 0 || SkuIds == null || !SkuIds.Any())
+            {
+                return RedirectToPage();
+            }
+
+            var order = new OrderInfo
+            {
+                BranchManagerId = BranchManagerId,
+                OrderDate = System.DateTime.Now,
+                Status = "Pending"
+            };
+
+            _context.OrderInfos.Add(order);
+            await _context.SaveChangesAsync();
+
+            for (int i = 0; i < SkuIds.Count; i++)
+            {
+                if (Quantities[i] <= 0) continue;
+
+                var sku = await _context.SkuHeaders.FindAsync(SkuIds[i]);
+                if (sku == null) continue;
+
+                var orderList = new OrderList
+                {
+                    OrderId = order.OrderId,
+                    SkuId = SkuIds[i],
+                    Quantity = Quantities[i],
+                    TotalPrice = (sku.SellingPrice ?? 0) * Quantities[i]
+                };
+                _context.OrderLists.Add(orderList);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
         }
     }
 }

@@ -4,6 +4,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeKatsuMNL.Migrations
 {
     [DbContext(typeof(LeKatsuDb))]
-    partial class LeKatsuDbModelSnapshot : ModelSnapshot
+    [Migration("20260314093749_IncreaseDecimalPrecision")]
+    partial class IncreaseDecimalPrecision
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -785,10 +788,7 @@ namespace LeKatsuMNL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentId"));
 
-                    b.Property<int?>("AdminAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BranchManagerId")
+                    b.Property<int>("BranchManagerId")
                         .HasColumnType("int");
 
                     b.Property<string>("Comment")
@@ -800,8 +800,6 @@ namespace LeKatsuMNL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("CommentId");
-
-                    b.HasIndex("AdminAccountId");
 
                     b.HasIndex("BranchManagerId");
 
@@ -1730,11 +1728,6 @@ namespace LeKatsuMNL.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("SupplierType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<string>("VendorName")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -1880,23 +1873,17 @@ namespace LeKatsuMNL.Migrations
 
             modelBuilder.Entity("LeKatsuMNL.Models.OrderComment", b =>
                 {
-                    b.HasOne("LeKatsuMNL.Models.AdminAccount", "AdminAccount")
-                        .WithMany()
-                        .HasForeignKey("AdminAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("LeKatsuMNL.Models.BranchManager", "BranchManager")
                         .WithMany("OrderComments")
                         .HasForeignKey("BranchManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("LeKatsuMNL.Models.OrderInfo", "OrderInfo")
                         .WithMany("OrderComments")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AdminAccount");
 
                     b.Navigation("BranchManager");
 

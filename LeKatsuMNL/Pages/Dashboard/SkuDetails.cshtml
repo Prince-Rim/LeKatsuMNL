@@ -15,7 +15,7 @@
             padding: 2rem;
         }
 
-        .recipe-table th {
+        .ingredient-table th {
             background-color: #f9f9f9;
             color: #999;
             font-size: 10px;
@@ -26,7 +26,7 @@
             border-bottom: 1px solid #eee;
         }
 
-        .recipe-table td {
+        .ingredient-table td {
             padding: 16px 20px;
             border-bottom: 1px solid #f5f5f5;
         }
@@ -173,17 +173,17 @@
             </div>
         </div>
 
-        <!-- Right: Recipe Details -->
+        <!-- Right: Ingredient Details -->
         <div class="col-span-12 lg:col-span-7 space-y-6">
             <div class="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
                 <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">Stock keeping Unit Sub Category</h3>
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">Ingredient Details</h3>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
                             {
-                                <button type="button" onclick="openRecipeModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                                    <i class="bi bi-plus-lg mr-2"></i> Add a recipe item
+                                <button type="button" onclick="openIngredientModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                                    <i class="bi bi-plus-lg mr-2"></i> Add an ingredient
                                 </button>
                                 <button type="button" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
                                     <i class="bi bi-arrow-repeat mr-2"></i> Update
@@ -200,7 +200,7 @@
                 </div>
 
                 <div class="flex-1 overflow-x-auto">
-                    <table class="w-full text-left recipe-table">
+                    <table class="w-full text-left ingredient-table">
                         <thead>
                             <tr>
                                 <th>Item Name</th>
@@ -209,13 +209,13 @@
                                 <th class="w-16"></th>
                             </tr>
                         </thead>
-                        <tbody id="recipeItemsList">
+                        <tbody id="ingredientItemsList">
                             @if (Model.SkuHeader?.SkuRecipes != null)
                             {
                                 var recipes = Model.SkuHeader.SkuRecipes.ToList();
                                 for (int i = 0; i < recipes.Count; i++)
                                 {
-                                    <tr class="recipe-row" data-com-id="@recipes[i].ComId">
+                                    <tr class="ingredient-row" data-com-id="@recipes[i].ComId">
                                         <td>
                                             <input type="hidden" name="SkuHeader.SkuRecipes[@i].ComId" value="@recipes[i].ComId" />
                                             <div class="flex items-center space-x-4">
@@ -236,7 +236,7 @@
                                         <td class="text-right pr-4">
                                             @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
                                             {
-                                                <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
+                                                <button type="button" onclick="removeIngredientRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
                                                     <i class="bi bi-trash3"></i>
                                                 </button>
                                             }
@@ -252,25 +252,25 @@
     </form>
 </div>
 
-<!-- Add Recipe Item Modal -->
-<div id="recipeModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+<!-- Add Ingredient Modal -->
+<div id="ingredientModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeRecipeModal()"></div>
+        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeIngredientModal()"></div>
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
         <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
             <div class="p-8">
                 <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">@(Model.SkuHeader?.ItemName ?? "Product") - Add recipe item</h3>
-                    <button onclick="closeRecipeModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">@(Model.SkuHeader?.ItemName ?? "Product") - Add ingredient</h3>
+                    <button onclick="closeIngredientModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                         <i class="bi bi-x-lg text-lg"></i>
                     </button>
                 </div>
 
                 <div class="relative mb-6">
                     <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search Item" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
+                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search ingredient" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
                     <i class="bi bi-grid-3x3-gap absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
                 </div>
 
@@ -299,7 +299,7 @@
                 </div>
             </div>
             <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
-                <button onclick="closeRecipeModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
+                <button onclick="closeIngredientModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
                 <button onclick="addSelectedItems()" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Confirm Selection</button>
             </div>
         </div>
@@ -308,13 +308,13 @@
 
 @section Scripts {
     <script>
-        function openRecipeModal() {
-            document.getElementById('recipeModal').classList.remove('hidden');
+        function openIngredientModal() {
+            document.getElementById('ingredientModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
 
-        function closeRecipeModal() {
-            document.getElementById('recipeModal').classList.add('hidden');
+        function closeIngredientModal() {
+            document.getElementById('ingredientModal').classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
 
@@ -352,7 +352,7 @@
         }
 
         function addSelectedItems() {
-            const tableBody = document.getElementById('recipeItemsList');
+            const tableBody = document.getElementById('ingredientItemsList');
             const selectedItems = document.querySelectorAll('.item-row .checkbox-container.bg-\\[\\#C41E24\\]');
             
             selectedItems.forEach(container => {
@@ -365,7 +365,7 @@
                 if (!document.querySelector(`tr[data-com-id="${comId}"]`)) {
                     const index = tableBody.querySelectorAll('tr').length;
                     const newRow = `
-                        <tr class="recipe-row" data-com-id="${comId}">
+                        <tr class="ingredient-row" data-com-id="${comId}">
                             <td>
                                 <input type="hidden" name="SkuHeader.SkuRecipes[${index}].ComId" value="${comId}" />
                                 <div class="flex items-center space-x-4">
@@ -384,7 +384,7 @@
                                 </select>
                             </td>
                             <td class="text-right pr-4">
-                                <button type="button" onclick="removeRecipeRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
+                                <button type="button" onclick="removeIngredientRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </td>
@@ -394,17 +394,17 @@
                 }
             });
             
-            closeRecipeModal();
+            closeIngredientModal();
             renumberRows();
         }
 
-        function removeRecipeRow(button) {
+        function removeIngredientRow(button) {
             button.closest('tr').remove();
             renumberRows();
         }
 
         function renumberRows() {
-            const rows = document.querySelectorAll('#recipeItemsList tr.recipe-row');
+            const rows = document.querySelectorAll('#ingredientItemsList tr.ingredient-row');
             rows.forEach((row, index) => {
                 const comIdInput = row.querySelector('input[name*=".ComId"]');
                 const qtyInput = row.querySelector('input[name*=".QuantityNeeded"]');

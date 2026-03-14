@@ -22,13 +22,13 @@ namespace LeKatsuMNL.Models
 
         public string? SubClass { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal CostPrice { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal SellingPrice { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal Stock { get; set; }
 
         public string Yield { get; set; }
@@ -37,7 +37,7 @@ namespace LeKatsuMNL.Models
         [MaxLength(50)]
         public string Uom { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,4)")]
         public decimal? ReorderValue { get; set; }
 
         public int? SkuId { get; set; }

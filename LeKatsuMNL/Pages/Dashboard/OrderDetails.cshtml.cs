@@ -28,11 +28,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage("/Dashboard/BranchOrders");
             }
 
-            // Parse ID from string like "FO-00001" to int 1
+            // Parse ID from string like "ORD-00001" to int 1
             int orderId = 0;
-            if (id.StartsWith("FO-"))
+            if (id.StartsWith("ORD-"))
             {
-                int.TryParse(id.Replace("FO-", ""), out orderId);
+                int.TryParse(id.Replace("ORD-", ""), out orderId);
             }
             else
             {
@@ -48,6 +48,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(o => o.OrderComments)
                     .ThenInclude(oc => oc.BranchManager)
                         .ThenInclude(bm => bm.BranchLocation)
+                .Include(o => o.OrderComments)
+                    .ThenInclude(oc => oc.AdminAccount)
                 .Include(o => o.Invoices)
                 .FirstOrDefaultAsync(m => m.OrderId == orderId);
 
@@ -65,24 +67,76 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             if (string.IsNullOrWhiteSpace(CommentText))
             {
-                return RedirectToPage(new { id = $"FO-{OrderId:D5}" });
+                return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
             }
 
-            // For now, we'll associate with the order's branch manager if we don't have auth
-            var order = await _context.OrderInfos.FindAsync(OrderId);
-            if (order == null) return NotFound();
+            // Get user info from Claims
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+            }
 
             var newComment = new OrderComment
             {
                 OrderId = OrderId,
-                BranchManagerId = order.BranchManagerId, // Placeholder for actual logged-in user
                 Comment = CommentText
             };
+
+            if (userRole == "Admin")
+            {
+                newComment.AdminAccountId = userId;
+            }
+            else if (userRole == "BranchManager")
+            {
+                newComment.BranchManagerId = userId;
+            }
 
             _context.OrderComments.Add(newComment);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = $"FO-{OrderId:D5}" });
+            return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+        }
+
+        public async Task<IActionResult> OnPostApproveOrderAsync(int OrderId)
+        {
+            var order = await _context.OrderInfos
+                .Include(o => o.OrderLists)
+                    .ThenInclude(ol => ol.SkuHeader)
+                        .ThenInclude(s => s.SkuRecipes)
+                            .ThenInclude(r => r.CommissaryInventory)
+                .FirstOrDefaultAsync(o => o.OrderId == OrderId);
+
+            if (order == null) return NotFound();
+            if (order.Status != "Pending") return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+
+            // 1. Deduct from inventory based on recipes
+            foreach (var item in order.OrderLists)
+            {
+                if (item.SkuHeader?.SkuRecipes == null) continue;
+
+                foreach (var recipe in item.SkuHeader.SkuRecipes)
+                {
+                    if (recipe.CommissaryInventory != null)
+                    {
+                        // Convert recipe UOM to inventory UOM before deducting
+                        decimal convertedQty = Helpers.UomConverter.Convert(
+                            recipe.QuantityNeeded, recipe.Uom, recipe.CommissaryInventory.Uom);
+                        decimal totalDeduction = convertedQty * item.Quantity;
+                        recipe.CommissaryInventory.Stock -= totalDeduction;
+                        
+                        // Log transaction (Optional: could add InventoryTransaction record here)
+                    }
+                }
+            }
+
+            // 2. Update status
+            order.Status = "Approved";
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
         }
     }
 }

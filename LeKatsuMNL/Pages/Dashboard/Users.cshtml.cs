@@ -44,6 +44,10 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public UserInputModel EditUser { get; set; } = new();
 
+        public string SearchString { get; set; }
+        public string RoleFilter { get; set; }
+        public string StatusFilter { get; set; }
+
         public class UserInputModel
         {
             public int Id { get; set; }
@@ -60,17 +64,44 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Type { get; set; } // "Admin" or "Manager"
         }
 
-        public async Task OnGetAsync(int? pageIndex)
+        public async Task OnGetAsync(int? pageIndex, string searchString, string roleFilter, string statusFilter)
         {
+            SearchString = searchString;
+            RoleFilter = roleFilter;
+            StatusFilter = statusFilter;
+
             Branches = await _context.BranchLocations.ToListAsync();
             await LoadUsersAsync(pageIndex ?? 1);
         }
 
         private async Task LoadUsersAsync(int pageIndex)
         {
-            var admins = await _context.AdminAccounts
-                .Where(a => !a.IsSuperAdmin)
-                .Select(a => new UserViewModel
+            var adminQuery = _context.AdminAccounts.Where(a => !a.IsSuperAdmin);
+            var managerQuery = _context.BranchManagers.Include(m => m.BranchLocation).AsQueryable();
+            var staffQuery = _context.StaffInformations.AsQueryable();
+
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                var search = SearchString.ToLower();
+                adminQuery = adminQuery.Where(a => a.FirstName.ToLower().Contains(search) || a.LastName.ToLower().Contains(search) || a.Email.ToLower().Contains(search));
+                managerQuery = managerQuery.Where(m => m.FirstName.ToLower().Contains(search) || m.LastName.ToLower().Contains(search) || m.Email.ToLower().Contains(search) || (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)));
+                staffQuery = staffQuery.Where(s => s.FirstName.ToLower().Contains(search) || s.LastName.ToLower().Contains(search) || s.Email.ToLower().Contains(search));
+            }
+
+            if (!string.IsNullOrEmpty(StatusFilter) && StatusFilter != "All")
+            {
+                adminQuery = adminQuery.Where(a => a.Status == StatusFilter);
+                managerQuery = managerQuery.Where(m => m.Status == StatusFilter);
+                staffQuery = staffQuery.Where(s => s.Status == StatusFilter);
+            }
+
+            IEnumerable<UserViewModel> admins = new List<UserViewModel>();
+            IEnumerable<UserViewModel> managers = new List<UserViewModel>();
+            IEnumerable<UserViewModel> staff = new List<UserViewModel>();
+
+            if (string.IsNullOrEmpty(RoleFilter) || RoleFilter == "All" || RoleFilter == "Admin")
+            {
+                admins = await adminQuery.Select(a => new UserViewModel
                 {
                     Id = a.ManagerId,
                     FirstName = a.FirstName,
@@ -84,10 +115,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                     BranchName = "Main / All",
                     Type = "Admin"
                 }).ToListAsync();
+            }
 
-            var managers = await _context.BranchManagers
-                .Include(m => m.BranchLocation)
-                .Select(m => new UserViewModel
+            if (string.IsNullOrEmpty(RoleFilter) || RoleFilter == "All" || RoleFilter == "Branch Manager")
+            {
+                managers = await managerQuery.Select(m => new UserViewModel
                 {
                     Id = m.BManagerId,
                     FirstName = m.FirstName,
@@ -97,14 +129,16 @@ namespace LeKatsuMNL.Pages.Dashboard
                     Email = m.Email,
                     ContactNum = m.ContactNum,
                     Role = m.Role,
-                    Privileges = "N/A", // Managers no longer have granular privileges
+                    Privileges = "N/A",
                     Status = m.Status,
                     BranchName = m.BranchLocation != null ? m.BranchLocation.BranchName : "N/A",
                     Type = "Manager"
                 }).ToListAsync();
+            }
 
-            var staff = await _context.StaffInformations
-                .Select(s => new UserViewModel
+            if (string.IsNullOrEmpty(RoleFilter) || RoleFilter == "All" || RoleFilter == "Staff")
+            {
+                staff = await staffQuery.Select(s => new UserViewModel
                 {
                     Id = s.StaffId,
                     FirstName = s.FirstName,
@@ -119,6 +153,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     BranchName = "N/A",
                     Type = "Staff"
                 }).ToListAsync();
+            }
 
             var combined = admins.Concat(managers).Concat(staff).OrderBy(u => u.LastName);
             AllUsers = PaginatedList<UserViewModel>.Create(combined.AsQueryable(), pageIndex, 10);

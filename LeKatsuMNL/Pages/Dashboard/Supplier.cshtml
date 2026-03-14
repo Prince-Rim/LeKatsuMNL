@@ -16,19 +16,30 @@
 }
 
 <div class="h-[calc(100vh-12rem)] flex flex-col">
-    <!-- Top toolbar -->
-    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="relative flex-1 max-w-lg">
-            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                <i class="bi bi-search text-sm"></i>
-            </span>
-            <input type="text" id="supplierSearch" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" placeholder="Search suppliers...">
+    <form id="supplierFilterForm" method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 space-x-4">
+        <div class="flex-1 flex items-center space-x-4 max-w-lg">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" id="supplierSearchLive" name="searchString" value="@Model.SearchString" 
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
+                       placeholder="Search name, contact, or products..."
+                       autofocus onfocus="this.value = this.value;">
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.SearchString))
+            {
+                <a asp-page="./Supplier" class="text-xs font-bold text-[#C41E24] hover:underline whitespace-nowrap">
+                    <i class="bi bi-x-circle mr-1"></i> Clear Filters
+                </a>
+            }
         </div>
 
-        <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+        <button type="button" onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
             <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
         </button>
-    </div>
+    </form>
 
     <!-- Table content -->
     <div class="flex-1 overflow-auto bg-white border-x border-b border-gray-200 shadow-sm dark:bg-slate-800 dark:border-gray-700 custom-scrollbar">
@@ -36,8 +47,10 @@
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
                 <tr>
                     <th class="px-8 py-4">Vendor name</th>
+                    <th class="px-8 py-4">Type</th>
                     <th class="px-8 py-4">Contact num</th>
                     <th class="px-8 py-4">Created at</th>
+                    <th class="px-8 py-4">Connected Products</th>
                     <th class="px-8 py-4 text-right w-24">Action</th>
                 </tr>
             </thead>
@@ -48,13 +61,47 @@
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@vendor.VendorName</td>
+                            <td class="px-8 py-5">
+                                @if (vendor.SupplierType == "Alternate")
+                                {
+                                    <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-[10px] font-bold uppercase tracking-wider dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50">
+                                        <i class="bi bi-star mr-1"></i> Alternate
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[10px] font-bold uppercase tracking-wider dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50">
+                                        <i class="bi bi-check-circle mr-1"></i> Main
+                                    </span>
+                                }
+                            </td>
                             <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@vendor.ContactNum</td>
                             <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@vendor.CreatedAt.ToString("MMMM dd, yyyy")</td>
+                            <td class="px-8 py-5">
+                                @if (vendor.CommissaryInventories != null && vendor.CommissaryInventories.Any())
+                                {
+                                    var productData = System.Text.Json.JsonSerializer.Serialize(vendor.CommissaryInventories.Select(p => new { 
+                                        name = p.ItemName, 
+                                        stock = p.Stock, 
+                                        uom = p.Uom,
+                                        price = p.CostPrice
+                                    }));
+                                    <button onclick="openViewProductsModal('@vendor.VendorName', @productData)" 
+                                            class="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-100 transition-all border border-gray-200 dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+                                        <i class="bi bi-box-seam text-base text-[#C41E24]"></i>
+                                        <span>View @vendor.CommissaryInventories.Count() Products</span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 italic text-[10px]">No connected products</span>
+                                }
+                            </td>
                             <td class="px-8 py-5 text-right">
                                 <div class="flex items-center justify-end space-x-2">
                                     @if (PermissionHelper.HasPermission(User, "Supplier", 'U'))
                                     {
-                                        <button onclick="openEditModal('@vendor.VendorId', '@vendor.VendorName', '@vendor.ContactNum')" 
+                                        <button onclick="openEditModal('@vendor.VendorId', '@vendor.VendorName', '@vendor.ContactNum', '@vendor.SupplierType')" 
                                                 class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-300">
                                             Edit
                                         </button>
@@ -108,6 +155,13 @@
                 <input asp-for="NewVendor.ContactNum" placeholder="Contact#" 
                        class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
             </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier Type</label>
+                <select asp-for="NewVendor.SupplierType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    <option value="Main">Main Supplier</option>
+                    <option value="Alternate">Alternate Supplier</option>
+                </select>
+            </div>
             <div class="flex justify-end space-x-4 pt-8">
                 <button type="button" onclick="closeModal('createModal')" 
                         class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
@@ -144,6 +198,13 @@
                 <input asp-for="EditVendor.ContactNum" id="editContactNum" placeholder="Contact#" 
                        class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
             </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier Type</label>
+                <select asp-for="EditVendor.SupplierType" id="editSupplierType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    <option value="Main">Main Supplier</option>
+                    <option value="Alternate">Alternate Supplier</option>
+                </select>
+            </div>
             <div class="flex justify-end space-x-4 pt-8">
                 <button type="button" onclick="closeModal('editModal')" 
                         class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
@@ -155,6 +216,42 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- View Products Modal -->
+<div id="viewProductsModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
+            <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-white">Connected Products</h3>
+                <p id="viewProductsVendorName" class="text-xs text-gray-500 font-medium mt-0.5"></p>
+            </div>
+            <button onclick="closeModal('viewProductsModal')" class="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400">
+                <i class="bi bi-x-lg text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-0 max-h-[60vh] overflow-auto custom-scrollbar">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700 sticky top-0">
+                    <tr>
+                        <th class="px-8 py-4">Product Name</th>
+                        <th class="px-8 py-4">Current Stock</th>
+                        <th class="px-8 py-4">Cost Price</th>
+                    </tr>
+                </thead>
+                <tbody id="viewProductsListBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <!-- Products will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-8 py-4 border-t border-gray-50 bg-gray-50/50 flex justify-end dark:bg-slate-800/50 dark:border-gray-700">
+            <button onclick="closeModal('viewProductsModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-300 transition-all dark:bg-slate-700 dark:text-gray-300">
+                Close
+            </button>
+        </div>
     </div>
 </div>
 
@@ -185,24 +282,60 @@
             }, 300);
         }
 
-        function openEditModal(id, name, contact) {
+        function openEditModal(id, name, contact, type) {
             document.getElementById('editVendorId').value = id;
             document.getElementById('editVendorName').value = name;
             document.getElementById('editContactNum').value = contact;
+            document.getElementById('editSupplierType').value = type || "Main";
             openModal('editModal');
         }
 
-        // Search logic
-        document.getElementById('supplierSearch')?.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#supplierTableBody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (row.querySelector('td[colspan]')) return;
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+        // Debounced Live Search
+        let searchTimeout;
+        const searchInput = document.getElementById('supplierSearchLive');
+        const filterForm = document.getElementById('supplierFilterForm');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    filterForm.submit();
+                }, 500); // 500ms debounce
             });
-        });
+
+            // Set cursor to end of text on focus
+            searchInput.addEventListener('focus', function() {
+                const val = this.value;
+                this.value = '';
+                this.value = val;
+            });
+            
+            // Auto-focus on page load if there's a search string
+            if (searchInput.value) {
+                searchInput.focus();
+            }
+        }
+
+        function openViewProductsModal(vendorName, products) {
+            document.getElementById('viewProductsVendorName').innerText = "Supplier: " + vendorName;
+            const body = document.getElementById('viewProductsListBody');
+            body.innerHTML = '';
+
+            products.forEach(p => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50";
+                row.innerHTML = `
+                    <td class="px-8 py-4 font-bold text-gray-800 dark:text-white">${p.name}</td>
+                    <td class="px-8 py-4 text-gray-600 font-medium dark:text-gray-300">
+                        <span class="${p.stock <= 5 ? 'text-red-500 font-bold' : ''}">${p.stock} ${p.uom}</span>
+                    </td>
+                    <td class="px-8 py-4 text-gray-600 font-medium dark:text-gray-300">₱${Number(p.price).toFixed(2)}</td>
+                `;
+                body.appendChild(row);
+            });
+
+            openModal('viewProductsModal');
+        }
 
         // Close modal on click outside
         window.onclick = function(event) {
