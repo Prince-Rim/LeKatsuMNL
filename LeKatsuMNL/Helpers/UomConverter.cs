@@ -49,6 +49,7 @@ namespace LeKatsuMNL.Helpers
             // ── Count (base = pcs) ──
             { "pcs",    ("count", 1m) },
             { "pc",     ("count", 1m) },
+            { "per pc", ("count", 1m) },
             { "pieces", ("count", 1m) },
             { "piece",  ("count", 1m) },
             { "ea",     ("count", 1m) },
@@ -56,6 +57,14 @@ namespace LeKatsuMNL.Helpers
             { "pack",   ("count", 1m) },
             { "bundle", ("count", 1m) },
             { "roll",   ("count", 1m) },
+            { "can",    ("count", 1m) },
+            { "cans",   ("count", 1m) },
+            { "stick",  ("count", 1m) },
+            { "sticks", ("count", 1m) },
+            { "pull",   ("count", 1m) },
+            { "pulls",  ("count", 1m) },
+            { "dip",    ("count", 1m) },
+            { "dips",   ("count", 1m) },
         };
 
         /// <summary>

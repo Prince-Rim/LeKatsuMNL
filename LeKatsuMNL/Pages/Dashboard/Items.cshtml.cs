@@ -31,6 +31,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             public int ComId { get; set; }
         }
 
+        public string SearchTerm { get; set; } = "";
+        public int? FilterCategoryId { get; set; }
+        public int? FilterSubCategoryId { get; set; }
+        public int? FilterVendorId { get; set; }
+        public string StockStatus { get; set; } = "All";
+
         public class InputModel
         {
             public string ItemName { get; set; }
@@ -46,13 +52,64 @@ namespace LeKatsuMNL.Pages.Dashboard
             public decimal Stock { get; set; }
         }
 
-        public async Task<IActionResult> OnGetAsync(int? pageIndex)
+        public async Task<IActionResult> OnGetAsync(
+            int? pageIndex = null, 
+            string searchTerm = null, 
+            int? categoryId = null, 
+            int? subCategoryId = null, 
+            int? vendorId = null, 
+            string stockStatus = null)
         {
+            SearchTerm = searchTerm;
+            FilterCategoryId = categoryId;
+            FilterSubCategoryId = subCategoryId;
+            FilterVendorId = vendorId;
+            StockStatus = stockStatus ?? "All";
+
             var query = _context.CommissaryInventories
                 .Include(i => i.Category)
                 .Include(i => i.SubCategory)
                 .Include(i => i.Vendor)
-                .OrderByDescending(i => i.ComId);
+                .AsQueryable();
+
+            // Apply Filters
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                query = query.Where(i => i.ItemName.Contains(SearchTerm));
+            }
+
+            if (FilterCategoryId.HasValue)
+            {
+                query = query.Where(i => i.CategoryId == FilterCategoryId);
+            }
+
+            if (FilterSubCategoryId.HasValue)
+            {
+                query = query.Where(i => i.SubCategoryId == FilterSubCategoryId);
+            }
+
+            if (FilterVendorId.HasValue)
+            {
+                query = query.Where(i => i.VendorId == FilterVendorId);
+            }
+
+            if (StockStatus != "All")
+            {
+                if (StockStatus == "Low Stock")
+                {
+                    query = query.Where(i => i.Stock > 0 && i.Stock < 10);
+                }
+                else if (StockStatus == "Out of Stock")
+                {
+                    query = query.Where(i => i.Stock <= 0);
+                }
+                else if (StockStatus == "In Stock")
+                {
+                    query = query.Where(i => i.Stock >= 10);
+                }
+            }
+
+            query = query.OrderByDescending(i => i.ComId);
 
             Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, 10);
             
@@ -97,7 +154,6 @@ namespace LeKatsuMNL.Pages.Dashboard
                 ItemName = ItemName,
                 CategoryId = CategoryId,
                 SubCategoryId = SubCategoryId,
-                SubClass = "",
                 VendorId = VendorId,
                 Yield = calculatedYield,
                 Uom = UOM ?? "pack",
@@ -151,7 +207,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             item.ItemName = ItemName;
             item.CategoryId = CategoryId;
             item.SubCategoryId = SubCategoryId;
-            item.SubClass = "";
             item.VendorId = VendorId;
             item.Yield = calculatedYield;
             item.Uom = UOM ?? "pack";

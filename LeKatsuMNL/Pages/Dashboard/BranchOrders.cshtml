@@ -29,7 +29,7 @@
 
         <div class="flex items-center space-x-4">
             <button onclick="openCreateOrderModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                <i class="bi bi-plus-lg mr-2"></i> Create New Order
+                <i class="bi bi-plus-lg mr-2"></i> Create New Invoice
             </button>
             <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white outline-none cursor-pointer font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-600">
                 <option>Status</option>
@@ -73,15 +73,29 @@
                             </td>
                             <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@order.BranchManager?.BranchLocation?.BranchName</td>
                             <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@(order.BranchManager?.FirstName) @(order.BranchManager?.LastName)</td>
-                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">-</td>
+                            <td class="px-8 py-5">
+                                @if (order.Invoices != null && order.Invoices.Any())
+                                {
+                                    var paymentStatus = order.Invoices.First().PaymentStatus;
+                                    var payClass = paymentStatus == "Paid" ? "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400" : "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400";
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border @payClass">
+                                        @paymentStatus
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No Invoice</span>
+                                }
+                            </td>
                             <td class="px-8 py-5">
                                 @{
                                     var statusClass = order.Status?.ToLower() switch
                                     {
                                         "approved" => "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+                                        "preparing" => "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20",
+                                        "delivered" => "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600",
                                         "pending" => "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
                                         "cancelled" => "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
-                                        "completed" => "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
                                         _ => "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600"
                                     };
                                 }
@@ -115,7 +129,7 @@
         }
         window.onclick = function(event) {
             if (!event.target.closest('.relative')) {
-                actionsMenu.classList.add('hidden');
+                if(actionsMenu) actionsMenu.classList.add('hidden');
             }
         }
 
@@ -127,21 +141,66 @@
             document.getElementById('createOrderModal').classList.add('hidden');
         }
 
+        const skuData = {
+            @foreach (var sku in Model.AvailableSkus)
+            {
+                <text>"@sku.SkuId": { "price": @sku.SellingPrice, "name": "@sku.ItemName" },</text>
+            }
+        };
+
+        function calculateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('.order-item-row').forEach(row => {
+                const total = parseFloat(row.querySelector('.row-total').dataset.value) || 0;
+                grandTotal += total;
+            });
+            document.getElementById('grandTotalDisplay').innerText = `₱ ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function updateRow(element) {
+            const row = element.closest('.order-item-row');
+            const skuId = row.querySelector('select[name="SkuIds"]').value;
+            const qty = parseFloat(row.querySelector('input[name="Quantities"]').value) || 0;
+            const priceInput = row.querySelector('input[name="Prices"]');
+            
+            // Only update price input if it was a SKU selection change
+            if (element.name === "SkuIds" && skuId) {
+                priceInput.value = (skuData[skuId]?.price || 0).toFixed(2);
+            }
+
+            const price = parseFloat(priceInput.value) || 0;
+            const total = price * qty;
+            row.querySelector('input[name="Prices"]').value = price.toFixed(2);
+            const totalField = row.querySelector('.row-total');
+            totalField.innerText = `₱ ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+            totalField.dataset.value = total;
+            
+            calculateGrandTotal();
+        }
+
         function addOrderItemRow() {
             const container = document.getElementById('orderItemsContainer');
-            const rowCount = container.querySelectorAll('.order-item-row').length;
             const newRow = `
-                <div class="flex items-center space-x-3 mb-3 order-item-row group">
-                    <div class="flex-1">
-                        <select name="SkuIds" required class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                <div class="flex items-center gap-4 mb-3 order-item-row group">
+                    <div class="flex-[2] min-w-[200px]">
+                        <select name="SkuIds" required onchange="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
                             <option value="">Select SKU</option>
                             ${Array.from(document.querySelectorAll('#skuTemplate option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
                         </select>
                     </div>
-                    <div class="w-32">
-                        <input type="number" name="Quantities" placeholder="Qty" min="0.01" step="0.01" required class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    <div class="w-24 text-center">
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-xs">₱</span>
+                            <input type="number" name="Prices" placeholder="0.00" step="0.01" required oninput="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg pl-5 pr-2 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
                     </div>
-                    <button type="button" onclick="this.closest('.order-item-row').remove()" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all dark:hover:bg-red-500/10">
+                    <div class="w-24">
+                        <input type="number" name="Quantities" placeholder="Qty" min="0.01" step="any" required oninput="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    </div>
+                    <div class="w-28 text-right pr-2">
+                        <span class="row-total text-sm font-black text-[#C41E24]" data-value="0">₱ 0.00</span>
+                    </div>
+                    <button type="button" onclick="this.closest('.order-item-row').remove(); calculateGrandTotal();" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all dark:hover:bg-red-500/10">
                         <i class="bi bi-trash text-lg"></i>
                     </button>
                 </div>
@@ -158,11 +217,11 @@
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
             <form method="post" asp-page-handler="CreateOrder">
                 <div class="p-8">
                     <div class="flex items-center justify-between mb-8">
-                        <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">Create New Branch Order</h3>
+                        <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">Create New Branch Invoice</h3>
                         <button type="button" onclick="closeCreateOrderModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                             <i class="bi bi-x-lg text-lg"></i>
                         </button>
@@ -182,13 +241,20 @@
 
                         <div>
                             <div class="flex items-center justify-between mb-2 ml-1">
-                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">Order Items</label>
-                                <button type="button" onclick="addOrderItemRow()" class="text-[10px] font-black text-[#C41E24] uppercase tracking-widest hover:text-red-700 transition-colors">Add Item</button>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">Invoice Items</label>
+                                <button type="button" onclick="addOrderItemRow()" class="text-[10px] font-black text-[#C41E24] uppercase tracking-widest hover:text-red-700 transition-colors">Add Invoice Item</button>
                             </div>
                             <div id="orderItemsContainer" class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                <div class="flex items-center space-x-3 mb-3 order-item-row group">
-                                    <div class="flex-1">
-                                        <select name="SkuIds" required class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                <div class="flex items-center gap-4 mb-2 px-2 border-b border-gray-100 pb-2">
+                                    <div class="flex-[2] min-w-[200px] text-[9px] font-black text-gray-400 uppercase tracking-widest">SKU Product</div>
+                                    <div class="w-24 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Price</div>
+                                    <div class="w-24 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Qty</div>
+                                    <div class="w-28 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Line Total</div>
+                                    <div class="w-10"></div>
+                                </div>
+                                <div class="flex items-center gap-4 mb-3 order-item-row group">
+                                    <div class="flex-[2] min-w-[200px]">
+                                        <select name="SkuIds" required onchange="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
                                             <option value="">Select SKU</option>
                                             @foreach (var sku in Model.AvailableSkus)
                                             {
@@ -196,11 +262,25 @@
                                             }
                                         </select>
                                     </div>
-                                    <div class="w-32">
-                                        <input type="number" name="Quantities" placeholder="Qty" min="0.01" step="0.01" required class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <div class="w-24 text-center">
+                                        <div class="relative">
+                                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-xs">₱</span>
+                                            <input type="number" name="Prices" placeholder="0.00" step="0.01" required oninput="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg pl-5 pr-2 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                        </div>
                                     </div>
-                                    <div class="w-10"></div> @* Placeholder for remove button alignment *@
+                                    <div class="w-24 text-center">
+                                        <input type="number" name="Quantities" placeholder="Qty" min="0.01" step="any" required oninput="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    </div>
+                                    <div class="w-28 text-right pr-2">
+                                        <span class="row-total text-sm font-black text-[#C41E24]" data-value="0">₱ 0.00</span>
+                                    </div>
+                                    <div class="w-10"></div>
                                 </div>
+                            </div>
+                            <!-- Grand Total Section -->
+                            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center px-2 dark:border-gray-700">
+                                <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Invoice Grand Total</span>
+                                <span id="grandTotalDisplay" class="text-xl font-black text-[#C41E24]">₱ 0.00</span>
                             </div>
                         </div>
                     </div>
@@ -208,7 +288,7 @@
 
                 <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
                     <button type="button" onclick="closeCreateOrderModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
-                    <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Create Order</button>
+                    <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Create Invoice</button>
                 </div>
             </form>
         </div>
