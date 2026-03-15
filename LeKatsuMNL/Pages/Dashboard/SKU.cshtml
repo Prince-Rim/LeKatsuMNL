@@ -146,7 +146,6 @@
                                         packagingUnit = sku.PackagingUnit,
                                         packSize = sku.PackSize,
                                         uom = sku.Uom,
-                                        supplier = sku.Supplier,
                                         isSellingPriceEnabled = sku.IsSellingPriceEnabled,
                                         sellingPrice = sku.SellingPrice,
                                         unitCost = sku.UnitCost
@@ -240,27 +239,13 @@
                         </div>
                     </div>
 
-                    <!-- UOM & Supplier -->
-                    <div class="grid grid-cols-2 gap-5">
+                    <!-- UOM -->
+                    <div class="grid grid-cols-1 gap-5">
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
                             <input type="text" name="UOM" list="uomList" placeholder="UOM" required
                                    onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
-                            <div class="relative">
-                                <select name="Supplier" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
-                                    <option value="" disabled selected hidden>Supplier</option>
-                                    @if(Model.Vendors != null) {
-                                        foreach(var vendor in Model.Vendors) {
-                                            <option value="@vendor.VendorName">@vendor.VendorName</option>
-                                        }
-                                    }
-                                </select>
-                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
-                            </div>
                         </div>
                     </div>
 
@@ -372,27 +357,13 @@
                         </div>
                     </div>
 
-                    <!-- UOM & Supplier -->
-                    <div class="grid grid-cols-2 gap-5">
+                    <!-- UOM -->
+                    <div class="grid grid-cols-1 gap-5">
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
                             <input type="text" name="UOM" id="editUOM" list="uomList" placeholder="UOM"
                                    onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
-                            <div class="relative">
-                                <select name="Supplier" id="editSupplier" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
-                                    <option value="" disabled selected hidden>Supplier</option>
-                                    @if(Model.Vendors != null) {
-                                        foreach(var vendor in Model.Vendors) {
-                                            <option value="@vendor.VendorName">@vendor.VendorName</option>
-                                        }
-                                    }
-                                </select>
-                                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
-                            </div>
                         </div>
                     </div>
 
@@ -648,7 +619,6 @@
             document.querySelector('#editProductModal [name="PackagingUnit"]').value = sku.packagingUnit || '';
             document.querySelector('#editProductModal [name="PackSize"]').value = sku.packSize || '';
             document.querySelector('#editProductModal [name="UOM"]').value = sku.uom || '';
-            document.querySelector('#editProductModal [name="Supplier"]').value = sku.supplier || '';
             document.getElementById('editUnitCost').value = sku.unitCost ? parseFloat(sku.unitCost).toFixed(2) : '';
             document.getElementById('editSellingPrice').value = sku.sellingPrice ? parseFloat(sku.sellingPrice).toFixed(2) : '';
 

@@ -22,7 +22,6 @@ namespace LeKatsuMNL.Pages.Dashboard
         public PaginatedList<SkuHeader> SkuHeaders { get; set; } = default!;
         public IList<Category> Categories { get; set; } = new List<Category>();
         public IList<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
-        public IList<VendorInfo> Vendors { get; set; } = new List<VendorInfo>();
         
         public string SearchTerm { get; set; } = "";
         public int? FilterCategoryId { get; set; }
@@ -62,7 +61,6 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             Categories = await _context.Categories.ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
-            Vendors = await _context.VendorInfos.ToListAsync();
         }
 
         public async Task<IActionResult> OnPostCreateAsync(
@@ -73,7 +71,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             string PackagingUnit,
             string PackSize,
             string UOM,
-            string Supplier,
             decimal? SellingPrice,
             decimal? UnitCost)
         {
@@ -94,7 +91,6 @@ namespace LeKatsuMNL.Pages.Dashboard
                 PackagingUnit = PackagingUnit ?? "",
                 PackSize = PackSize ?? "",
                 Uom = UOM ?? "",
-                Supplier = Supplier ?? "",
                 IsSellingPriceEnabled = true,
                 IsReorderLevelEnabled = true,
                 SellingPrice = SellingPrice ?? 0,
@@ -116,7 +112,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             string PackagingUnit,
             string PackSize,
             string UOM,
-            string Supplier,
             decimal SellingPrice,
             decimal? UnitCost)
         {
@@ -141,7 +136,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             sku.PackagingUnit = PackagingUnit ?? "";
             sku.PackSize = PackSize ?? "";
             sku.Uom = UOM ?? "";
-            sku.Supplier = Supplier ?? "";
             sku.IsSellingPriceEnabled = true;
             sku.IsReorderLevelEnabled = true;
             sku.SellingPrice = SellingPrice;

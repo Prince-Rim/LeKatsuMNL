@@ -99,7 +99,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             skuToUpdate.PackagingUnit = SkuHeader.PackagingUnit;
             skuToUpdate.PackSize = SkuHeader.PackSize;
             skuToUpdate.Uom = SkuHeader.Uom;
-            skuToUpdate.Supplier = SkuHeader.Supplier;
             skuToUpdate.IsSellingPriceEnabled = true;
             skuToUpdate.IsReorderLevelEnabled = true;
             skuToUpdate.SellingPrice = SkuHeader.SellingPrice;
