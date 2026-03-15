@@ -64,7 +64,7 @@
             </div>
         </div>
         <div class="flex-1 space-y-4">
-            <h2 class="text-3xl font-extrabold text-gray-800 tracking-tight dark:text-white">@Model.SkuHeader?.ItemName: <span class="text-[#C41E24]">@Model.SkuHeader?.PackSize</span></h2>
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight dark:text-white">@Model.SkuHeader?.ItemName: <span class="text-[#C41E24]">@Model.SkuHeader?.PackSize</span></h2>
             <div class="flex items-center space-x-4">
                 <button type="button" class="px-6 py-2.5 bg-[#FFF5F5] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest shadow-sm hover:bg-red-50 transition-all flex items-center border border-red-100/50">
                     <i class="bi bi-upload mr-2 text-sm"></i> Upload Image
@@ -91,34 +91,40 @@
                 
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Product Name</label>
-                    <input type="text" asp-for="SkuHeader.ItemName" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-base font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    <input type="text" asp-for="SkuHeader.ItemName" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-base font-bold text-gray-900 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Category</label>
-                        <input type="hidden" asp-for="SkuHeader.CategoryId" />
-                        <input type="text" value="@(Model.SkuHeader?.Category?.CategoryName ?? "-")" readonly class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none cursor-default dark:bg-slate-700/50 dark:text-white dark:border-gray-700">
+                        <select asp-for="SkuHeader.CategoryId" id="categorySelect" required class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            <option value="">Select Category</option>
+                            @foreach(var cat in Model.Categories)
+                            {
+                                <option value="@cat.CategoryId">@cat.CategoryName</option>
+                            }
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Sub-Class</label>
-                        <input type="text" asp-for="SkuHeader.SubClass" placeholder="Sub-Class" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Sub-Category</label>
+                        <select asp-for="SkuHeader.SubCategoryId" id="subCategorySelect" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            <option value="">Select Sub-Category</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Packaging Type</label>
-                        <select asp-for="SkuHeader.PackagingType" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
-                            <option value="">Packaging Type</option>
-                            <option value="Bottle">Bottle</option>
-                            <option value="Pack">Pack</option>
-                            <option value="Box">Box</option>
-                        </select>
+                        <input type="text" asp-for="SkuHeader.PackagingType" list="pkgTypeList" placeholder="Packaging Type"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Packaging Unit</label>
-                        <input type="text" asp-for="SkuHeader.PackagingUnit" placeholder="Packaging Unit" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        <input type="text" asp-for="SkuHeader.PackagingUnit" list="pkgUnitList" placeholder="Packaging Unit"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                 </div>
 
@@ -129,36 +135,38 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit of Measurement</label>
-                        <input type="text" asp-for="SkuHeader.Uom" placeholder="UOM" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        <input type="text" asp-for="SkuHeader.Uom" list="uomList" placeholder="UOM"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Supplier</label>
-                    <input type="text" asp-for="SkuHeader.Supplier" placeholder="Supplier" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    <input type="text" asp-for="SkuHeader.Supplier" placeholder="Supplier" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
                 </div>
 
-                <div class="pt-2 flex items-center justify-between">
-                    <div class="flex items-center space-x-6">
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" asp-for="SkuHeader.IsSellingPriceEnabled" class="w-5 h-5 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all dark:border-gray-600">
-                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest group-hover:text-[#C41E24] dark:text-gray-200">Selling Price</span>
-                        </label>
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="checkbox" asp-for="SkuHeader.IsReorderLevelEnabled" class="w-5 h-5 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] transition-all dark:border-gray-600">
-                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest group-hover:text-[#C41E24] dark:text-gray-200">Enable reorder level</span>
-                        </label>
+                <div class="pt-2">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Settings</p>
+                    <div class="mt-2 text-xs font-bold text-gray-700 dark:text-gray-300">
+                        Selling Price & Reorder tracking are enabled for this product.
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-2">
-                    <div>
+                    <div class="space-y-2">
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Selling Price</label>
-                        <input type="number" step="0.01" asp-for="SkuHeader.SellingPrice" placeholder="₱ 0.00" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                            <input type="number" step="0.01" asp-for="SkuHeader.SellingPrice" asp-format="{0:F2}" placeholder="0.00" required class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
                     </div>
-                    <div>
+                    <div class="space-y-2">
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit Cost</label>
-                        <input type="number" step="0.01" asp-for="SkuHeader.UnitCost" placeholder="₱ 0.00" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                            <input type="number" step="0.01" asp-for="SkuHeader.UnitCost" asp-format="{0:F2}" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
                     </div>
                 </div>
 
@@ -185,6 +193,9 @@
                                 <button type="button" onclick="openIngredientModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
                                     <i class="bi bi-plus-lg mr-2"></i> Add an ingredient
                                 </button>
+                                <button type="button" onclick="openSkuModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                                    <i class="bi bi-box-seam mr-2"></i> Add an SKU
+                                </button>
                                 <button type="submit" form="skuForm" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
                                     <i class="bi bi-arrow-repeat mr-2"></i> Update
                                 </button>
@@ -206,6 +217,7 @@
                                 <th>Item Name</th>
                                 <th class="w-32 text-center">Quantity</th>
                                 <th class="w-32 text-center">UOM</th>
+                                <th class="w-32 text-right">Cost</th>
                                 <th class="w-16"></th>
                             </tr>
                         </thead>
@@ -215,23 +227,70 @@
                                 var recipes = Model.SkuHeader.SkuRecipes.ToList();
                                 for (int i = 0; i < recipes.Count; i++)
                                 {
-                                    <tr class="ingredient-row" data-com-id="@recipes[i].ComId">
+                                    <tr class="ingredient-row" data-com-id="@recipes[i].ComId" data-target-sku-id="@recipes[i].TargetSkuId">
                                         <td>
                                             <input type="hidden" name="SkuHeader.SkuRecipes[@i].ComId" value="@recipes[i].ComId" />
+                                            <input type="hidden" name="SkuHeader.SkuRecipes[@i].TargetSkuId" value="@recipes[i].TargetSkuId" />
                                             <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                                                <span class="font-bold text-gray-800 dark:text-white">@recipes[i].CommissaryInventory?.ItemName</span>
+                                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                    @if (recipes[i].TargetSkuId.HasValue)
+                                                    {
+                                                        <i class="bi bi-box-seam text-gray-400"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-basket text-gray-400"></i>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <span class="font-bold text-gray-900 dark:text-white">@(recipes[i].CommissaryInventory?.ItemName ?? recipes[i].TargetSku?.ItemName)</span>
+                                                    @if (recipes[i].TargetSkuId.HasValue)
+                                                    {
+                                                        <span class="block text-[10px] font-black text-[#C41E24] uppercase tracking-widest">SKU</span>
+                                                    }
+                                                </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <input type="text" name="SkuHeader.SkuRecipes[@i].QuantityNeeded" value="@recipes[i].QuantityNeeded" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                            <input type="text" name="SkuHeader.SkuRecipes[@i].QuantityNeeded" value="@recipes[i].QuantityNeeded.ToString("G29")" oninput="updateLineCost(this.closest('tr'))" class="qty-input w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
                                         </td>
                                         <td>
-                                            <select name="SkuHeader.SkuRecipes[@i].Uom" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                            <select name="SkuHeader.SkuRecipes[@i].Uom" onchange="updateLineCost(this.closest('tr'))" class="uom-select w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
                                                 <option value="Grams" selected="@(recipes[i].Uom == "Grams")">Grams</option>
-                                                <option value="ML" selected="@(recipes[i].Uom == "ML")">ML</option>
-                                                <option value="PCS" selected="@(recipes[i].Uom == "PCS")">PCS</option>
+                                                <option value="Dips" selected="@(recipes[i].Uom == "Dips")">Dips</option>
+                                                <option value="mL" selected="@(recipes[i].Uom == "mL")">mL</option>
+                                                <option value="Sticks" selected="@(recipes[i].Uom == "Sticks")">Sticks</option>
+                                                <option value="pcs" selected="@(recipes[i].Uom == "pcs")">pcs</option>
+                                                <option value="pack" selected="@(recipes[i].Uom == "pack")">pack</option>
+                                                <option value="bottle" selected="@(recipes[i].Uom == "bottle")">bottle</option>
+                                                <option value="cans" selected="@(recipes[i].Uom == "cans")">cans</option>
                                             </select>
+                                        </td>
+                                        <td class="text-right pr-4">
+                                            @{
+                                                decimal lineCost = 0;
+                                                decimal unitPrice = 0;
+                                                string baseUom = "";
+                                                if (recipes[i].CommissaryInventory != null)
+                                                {
+                                                    unitPrice = recipes[i].CommissaryInventory.CostPrice;
+                                                    baseUom = recipes[i].CommissaryInventory.Uom;
+                                                    decimal convertedQty = UomConverter.Convert(recipes[i].QuantityNeeded, recipes[i].Uom, baseUom);
+                                                    lineCost = convertedQty * unitPrice;
+                                                }
+                                                else if (recipes[i].TargetSku != null)
+                                                {
+                                                    unitPrice = recipes[i].TargetSku.UnitCost ?? 0;
+                                                    baseUom = recipes[i].TargetSku.Uom;
+                                                    // Assuming SKUs use simple multipliers if UOM conversion is complex for SKUs
+                                                    lineCost = recipes[i].QuantityNeeded * unitPrice;
+                                                }
+                                            }
+                                            <span class="line-cost font-bold text-gray-900 dark:text-white" 
+                                                  data-unit-price="@unitPrice" 
+                                                  data-base-uom="@baseUom">
+                                                ₱ @lineCost.ToString("N2")
+                                            </span>
                                         </td>
                                         <td class="text-right pr-4">
                                             @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
@@ -252,6 +311,101 @@
     </form>
 </div>
 
+<!-- Data Lists for Client Standards -->
+<datalist id="pkgTypeList">
+    <option value="Case"></option>
+    <option value="Pack"></option>
+    <option value="Bottle"></option>
+    <option value="Gallon"></option>
+    <option value="Sack"></option>
+    <option value="Box"></option>
+    <option value="Bundle"></option>
+    <option value="Can"></option>
+    <option value="Tub"></option>
+    <option value="Tubs"></option>
+    <option value="Jar"></option>
+    <option value="Tray"></option>
+    <option value="Ctn"></option>
+</datalist>
+
+<datalist id="pkgUnitList">
+    <option value="Cans"></option>
+    <option value="Grams (g)"></option>
+    <option value="Milliliter (mL)"></option>
+    <option value="Kilogram (kg)"></option>
+    <option value="Pieces (pcs)"></option>
+    <option value="Liter (L)"></option>
+    <option value="Pull"></option>
+    <option value="Sticks"></option>
+    <option value="Bottles"></option>
+    <option value="Per pc"></option>
+</datalist>
+
+<datalist id="uomList">
+    <option value="Grams"></option>
+    <option value="Dips"></option>
+    <option value="mL"></option>
+    <option value="Sticks"></option>
+    <option value="pcs"></option>
+    <option value="pack"></option>
+    <option value="bottle"></option>
+    <option value="cans"></option>
+</datalist>
+
+<!-- Add SKU Modal -->
+<div id="skuModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeSkuModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">@(Model.SkuHeader?.ItemName ?? "Product") - Add SKU</h3>
+                    <button onclick="closeSkuModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
+                        <i class="bi bi-x-lg text-lg"></i>
+                    </button>
+                </div>
+                <div class="relative mb-6">
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+                    <input type="text" id="skuModalSearch" onkeyup="filterSkus()" placeholder="Search SKU" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
+                </div>
+                <div class="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                    @if (Model.AvailableSkus != null && Model.AvailableSkus.Any())
+                    {
+                        @foreach (var sku in Model.AvailableSkus)
+                        {
+                            <div class="sku-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group dark:hover:bg-slate-700/50" onclick="toggleSkuSelection(this)">
+                                <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded group-hover:border-[#C41E24] transition-all checkbox-container dark:border-gray-600">
+                                    <input type="checkbox" class="hidden sku-checkbox" 
+                                           value="@sku.SkuId" 
+                                           data-name="@sku.ItemName"
+                                           data-cost="@(sku.UnitCost ?? 0)"
+                                           data-uom="@sku.Uom">
+                                    <i class="bi bi-check-lg text-white text-xs opacity-0"></i>
+                                </div>
+                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                    <i class="bi bi-box-seam text-gray-400"></i>
+                                </div>
+                                <span class="flex-1 font-bold text-gray-900 dark:text-white">@sku.ItemName</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-6 text-center text-gray-400 font-medium text-sm italic dark:text-gray-500">
+                            No other SKUs available to add as ingredients.
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
+                <button onclick="closeSkuModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
+                <button onclick="addSelectedSkus()" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Ingredient Modal -->
 <div id="ingredientModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -270,7 +424,7 @@
 
                 <div class="relative mb-6">
                     <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search ingredient" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
+                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search ingredient" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
                     <i class="bi bi-grid-3x3-gap absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
                 </div>
 
@@ -281,12 +435,19 @@
                         {
                             <div class="item-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group dark:hover:bg-slate-700/50" onclick="toggleItemSelection(this)">
                                 <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded group-hover:border-[#C41E24] transition-all checkbox-container dark:border-gray-600">
-                                    <input type="checkbox" class="hidden item-checkbox" value="@item.ComId" data-name="@item.ItemName">
+                                    <input type="checkbox" class="hidden item-checkbox" 
+                                           value="@item.ComId" 
+                                           data-name="@item.ItemName"
+                                           data-cost="@item.CostPrice"
+                                           data-uom="@item.Uom">
                                     <i class="bi bi-check-lg text-white text-xs opacity-0"></i>
                                 </div>
                                 <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
                                 </div>
-                                <span class="flex-1 font-bold text-gray-800 dark:text-white">@item.ItemName</span>
+                                <div class="flex-1">
+                                    <span class="font-bold text-gray-900 dark:text-white">@item.ItemName</span>
+                                    <div class="text-[10px] text-gray-500 uppercase tracking-widest">₱ @item.CostPrice.ToString("N2") / @item.Uom</div>
+                                </div>
                             </div>
                         }
                     }
@@ -355,11 +516,13 @@
             const tableBody = document.getElementById('ingredientItemsList');
             const selectedItems = document.querySelectorAll('.item-row .checkbox-container.bg-\\[\\#C41E24\\]');
             
-            selectedItems.forEach(container => {
+                selectedItems.forEach(container => {
                 const row = container.closest('.item-row');
                 const checkbox = row.querySelector('.item-checkbox');
                 const comId = checkbox.value;
                 const itemName = checkbox.getAttribute('data-name');
+                const cost = checkbox.getAttribute('data-cost');
+                const uom = checkbox.getAttribute('data-uom');
                 
                 // Check if already in table
                 if (!document.querySelector(`tr[data-com-id="${comId}"]`)) {
@@ -374,14 +537,22 @@
                                 </div>
                             </td>
                             <td>
-                                <input type="text" name="SkuHeader.SkuRecipes[${index}].QuantityNeeded" value="1" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                <input type="text" name="SkuHeader.SkuRecipes[${index}].QuantityNeeded" value="1" oninput="updateLineCost(this.closest('tr'))" class="qty-input w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
                             </td>
                             <td>
-                                <select name="SkuHeader.SkuRecipes[${index}].Uom" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
-                                    <option value="Grams">Grams</option>
-                                    <option value="ML">ML</option>
-                                    <option value="PCS">PCS</option>
+                                <select name="SkuHeader.SkuRecipes[${index}].Uom" onchange="updateLineCost(this.closest('tr'))" class="uom-select w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <option value="Grams" ${uom === 'Grams' ? 'selected' : ''}>Grams</option>
+                                    <option value="Dips" ${uom === 'Dips' ? 'selected' : ''}>Dips</option>
+                                    <option value="mL" ${uom === 'mL' ? 'selected' : ''}>mL</option>
+                                    <option value="Sticks" ${uom === 'Sticks' ? 'selected' : ''}>Sticks</option>
+                                    <option value="pcs" ${uom === 'pcs' ? 'selected' : ''}>pcs</option>
+                                    <option value="pack" ${uom === 'pack' ? 'selected' : ''}>pack</option>
+                                    <option value="bottle" ${uom === 'bottle' ? 'selected' : ''}>bottle</option>
+                                    <option value="cans" ${uom === 'cans' ? 'selected' : ''}>cans</option>
                                 </select>
+                            </td>
+                            <td class="text-right pr-4">
+                                <span class="line-cost font-bold text-gray-800 dark:text-white" data-unit-price="${cost}" data-base-uom="${uom}">₱ ${parseFloat(cost).toFixed(2)}</span>
                             </td>
                             <td class="text-right pr-4">
                                 <button type="button" onclick="removeIngredientRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
@@ -403,23 +574,242 @@
             renumberRows();
         }
 
+        function openSkuModal() {
+            document.getElementById('skuModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSkuModal() {
+            document.getElementById('skuModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function toggleSkuSelection(element) {
+            toggleItemSelection(element);
+        }
+
+        function filterSkus() {
+            const input = document.getElementById('skuModalSearch');
+            const filter = input.value.toUpperCase();
+            const rows = document.querySelectorAll('.sku-row');
+
+            rows.forEach(row => {
+                const text = row.querySelector('span').innerText;
+                row.style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            });
+        }
+
+        function addSelectedSkus() {
+            const tableBody = document.getElementById('ingredientItemsList');
+            const selectedSkus = document.querySelectorAll('.sku-row .checkbox-container.bg-\\[\\#C41E24\\]');
+            
+            selectedSkus.forEach(container => {
+                const row = container.closest('.sku-row');
+                const checkbox = row.querySelector('.sku-checkbox');
+                const skuId = checkbox.value;
+                const itemName = checkbox.getAttribute('data-name');
+                const cost = checkbox.getAttribute('data-cost');
+                const uom = checkbox.getAttribute('data-uom');
+                
+                if (!document.querySelector(`tr[data-target-sku-id="${skuId}"]`)) {
+                    const index = tableBody.querySelectorAll('tr').length;
+                    const newRow = `
+                        <tr class="ingredient-row" data-target-sku-id="${skuId}">
+                            <td>
+                                <input type="hidden" name="SkuHeader.SkuRecipes[${index}].TargetSkuId" value="${skuId}" />
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                        <i class="bi bi-box-seam text-gray-400"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-gray-800 dark:text-white">${itemName}</span>
+                                        <span class="block text-[10px] font-black text-[#C41E24] uppercase tracking-widest">SKU</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="text" name="SkuHeader.SkuRecipes[${index}].QuantityNeeded" value="1" oninput="updateLineCost(this.closest('tr'))" class="qty-input w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            </td>
+                            <td>
+                                <select name="SkuHeader.SkuRecipes[${index}].Uom" onchange="updateLineCost(this.closest('tr'))" class="uom-select w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <option value="Grams" ${uom === 'Grams' ? 'selected' : ''}>Grams</option>
+                                    <option value="Dips" ${uom === 'Dips' ? 'selected' : ''}>Dips</option>
+                                    <option value="mL" ${uom === 'mL' ? 'selected' : ''}>mL</option>
+                                    <option value="Sticks" ${uom === 'Sticks' ? 'selected' : ''}>Sticks</option>
+                                    <option value="pcs" ${uom === 'pcs' ? 'selected' : ''}>pcs</option>
+                                    <option value="pack" ${uom === 'pack' ? 'selected' : ''}>pack</option>
+                                    <option value="bottle" ${uom === 'bottle' ? 'selected' : ''}>bottle</option>
+                                    <option value="cans" ${uom === 'cans' ? 'selected' : ''}>cans</option>
+                                </select>
+                            </td>
+                            <td class="text-right pr-4">
+                                <span class="line-cost font-bold text-gray-800 dark:text-white" data-unit-price="${cost}" data-base-uom="${uom}">₱ ${parseFloat(cost).toFixed(2)}</span>
+                            </td>
+                            <td class="text-right pr-4">
+                                <button type="button" onclick="removeIngredientRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', newRow);
+                }
+            });
+            
+            closeSkuModal();
+            renumberRows();
+        }
+
         function renumberRows() {
             const rows = document.querySelectorAll('#ingredientItemsList tr.ingredient-row');
             rows.forEach((row, index) => {
                 const comIdInput = row.querySelector('input[name*=".ComId"]');
+                const targetSkuIdInput = row.querySelector('input[name*=".TargetSkuId"]');
                 const qtyInput = row.querySelector('input[name*=".QuantityNeeded"]');
                 const uomSelect = row.querySelector('select[name*=".Uom"]');
                 
                 if (comIdInput) comIdInput.name = `SkuHeader.SkuRecipes[${index}].ComId`;
+                if (targetSkuIdInput) targetSkuIdInput.name = `SkuHeader.SkuRecipes[${index}].TargetSkuId`;
                 if (qtyInput) qtyInput.name = `SkuHeader.SkuRecipes[${index}].QuantityNeeded`;
                 if (uomSelect) uomSelect.name = `SkuHeader.SkuRecipes[${index}].Uom`;
             });
         }
 
+        // Datalist Usability Helpers
+        function handleDatalistFocus(input) {
+            if (input.value) {
+                input.dataset.originalValue = input.value;
+                input.dataset.tempPlaceholder = input.placeholder;
+                input.placeholder = input.value; // Show value as placeholder while focused
+                input.value = '';
+            }
+        }
+
+        function handleDatalistBlur(input) {
+            setTimeout(() => {
+                if (input.value === '' && input.dataset.originalValue) {
+                    input.value = input.dataset.originalValue;
+                }
+                if (input.dataset.tempPlaceholder !== undefined) {
+                    input.placeholder = input.dataset.tempPlaceholder;
+                }
+            }, 200);
+        }
+
+        const subCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SubCategories.Select(s => new { s.SubCategoryId, s.SubCategoryName, s.CategoryId })));
+
+        function filterSubCategories(categoryId, selectedSubCategoryId = null) {
+            const select = document.getElementById('subCategorySelect');
+            select.innerHTML = '<option value="">Select Sub-Category</option>';
+            
+            if (!categoryId) return;
+
+            const filtered = subCategories.filter(s => s.CategoryId == categoryId);
+            filtered.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.SubCategoryId;
+                option.textContent = s.SubCategoryName;
+                if (selectedSubCategoryId && s.SubCategoryId == selectedSubCategoryId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        document.getElementById('categorySelect').addEventListener('change', function() {
+            filterSubCategories(this.value);
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialCatId = '@Model.SkuHeader?.CategoryId';
+            const initialSubCatId = '@Model.SkuHeader?.SubCategoryId';
+            if (initialCatId) {
+                filterSubCategories(initialCatId, initialSubCatId);
+            }
+        });
+
         function detachSku() {
             if (confirm('Are you sure you want to remove all ingredients from this SKU?')) {
                 document.getElementById('ingredientItemsList').innerHTML = '';
                 renumberRows();
+            }
+        }
+
+        const UNITS = {
+            "g": { category: "weight", factor: 1 },
+            "gram": { category: "weight", factor: 1 },
+            "grams": { category: "weight", factor: 1 },
+            "kg": { category: "weight", factor: 1000 },
+            "kilogram": { category: "weight", factor: 1000 },
+            "kilograms": { category: "weight", factor: 1000 },
+            "ml": { category: "volume", factor: 1 },
+            "milliliter": { category: "volume", factor: 1 },
+            "milliliters": { category: "volume", factor: 1 },
+            "l": { category: "volume", factor: 1000 },
+            "liter": { category: "volume", factor: 1000 },
+            "liters": { category: "volume", factor: 1000 },
+            "pcs": { category: "count", factor: 1 },
+            "pc": { category: "count", factor: 1 },
+            "per pc": { category: "count", factor: 1 },
+            "pieces": { category: "count", factor: 1 },
+            "piece": { category: "count", factor: 1 },
+            "pack": { category: "count", factor: 1 },
+            "bundle": { category: "count", factor: 1 },
+            "can": { category: "count", factor: 1 },
+            "cans": { category: "count", factor: 1 },
+            "stick": { category: "count", factor: 1 },
+            "sticks": { category: "count", factor: 1 },
+            "pull": { category: "count", factor: 1 },
+            "pulls": { category: "count", factor: 1 },
+            "dip": { category: "count", factor: 1 },
+            "dips": { category: "count", factor: 1 }
+        };
+
+        function convertUom(quantity, fromUom, toUom) {
+            if (!fromUom || !toUom) return quantity;
+            const from = fromUom.toLowerCase().trim();
+            const to = toUom.toLowerCase().trim();
+            if (from === to) return quantity;
+
+            const fromInfo = UNITS[from];
+            const toInfo = UNITS[to];
+
+            if (!fromInfo || !toInfo || fromInfo.category !== toInfo.category) return quantity;
+
+            return (quantity * fromInfo.factor) / toInfo.factor;
+        }
+
+        function updateLineCost(row) {
+            const qtyInput = row.querySelector('.qty-input');
+            const uomSelect = row.querySelector('.uom-select');
+            const costSpan = row.querySelector('.line-cost');
+            
+            if (!qtyInput || !uomSelect || !costSpan) return;
+
+            const quantity = parseFloat(qtyInput.value) || 0;
+            const fromUom = uomSelect.value;
+            const unitPrice = parseFloat(costSpan.dataset.unitPrice) || 0;
+            const baseUom = costSpan.dataset.baseUom;
+
+            const convertedQty = convertUom(quantity, fromUom, baseUom);
+            const lineCost = convertedQty * unitPrice;
+
+            costSpan.textContent = `₱ ${lineCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            updateTotalUnitCost();
+        }
+
+        function updateTotalUnitCost() {
+            let total = 0;
+            document.querySelectorAll('.line-cost').forEach(span => {
+                const text = span.textContent.replace('₱', '').replace(',', '').trim();
+                total += parseFloat(text) || 0;
+            });
+            
+            const unitCostInput = document.querySelector('input[name="SkuHeader.UnitCost"]');
+            if (unitCostInput) {
+                unitCostInput.value = total.toFixed(2);
             }
         }
     </script>

@@ -105,6 +105,13 @@ namespace LeKatsuMNL.Data
                 .HasForeignKey(ci => ci.SubCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // SkuHeader -> SubCategory (1:M)
+            modelBuilder.Entity<SkuHeader>()
+                .HasOne(s => s.SubCategory)
+                .WithMany()
+                .HasForeignKey(s => s.SubCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // SkuHeader -> CommissaryInventory (1:M)
             modelBuilder.Entity<CommissaryInventory>()
                 .HasOne(ci => ci.SkuHeader)
@@ -301,6 +308,13 @@ namespace LeKatsuMNL.Data
                 .HasOne(sr => sr.CommissaryInventory)
                 .WithMany(ci => ci.SkuRecipes)
                 .HasForeignKey(sr => sr.ComId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SkuHeader (Nested) -> SkuRecipe (1:M)
+            modelBuilder.Entity<SkuRecipe>()
+                .HasOne(sr => sr.TargetSku)
+                .WithMany() // Nested SKU doesn't need a collection of where it's used
+                .HasForeignKey(sr => sr.TargetSkuId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

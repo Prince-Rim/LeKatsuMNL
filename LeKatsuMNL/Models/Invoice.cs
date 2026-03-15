@@ -26,11 +26,11 @@ namespace LeKatsuMNL.Models
         public string PaymentMethod { get; set; }
 
         [MaxLength(100)]
-        public string ReferenceNumber { get; set; }
+        public string? ReferenceNumber { get; set; }
 
         public DateTime? PaymentDate { get; set; }
 
         [MaxLength(100)]
-        public string VerifiedBy { get; set; }
+        public string? VerifiedBy { get; set; }
     }
 }

@@ -20,6 +20,20 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public OrderInfo Order { get; set; } = default!;
         public IList<OrderComment> Comments { get; set; } = new List<OrderComment>();
+        [TempData]
+        public string ErrorMessage { get; set; }
+
+        public class StockCheckDetail
+        {
+            public int ComId { get; set; }
+            public string ItemName { get; set; } = "";
+            public string Uom { get; set; } = "";
+            public decimal RequiredQuantity { get; set; }
+            public decimal CurrentStock { get; set; }
+            public bool IsSufficient => CurrentStock >= RequiredQuantity;
+        }
+
+        public IList<StockCheckDetail> StockCheckList { get; set; } = new List<StockCheckDetail>();
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -59,6 +73,32 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             Comments = Order.OrderComments.OrderByDescending(c => c.CommentId).ToList();
+
+            // Populate Stock Check List
+            var requirements = new Dictionary<int, decimal>();
+            foreach (var item in Order.OrderLists)
+            {
+                if (item.SkuHeader != null)
+                {
+                    await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, requirements);
+                }
+            }
+
+            foreach (var req in requirements)
+            {
+                var inventory = await _context.CommissaryInventories.FindAsync(req.Key);
+                if (inventory != null)
+                {
+                    StockCheckList.Add(new StockCheckDetail
+                    {
+                        ComId = req.Key,
+                        ItemName = inventory.ItemName ?? "Unknown",
+                        Uom = inventory.Uom ?? "",
+                        RequiredQuantity = req.Value,
+                        CurrentStock = inventory.Stock
+                    });
+                }
+            }
 
             return Page();
         }
@@ -112,31 +152,117 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (order == null) return NotFound();
             if (order.Status != "Pending") return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
 
-            // 1. Deduct from inventory based on recipes
+            // 1. Check stock availability recursively across all items in the order
+            var stockRequirements = new Dictionary<int, decimal>();
             foreach (var item in order.OrderLists)
             {
-                if (item.SkuHeader?.SkuRecipes == null) continue;
+                if (item.SkuHeader == null) continue;
+                await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, stockRequirements);
+            }
 
-                foreach (var recipe in item.SkuHeader.SkuRecipes)
+            // Verify aggregated requirements against current inventory
+            foreach (var req in stockRequirements)
+            {
+                var inventory = await _context.CommissaryInventories.FindAsync(req.Key);
+                if (inventory == null || inventory.Stock < req.Value)
                 {
-                    if (recipe.CommissaryInventory != null)
-                    {
-                        // Convert recipe UOM to inventory UOM before deducting
-                        decimal convertedQty = Helpers.UomConverter.Convert(
-                            recipe.QuantityNeeded, recipe.Uom, recipe.CommissaryInventory.Uom);
-                        decimal totalDeduction = convertedQty * item.Quantity;
-                        recipe.CommissaryInventory.Stock -= totalDeduction;
-                        
-                        // Log transaction (Optional: could add InventoryTransaction record here)
-                    }
+                    ErrorMessage = $"Insufficient stock for: {inventory?.ItemName ?? "Unknown Item"} (Required: {req.Value:0.##} {inventory?.Uom}, Available: {inventory?.Stock:0.##} {inventory?.Uom})";
+                    return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
                 }
             }
 
-            // 2. Update status
+            // 2. If stock is sufficient, deduct from inventory
+            foreach (var req in stockRequirements)
+            {
+                var inventory = await _context.CommissaryInventories.FindAsync(req.Key);
+                if (inventory != null)
+                {
+                    inventory.Stock -= req.Value;
+                }
+            }
+
+            // 3. Create Invoice
+            var invoice = new Invoice
+            {
+                OrderId = order.OrderId,
+                InvoiceDate = System.DateTime.Now,
+                TotalPrice = order.OrderLists.Sum(ol => ol.TotalPrice),
+                PaymentStatus = "Pending",
+                PaymentMethod = "TBD",
+                VerifiedBy = "System"
+            };
+            _context.Invoices.Add(invoice);
+
+            // 4. Update status
             order.Status = "Approved";
             await _context.SaveChangesAsync();
 
             return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+        }
+
+        public async Task<IActionResult> OnPostPrepareAsync(int OrderId)
+        {
+            var order = await _context.OrderInfos.FindAsync(OrderId);
+            if (order == null) return NotFound();
+            
+            if (order.Status == "Approved")
+            {
+                order.Status = "Preparing";
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+        }
+
+        public async Task<IActionResult> OnPostDeliverAsync(int OrderId)
+        {
+            var order = await _context.OrderInfos.FindAsync(OrderId);
+            if (order == null) return NotFound();
+
+            if (order.Status == "Preparing")
+            {
+                order.Status = "Delivered";
+                order.DeliveryDate = System.DateTime.Now;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+        }
+
+        private async Task AggregateStockRequirements(int skuId, decimal multiplier, Dictionary<int, decimal> requirements, HashSet<int> visitedSkuIds = null)
+        {
+            if (visitedSkuIds == null) visitedSkuIds = new HashSet<int>();
+            if (visitedSkuIds.Contains(skuId)) return;
+
+            visitedSkuIds.Add(skuId);
+
+            var sku = await _context.SkuHeaders
+                .Include(s => s.SkuRecipes)
+                    .ThenInclude(r => r.CommissaryInventory)
+                .Include(s => s.SkuRecipes)
+                    .ThenInclude(r => r.TargetSku)
+                .FirstOrDefaultAsync(s => s.SkuId == skuId);
+
+            if (sku == null || sku.SkuRecipes == null) return;
+
+            foreach (var recipe in sku.SkuRecipes)
+            {
+                if (recipe.ComId.HasValue && recipe.CommissaryInventory != null)
+                {
+                    decimal convertedQty = Helpers.UomConverter.Convert(
+                        recipe.QuantityNeeded, recipe.Uom, recipe.CommissaryInventory.Uom);
+                    decimal totalNeeded = convertedQty * multiplier;
+
+                    if (requirements.ContainsKey(recipe.ComId.Value))
+                        requirements[recipe.ComId.Value] += totalNeeded;
+                    else
+                        requirements[recipe.ComId.Value] = totalNeeded;
+                }
+                else if (recipe.TargetSkuId.HasValue)
+                {
+                    await AggregateStockRequirements(recipe.TargetSkuId.Value, multiplier * recipe.QuantityNeeded, requirements, new HashSet<int>(visitedSkuIds));
+                }
+            }
         }
     }
 }

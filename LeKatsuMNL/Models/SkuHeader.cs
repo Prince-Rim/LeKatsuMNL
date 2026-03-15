@@ -14,11 +14,8 @@ namespace LeKatsuMNL.Models
         [MaxLength(100)]
         public string ItemName { get; set; }
 
-        [MaxLength(100)]
-        public string? SubCategory { get; set; }
-
-        [MaxLength(100)]
-        public string SubClass { get; set; }
+        public int? SubCategoryId { get; set; }
+        public SubCategory SubCategory { get; set; }
 
         [MaxLength(50)]
         public string PackagingType { get; set; }
@@ -35,11 +32,12 @@ namespace LeKatsuMNL.Models
         [MaxLength(150)]
         public string Supplier { get; set; }
 
-        public bool IsSellingPriceEnabled { get; set; }
-        public bool IsReorderLevelEnabled { get; set; }
+        public bool IsSellingPriceEnabled { get; set; } = true;
+        public bool IsReorderLevelEnabled { get; set; } = true;
 
+        [Required]
         [Column(TypeName = "decimal(18,4)")]
-        public decimal? SellingPrice { get; set; }
+        public decimal SellingPrice { get; set; }
 
         [Column(TypeName = "decimal(18,4)")]
         public decimal? UnitCost { get; set; }

@@ -9,8 +9,6 @@ namespace LeKatsuMNL.Models
         [Key]
         public int SoaId { get; set; }
 
-        public int SupplyId { get; set; }
-
         public int SListId { get; set; }
 
         public DateTime SupplyDate { get; set; }
@@ -21,5 +19,8 @@ namespace LeKatsuMNL.Models
         public string Status { get; set; }
 
         public string ReceiptImg { get; set; }
+
+        public int? VendorId { get; set; }
+        public VendorInfo Vendor { get; set; }
     }
 }

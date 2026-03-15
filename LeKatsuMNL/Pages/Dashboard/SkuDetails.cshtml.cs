@@ -23,7 +23,10 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public SkuHeader SkuHeader { get; set; }
 
+        public List<Category> Categories { get; set; }
+        public List<SubCategory> SubCategories { get; set; }
         public List<CommissaryInventory> AvailableItems { get; set; }
+        public List<SkuHeader> AvailableSkus { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -32,8 +35,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 // For demo purposes if id is not provided, load the first one or create dummy
                 SkuHeader = await _context.SkuHeaders
                     .Include(s => s.Category)
+                    .Include(s => s.SubCategory)
                     .Include(s => s.SkuRecipes)
                         .ThenInclude(r => r.CommissaryInventory)
+                    .Include(s => s.SkuRecipes)
+                        .ThenInclude(r => r.TargetSku)
                     .FirstOrDefaultAsync();
 
                 if (SkuHeader == null)
@@ -45,8 +51,11 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 SkuHeader = await _context.SkuHeaders
                     .Include(s => s.Category)
+                    .Include(s => s.SubCategory)
                     .Include(s => s.SkuRecipes)
                         .ThenInclude(r => r.CommissaryInventory)
+                    .Include(s => s.SkuRecipes)
+                        .ThenInclude(r => r.TargetSku)
                     .FirstOrDefaultAsync(m => m.SkuId == id);
 
                 if (SkuHeader == null)
@@ -55,7 +64,12 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
+            Categories = await _context.Categories.ToListAsync();
+            SubCategories = await _context.SubCategories.ToListAsync();
             AvailableItems = await _context.CommissaryInventories.ToListAsync();
+            AvailableSkus = await _context.SkuHeaders
+                .Where(s => s.SkuId != id) // Prevent direct self-reference
+                .ToListAsync();
 
             return Page();
         }
@@ -80,55 +94,102 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // Update basic info
             skuToUpdate.ItemName = SkuHeader.ItemName;
-            skuToUpdate.SubCategory = SkuHeader.SubCategory;
-            skuToUpdate.SubClass = SkuHeader.SubClass;
+            skuToUpdate.SubCategoryId = SkuHeader.SubCategoryId;
             skuToUpdate.PackagingType = SkuHeader.PackagingType;
             skuToUpdate.PackagingUnit = SkuHeader.PackagingUnit;
             skuToUpdate.PackSize = SkuHeader.PackSize;
             skuToUpdate.Uom = SkuHeader.Uom;
             skuToUpdate.Supplier = SkuHeader.Supplier;
-            skuToUpdate.IsSellingPriceEnabled = SkuHeader.IsSellingPriceEnabled;
-            skuToUpdate.IsReorderLevelEnabled = SkuHeader.IsReorderLevelEnabled;
+            skuToUpdate.IsSellingPriceEnabled = true;
+            skuToUpdate.IsReorderLevelEnabled = true;
             skuToUpdate.SellingPrice = SkuHeader.SellingPrice;
             skuToUpdate.UnitCost = SkuHeader.UnitCost;
 
             // Update recipes: Clear and re-add for simplicity
             _context.SkuRecipes.RemoveRange(skuToUpdate.SkuRecipes);
             
-            decimal totalUnitCost = 0;
             if (SkuHeader.SkuRecipes != null)
             {
                 foreach (var recipe in SkuHeader.SkuRecipes)
                 {
-                    // Defensive check: Ignore invalid IDs
-                    if (recipe.ComId <= 0) continue;
+                    // Defensive check: Ignore if both are null or invalid
+                    if (recipe.ComId <= 0 && recipe.TargetSkuId <= 0) continue;
                     
-                    // Defensive check: Ensure it actually exists in CommissaryInventories
-                    var inventoryItem = await _context.CommissaryInventories.FindAsync(recipe.ComId);
-                    if (inventoryItem == null) continue;
-
-                    skuToUpdate.SkuRecipes.Add(new SkuRecipe
+                    var newRecipe = new SkuRecipe
                     {
                         SkuId = skuToUpdate.SkuId,
-                        ComId = recipe.ComId,
-                        CommissaryInventory = inventoryItem,
                         QuantityNeeded = recipe.QuantityNeeded,
                         Uom = recipe.Uom
-                    });
+                    };
 
-                    // Convert recipe UOM to inventory UOM, then multiply by cost
-                    decimal convertedQty = Helpers.UomConverter.Convert(
-                        recipe.QuantityNeeded, recipe.Uom, inventoryItem.Uom);
-                    totalUnitCost += convertedQty * inventoryItem.CostPrice;
+                    if (recipe.ComId > 0)
+                    {
+                        var inventoryItem = await _context.CommissaryInventories.FindAsync(recipe.ComId);
+                        if (inventoryItem != null)
+                        {
+                            newRecipe.ComId = recipe.ComId;
+                            newRecipe.CommissaryInventory = inventoryItem;
+                        }
+                    }
+                    else if (recipe.TargetSkuId > 0)
+                    {
+                        var targetSku = await _context.SkuHeaders.FindAsync(recipe.TargetSkuId);
+                        if (targetSku != null)
+                        {
+                            newRecipe.TargetSkuId = recipe.TargetSkuId;
+                            newRecipe.TargetSku = targetSku;
+                        }
+                    }
+
+                    skuToUpdate.SkuRecipes.Add(newRecipe);
                 }
             }
+
+            // Save changes first so that CalculateTotalUnitCost can see the new recipes in the database
+            await _context.SaveChangesAsync();
             
             // Set the calculated unit cost
-            skuToUpdate.UnitCost = totalUnitCost;
+            skuToUpdate.UnitCost = Math.Round(await CalculateTotalUnitCost(skuToUpdate.SkuId), 2);
 
             await _context.SaveChangesAsync();
 
             return RedirectToPage(new { id = SkuHeader.SkuId });
+        }
+        private async Task<decimal> CalculateTotalUnitCost(int skuId, HashSet<int> visitedSkuIds = null)
+        {
+            if (visitedSkuIds == null) visitedSkuIds = new HashSet<int>();
+            if (visitedSkuIds.Contains(skuId)) return 0; // Circular dependency check
+            
+            visitedSkuIds.Add(skuId);
+
+            var sku = await _context.SkuHeaders
+                .Include(s => s.SkuRecipes)
+                    .ThenInclude(r => r.CommissaryInventory)
+                .Include(s => s.SkuRecipes)
+                    .ThenInclude(r => r.TargetSku)
+                .FirstOrDefaultAsync(s => s.SkuId == skuId);
+
+            if (sku == null) return 0;
+
+            decimal totalCost = 0;
+            foreach (var recipe in sku.SkuRecipes)
+            {
+                if (recipe.ComId.HasValue && recipe.CommissaryInventory != null)
+                {
+                    decimal convertedQty = Helpers.UomConverter.Convert(
+                        recipe.QuantityNeeded, recipe.Uom, recipe.CommissaryInventory.Uom);
+                    totalCost += convertedQty * recipe.CommissaryInventory.CostPrice;
+                }
+                else if (recipe.TargetSkuId.HasValue)
+                {
+                    decimal targetSkuUnitCost = await CalculateTotalUnitCost(recipe.TargetSkuId.Value, new HashSet<int>(visitedSkuIds));
+                    // Assuming TargetSku unit of measurement and QuantityNeeded are compatible for now
+                    // Usually SKUs are measured in Units (PCS, Packs, etc.)
+                    totalCost += recipe.QuantityNeeded * targetSkuUnitCost;
+                }
+            }
+
+            return totalCost;
         }
     }
 }

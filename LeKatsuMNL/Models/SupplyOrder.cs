@@ -18,7 +18,10 @@ namespace LeKatsuMNL.Models
         [MaxLength(50)]
         public string Status { get; set; }
 
-        public string ReceiptImg { get; set; }
+        public string? ReceiptImg { get; set; }
+
+        public int? VendorId { get; set; }
+        public VendorInfo? Vendor { get; set; }
 
         // Navigation Properties
         public ICollection<SupplyList> SupplyLists { get; set; } = new List<SupplyList>();

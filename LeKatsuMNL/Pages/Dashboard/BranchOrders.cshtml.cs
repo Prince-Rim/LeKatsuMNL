@@ -28,6 +28,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             var query = _context.OrderInfos
                 .Include(o => o.BranchManager)
                     .ThenInclude(bm => bm.BranchLocation)
+                .Include(o => o.Invoices)
                 .OrderByDescending(o => o.OrderDate);
             
             Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, 10);
@@ -44,7 +45,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             return Page();
         }
 
-        public async Task<IActionResult> OnPostCreateOrderAsync(int BranchManagerId, List<int> SkuIds, List<decimal> Quantities)
+        public async Task<IActionResult> OnPostCreateOrderAsync(int BranchManagerId, List<int> SkuIds, List<decimal> Quantities, List<decimal> Prices)
         {
             if (BranchManagerId <= 0 || SkuIds == null || !SkuIds.Any())
             {
@@ -65,15 +66,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 if (Quantities[i] <= 0) continue;
 
-                var sku = await _context.SkuHeaders.FindAsync(SkuIds[i]);
-                if (sku == null) continue;
-
                 var orderList = new OrderList
                 {
                     OrderId = order.OrderId,
                     SkuId = SkuIds[i],
                     Quantity = Quantities[i],
-                    TotalPrice = (sku.SellingPrice ?? 0) * Quantities[i]
+                    TotalPrice = Prices[i] * Quantities[i]
                 };
                 _context.OrderLists.Add(orderList);
             }

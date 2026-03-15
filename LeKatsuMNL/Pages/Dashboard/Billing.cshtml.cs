@@ -30,5 +30,24 @@ namespace LeKatsuMNL.Pages.Dashboard
             
             Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, 10);
         }
+
+        public async Task<IActionResult> OnPostMarkAsPaidAsync(int id, string paymentMethod, string referenceNumber)
+        {
+            var invoice = await _context.Invoices.FindAsync(id);
+            if (invoice == null)
+            {
+                return NotFound();
+            }
+
+            invoice.PaymentStatus = "Paid";
+            invoice.PaymentMethod = paymentMethod;
+            invoice.ReferenceNumber = referenceNumber;
+            invoice.PaymentDate = DateTime.Now;
+            invoice.VerifiedBy = User.Identity?.Name ?? "System";
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage();
+        }
     }
 }

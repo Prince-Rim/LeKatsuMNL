@@ -4,6 +4,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeKatsuMNL.Migrations
 {
     [DbContext(typeof(LeKatsuDb))]
-    partial class LeKatsuDbModelSnapshot : ModelSnapshot
+    [Migration("20260314170749_AddSkuNestingToRecipesV2")]
+    partial class AddSkuNestingToRecipesV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -568,6 +571,9 @@ namespace LeKatsuMNL.Migrations
                     b.Property<int?>("SubCategoryId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SubClass")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Uom")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -686,6 +692,7 @@ namespace LeKatsuMNL.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ReferenceNumber")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -693,6 +700,7 @@ namespace LeKatsuMNL.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("VerifiedBy")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1244,11 +1252,17 @@ namespace LeKatsuMNL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("SellingPrice")
+                    b.Property<decimal?>("SellingPrice")
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<int?>("SubCategoryId")
-                        .HasColumnType("int");
+                    b.Property<string>("SubCategory")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SubClass")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Supplier")
                         .IsRequired()
@@ -1266,8 +1280,6 @@ namespace LeKatsuMNL.Migrations
                     b.HasKey("SkuId");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("SubCategoryId");
 
                     b.ToTable("SkuHeaders");
                 });
@@ -1614,6 +1626,7 @@ namespace LeKatsuMNL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReceiptImg")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
@@ -1624,12 +1637,7 @@ namespace LeKatsuMNL.Migrations
                     b.Property<DateTime>("SupplyDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("VendorId")
-                        .HasColumnType("int");
-
                     b.HasKey("SoaId");
-
-                    b.HasIndex("VendorId");
 
                     b.ToTable("SupplyOrders");
                 });
@@ -1660,12 +1668,10 @@ namespace LeKatsuMNL.Migrations
                     b.Property<DateTime>("SupplyDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("VendorId")
+                    b.Property<int>("SupplyId")
                         .HasColumnType("int");
 
                     b.HasKey("SoaId");
-
-                    b.HasIndex("VendorId");
 
                     b.ToTable("SupplyOrderArchives");
                 });
@@ -2011,14 +2017,7 @@ namespace LeKatsuMNL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LeKatsuMNL.Models.SubCategory", "SubCategory")
-                        .WithMany()
-                        .HasForeignKey("SubCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Category");
-
-                    b.Navigation("SubCategory");
                 });
 
             modelBuilder.Entity("LeKatsuMNL.Models.SkuRecipe", b =>
@@ -2096,24 +2095,6 @@ namespace LeKatsuMNL.Migrations
                     b.Navigation("CommissaryInventory");
 
                     b.Navigation("SupplyOrder");
-                });
-
-            modelBuilder.Entity("LeKatsuMNL.Models.SupplyOrder", b =>
-                {
-                    b.HasOne("LeKatsuMNL.Models.VendorInfo", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId");
-
-                    b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("LeKatsuMNL.Models.SupplyOrderArchive", b =>
-                {
-                    b.HasOne("LeKatsuMNL.Models.VendorInfo", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId");
-
-                    b.Navigation("Vendor");
                 });
 
             modelBuilder.Entity("LeKatsuMNL.Models.BranchLocation", b =>

@@ -1,0 +1,187 @@
+@page "{id:int}"
+@model LeKatsuMNL.Pages.Dashboard.PrintInvoiceModel
+@{
+    Layout = null; // Clean slate for printing
+    string formattedOrderId = $"ORD-{Model.Order.OrderId:D5}";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - @formattedOrderId</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        @@media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+            }
+            .paper {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+        }
+        .paper {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Print Action Header (Hidden when printing) -->
+    <div class="no-print bg-slate-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-4">
+            <a href="/Dashboard/Billing" class="text-slate-400 hover:text-white transition-colors">
+                <i class="bi bi-arrow-left"></i> Back to Billing
+            </a>
+            <span class="text-slate-500">|</span>
+            <span class="font-bold flex items-center">
+                <i class="bi bi-file-earmark-pdf-fill text-red-500 mr-2 text-xl"></i>
+                Invoice Preview: @formattedOrderId
+            </span>
+        </div>
+        <button onclick="window.print()" class="bg-[#C41E24] hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md transition-all flex items-center">
+            <i class="bi bi-printer-fill mr-2"></i> Print Invoice
+        </button>
+    </div>
+
+    <!-- The Actual "Paper" -->
+    <div class="paper">
+        <!-- Header Section -->
+        <div class="flex justify-between items-start mb-12">
+            <div>
+                <h1 class="text-3xl font-extrabold text-[#C41E24] mb-2 uppercase tracking-tighter">Le Katsu MNL</h1>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Commissary & Main Office</p>
+                <div class="mt-4 text-xs text-gray-600 leading-relaxed">
+                    <p>123 Commissary Drive, Metro Manila</p>
+                    <p>Phone: (02) 8888-9999</p>
+                    <p>Email: admin@@lekatsumnl.com</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <h2 class="text-4xl font-black text-gray-900 uppercase tracking-tight mb-2">INVOICE</h2>
+                <div class="flex flex-col items-end space-y-1">
+                    <span class="bg-gray-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-widest">@formattedOrderId</span>
+                    <p class="text-xs text-gray-500 font-medium mt-2">Date Issued: @Model.Order.OrderDate.ToString("MMMM dd, yyyy")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-12 mb-12 border-y border-gray-100 py-8">
+            <!-- Billing To -->
+            <div>
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Billed To</h3>
+                <div class="text-sm font-bold text-gray-800">
+                    <p class="text-lg">@(Model.Order.BranchManager?.FirstName) @(Model.Order.BranchManager?.LastName)</p>
+                    <p class="text-gray-500 font-medium">@(Model.Order.BranchManager?.BranchLocation?.BranchName ?? "N/A Branch")</p>
+                    <p class="text-gray-400 font-normal mt-2 text-xs">@(Model.Order.BranchManager?.BranchLocation?.BranchLocationAddress ?? "-")</p>
+                </div>
+            </div>
+            <!-- Invoice Info -->
+            <div class="text-right">
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Payment Info</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-end items-center space-x-3">
+                        <span class="text-xs text-gray-500">Status:</span>
+                        <span class="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter @(Model.Invoice?.PaymentStatus.ToLower() == "paid" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700")">
+                            @(Model.Invoice?.PaymentStatus ?? "Pending")
+                        </span>
+                    </div>
+                    @if (Model.Invoice?.PaymentStatus.ToLower() == "paid")
+                    {
+                        <p class="text-xs text-gray-600">Method: <span class="font-bold text-gray-800">@Model.Invoice.PaymentMethod</span></p>
+                        <p class="text-xs text-gray-600">Ref #: <span class="font-bold text-gray-800">@Model.Invoice.ReferenceNumber</span></p>
+                        <p class="text-xs text-gray-600">Date Paid: <span class="font-bold text-gray-800">@(Model.Invoice.PaymentDate?.ToString("MMM dd, yyyy") ?? "-")</span></p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="mb-12">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b-2 border-gray-900">
+                        <th class="py-3 text-left font-bold uppercase text-xs tracking-widest text-gray-400">Description</th>
+                        <th class="py-3 text-center font-bold uppercase text-xs tracking-widest text-gray-400">Qty</th>
+                        <th class="py-3 text-right font-bold uppercase text-xs tracking-widest text-gray-400">Price</th>
+                        <th class="py-3 text-right font-bold uppercase text-xs tracking-widest text-gray-400">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach (var item in Model.Order.OrderLists)
+                    {
+                        <tr>
+                            <td class="py-4">
+                                <p class="font-bold text-gray-800">@item.SkuHeader?.ItemName</p>
+                                <p class="text-[10px] text-gray-400 uppercase font-medium">SKU CODE: SKU-@item.SkuId.ToString("D4")</p>
+                            </td>
+                            <td class="py-4 text-center text-gray-600 font-medium">@item.Quantity.ToString("0.##")</td>
+                            <td class="py-4 text-right text-gray-600 font-medium">₱ @((item.TotalPrice / item.Quantity).ToString("N2"))</td>
+                            <td class="py-4 text-right font-bold text-gray-800">₱ @item.TotalPrice.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Calculation Table -->
+        <div class="flex justify-end">
+            <div class="w-80 space-y-3">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Subtotal</span>
+                    <span class="font-bold text-gray-800">₱ @Model.Order.OrderLists.Sum(ol => ol.TotalPrice).ToString("N2")</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Tax Fee (0%)</span>
+                    <span class="font-bold text-gray-800">₱ 0.00</span>
+                </div>
+                <div class="flex justify-between border-t-2 border-gray-900 pt-4">
+                    <span class="text-lg font-black uppercase text-[#C41E24]">Amount Due</span>
+                    <span class="text-lg font-black text-gray-900 tracking-tight">₱ @Model.Order.OrderLists.Sum(ol => ol.TotalPrice).ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-24 border-t border-gray-100 pt-8">
+            <div class="grid grid-cols-2 gap-8 items-end">
+                <div>
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Terms & Notes</h4>
+                    <p class="text-[10px] text-gray-500 leading-relaxed italic">
+                        Please make all payments within 7 days of receiving this invoice. 
+                        Payments can be made via Bank Transfer or GCash. 
+                        Always include the Invoice ID as your reference.
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div class="inline-block border-t border-gray-400 w-48 pt-2">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Authorized Signature</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
