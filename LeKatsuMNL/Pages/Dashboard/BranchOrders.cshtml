@@ -68,7 +68,7 @@
                 {
                     foreach (var order in Model.Orders)
                     {
-                        string formattedOrderId = $"ORD-{order.OrderId:D5}";
+                        string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D5}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
                             <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
                             <td class="px-8 py-5">
@@ -145,7 +145,24 @@
         }
 
         function closeCreateOrderModal() {
-            document.getElementById('createOrderModal').classList.add('hidden');
+            const modal = document.getElementById('createOrderModal');
+            modal.classList.add('hidden');
+            const form = modal.querySelector('form');
+            if (form) {
+                form.reset();
+                // Reset dynamic rows and grand total
+                document.getElementById('orderItemsContainer').innerHTML = `
+                    <div class="flex items-center gap-4 mb-2 px-2 border-b border-gray-100 pb-2">
+                        <div class="flex-[2] min-w-[200px] text-[9px] font-black text-gray-400 uppercase tracking-widest">SKU Product</div>
+                        <div class="w-24 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Price</div>
+                        <div class="w-24 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Qty</div>
+                        <div class="w-28 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Line Total</div>
+                        <div class="w-10"></div>
+                    </div>
+                `;
+                addOrderItemRow(); // Add one default row
+                document.getElementById('grandTotalDisplay').innerText = "₱ 0.00";
+            }
         }
 
         const skuData = {
@@ -220,7 +237,7 @@
 <!-- Create Order Modal -->
 <div id="createOrderModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm" onclick="closeCreateOrderModal()"></div>
+        <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm"></div>
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 

@@ -36,6 +36,8 @@ namespace LeKatsuMNL.Pages.Dashboard
         public int? FilterSubCategoryId { get; set; }
         public int? FilterVendorId { get; set; }
         public string StockStatus { get; set; } = "All";
+        public string CurrentSortColumn { get; set; } = "Id";
+        public string CurrentSortOrder { get; set; } = "desc";
 
         public class InputModel
         {
@@ -58,13 +60,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             int? categoryId = null, 
             int? subCategoryId = null, 
             int? vendorId = null, 
-            string stockStatus = null)
+            string stockStatus = null,
+            string sortColumn = null,
+            string sortOrder = null)
         {
             SearchTerm = searchTerm;
             FilterCategoryId = categoryId;
             FilterSubCategoryId = subCategoryId;
             FilterVendorId = vendorId;
             StockStatus = stockStatus ?? "All";
+            CurrentSortColumn = sortColumn ?? "Id";
+            CurrentSortOrder = sortOrder ?? "desc";
 
             var query = _context.CommissaryInventories
                 .Where(i => i.SkuId == null)
@@ -76,7 +82,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             // Apply Filters
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                query = query.Where(i => i.ItemName.Contains(SearchTerm));
+                var search = SearchTerm.ToLower().Trim();
+                int? itemSearchId = search.StartsWith("item-") && search.Length > 5 ? int.TryParse(search.Substring(5), out int iId) ? iId : null : null;
+                var isNumeric = int.TryParse(search, out int numericId);
+
+                query = query.Where(i => i.ItemName.ToLower().Contains(search) ||
+                                       (itemSearchId.HasValue && i.ComId == itemSearchId.Value) ||
+                                       (isNumeric && i.ComId == numericId));
             }
 
             if (FilterCategoryId.HasValue)
@@ -109,8 +121,17 @@ namespace LeKatsuMNL.Pages.Dashboard
                     query = query.Where(i => i.Stock >= 10);
                 }
             }
-
-            query = query.OrderByDescending(i => i.ComId);
+            
+            // Apply Sorting
+            query = CurrentSortColumn switch
+            {
+                "Id" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.ComId) : query.OrderByDescending(i => i.ComId),
+                "Name" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.ItemName) : query.OrderByDescending(i => i.ItemName),
+                "Stock" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.Stock) : query.OrderByDescending(i => i.Stock),
+                "Cost" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.CostPrice) : query.OrderByDescending(i => i.CostPrice),
+                "Price" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.SellingPrice) : query.OrderByDescending(i => i.SellingPrice),
+                _ => query.OrderByDescending(i => i.ComId)
+            };
 
             Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, 10);
             

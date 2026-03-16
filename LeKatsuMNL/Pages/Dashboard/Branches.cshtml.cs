@@ -23,25 +23,44 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
 
+        public string CurrentSortColumn { get; set; } = "Date";
+        public string CurrentSortOrder { get; set; } = "desc";
+
         [BindProperty]
         public BranchLocation NewBranch { get; set; } = default!;
 
         [TempData]
         public string ErrorMessage { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? pageIndex)
+        public async Task<IActionResult> OnGetAsync(int? pageIndex, string sortColumn = null, string sortOrder = null)
         {
+            CurrentSortColumn = sortColumn ?? "Date";
+            CurrentSortOrder = sortOrder ?? "desc";
+
             IQueryable<BranchLocation> query = _context.BranchLocations
-                .Include(b => b.BranchManagers)
-                .OrderByDescending(b => b.CreatedAt);
+                .Include(b => b.BranchManagers);
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                var isNumeric = int.TryParse(SearchTerm, out int branchId);
-                query = query.Where(b => b.BranchName.Contains(SearchTerm) || 
-                                       b.BranchLocationAddress.Contains(SearchTerm) ||
-                                       (isNumeric && b.BranchId == branchId));
+                var search = SearchTerm.ToLower().Trim();
+                var isNumeric = int.TryParse(search, out int branchId);
+                int? managerSearchId = search.StartsWith("brch-") && search.Length > 5 ? int.TryParse(search.Substring(5), out int mId) ? mId : null : null;
+
+                query = query.Where(b => b.BranchName.ToLower().Contains(search) || 
+                                       b.BranchLocationAddress.ToLower().Contains(search) ||
+                                       (isNumeric && b.BranchId == branchId) ||
+                                       (managerSearchId.HasValue && b.BranchManagers.Any(m => m.BManagerId == managerSearchId.Value)));
             }
+
+            // Apply Sorting
+            query = CurrentSortColumn switch
+            {
+                "Id" => CurrentSortOrder == "asc" ? query.OrderBy(b => b.BranchId) : query.OrderByDescending(b => b.BranchId),
+                "Name" => CurrentSortOrder == "asc" ? query.OrderBy(b => b.BranchName) : query.OrderByDescending(b => b.BranchName),
+                "Island" => CurrentSortOrder == "asc" ? query.OrderBy(b => b.IslandGroup) : query.OrderByDescending(b => b.IslandGroup),
+                "Date" => CurrentSortOrder == "asc" ? query.OrderBy(b => b.CreatedAt) : query.OrderByDescending(b => b.CreatedAt),
+                _ => query.OrderByDescending(b => b.CreatedAt)
+            };
 
             Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, 10);
             return Page();

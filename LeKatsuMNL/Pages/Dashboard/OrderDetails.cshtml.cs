@@ -42,11 +42,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage("/Dashboard/BranchOrders");
             }
 
-            // Parse ID from string like "ORD-00001" to int 1
+            // Parse ID from string like "2026-00001" to int 1
             int orderId = 0;
-            if (id.StartsWith("ORD-"))
+            if (id.Contains("-"))
             {
-                int.TryParse(id.Replace("ORD-", ""), out orderId);
+                int.TryParse(id.Split('-').Last(), out orderId);
             }
             else
             {
@@ -107,7 +107,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             if (string.IsNullOrWhiteSpace(CommentText))
             {
-                return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+                return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}", tab = "issues" });
             }
 
             // Get user info from Claims
@@ -116,7 +116,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+                return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}", tab = "issues" });
             }
 
             var newComment = new OrderComment
@@ -167,7 +167,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 if (inventory == null || inventory.Stock < req.Value)
                 {
                     ErrorMessage = $"Insufficient stock for: {inventory?.ItemName ?? "Unknown Item"} (Required: {req.Value:0.##} {inventory?.Uom}, Available: {inventory?.Stock:0.##} {inventory?.Uom})";
-                    return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+                    return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}" });
                 }
             }
 
@@ -256,7 +256,21 @@ namespace LeKatsuMNL.Pages.Dashboard
             order.Status = "Approved";
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}" });
+        }
+
+        public async Task<IActionResult> OnPostRejectOrderAsync(int OrderId)
+        {
+            var order = await _context.OrderInfos.FindAsync(OrderId);
+            if (order == null) return NotFound();
+
+            if (order.Status == "Pending")
+            {
+                order.Status = "Rejected";
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}" });
         }
 
         public async Task<IActionResult> OnPostPrepareAsync(int OrderId)
@@ -270,7 +284,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}" });
         }
 
         public async Task<IActionResult> OnPostDeliverAsync(int OrderId)
@@ -285,7 +299,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            return RedirectToPage(new { id = $"{System.DateTime.Now.Year}-{OrderId:D5}" });
         }
 
         private async Task AggregateStockRequirements(int skuId, decimal multiplier, Dictionary<int, decimal> requirements, HashSet<int> visitedSkuIds = null)
