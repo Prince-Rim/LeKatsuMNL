@@ -171,13 +171,72 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
-            // 2. If stock is sufficient, deduct from inventory
+            // 2. If stock is sufficient, deduct from inventory and log transactions
+            var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Branch Order");
+            if (transactionType == null)
+            {
+                transactionType = new InvTransactionType { TransactionType = "Branch Order" };
+                _context.InvTransactionTypes.Add(transactionType);
+                await _context.SaveChangesAsync();
+            }
+
             foreach (var req in stockRequirements)
             {
                 var inventory = await _context.CommissaryInventories.FindAsync(req.Key);
                 if (inventory != null)
                 {
                     inventory.Stock -= req.Value;
+
+                    // Log the transaction
+                    var transaction = new InventoryTransaction
+                    {
+                        ComId = req.Key,
+                        TypeId = transactionType.TypeId,
+                        QuantityChange = -req.Value,
+                        TimeStamp = System.DateTime.Now
+                    };
+                    _context.InventoryTransactions.Add(transaction);
+                }
+            }
+
+            // 2.5 Deduct the SKU itself if it exists in CommissaryInventory (for SKU Report tracking)
+            foreach (var item in order.OrderLists)
+            {
+                if (item.SkuHeader != null)
+                {
+                    var skuInventory = await _context.CommissaryInventories
+                        .FirstOrDefaultAsync(i => i.SkuId == item.SkuHeader.SkuId);
+                    
+                    if (skuInventory == null)
+                    {
+                        var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
+                        int defaultVendorId = firstVendor?.VendorId ?? 0;
+
+                        // Create inventory record if missing
+                        skuInventory = new CommissaryInventory
+                        {
+                            SkuId = item.SkuHeader.SkuId,
+                            ItemName = item.SkuHeader.ItemName,
+                            Stock = 0,
+                            Uom = item.SkuHeader.Uom,
+                            CostPrice = item.SkuHeader.UnitCost ?? 0,
+                            ReorderValue = 0,
+                            CategoryId = item.SkuHeader.CategoryId,
+                            VendorId = defaultVendorId,
+                            Yield = "100%"
+                        };
+                        _context.CommissaryInventories.Add(skuInventory);
+                        await _context.SaveChangesAsync(); // Save to get ComId
+                    }
+
+                    skuInventory.Stock -= item.Quantity;
+                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    {
+                        ComId = skuInventory.ComId,
+                        TypeId = transactionType.TypeId,
+                        QuantityChange = -item.Quantity,
+                        TimeStamp = System.DateTime.Now
+                    });
                 }
             }
 

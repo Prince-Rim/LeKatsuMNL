@@ -14,15 +14,15 @@
     }
 }
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700" data-ajax-container>
     <!-- Tabs -->
     <div class="flex border-b border-gray-200 dark:border-gray-700">
         <button class="px-10 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">Ingredient</button>
-        <a href="/Dashboard/SKU" class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all dark:text-gray-500">SKU</a>
+        <a href="/Dashboard/SKU" data-ajax-link class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all dark:text-gray-500">SKU</a>
     </div>
 
     <!-- Toolbar -->
-    <form method="get" class="p-5 flex flex-wrap items-center gap-4 bg-white border-b border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+    <form method="get" data-ajax-form class="p-5 flex flex-wrap items-center gap-4 bg-white border-b border-gray-100 dark:bg-slate-800 dark:border-gray-700">
         <div class="relative inline-block text-left">
             <button type="button" onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <span>Actions</span>
@@ -52,7 +52,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <select name="categoryId" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+            <select name="categoryId" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
                 <option value="">All Categories</option>
                 @foreach (var cat in Model.Categories)
                 {
@@ -82,7 +82,7 @@
                 }
             </select>
 
-            <select name="stockStatus" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+            <select name="stockStatus" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
                 <option value="All" selected='@(Model.StockStatus == "All")'>All Stocks</option>
                 <option value="In Stock" selected='@(Model.StockStatus == "In Stock")'>In Stock (>=10)</option>
                 <option value="Low Stock" selected='@(Model.StockStatus == "Low Stock")'>Low Stock (<10)</option>
@@ -95,7 +95,7 @@
                 </button>
                 @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FilterCategoryId.HasValue || Model.FilterVendorId.HasValue || Model.StockStatus != "All")
                 {
-                    <a href="/Dashboard/Items" class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest px-2">Clear</a>
+                    <a href="/Dashboard/Items" data-ajax-link class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest px-2">Clear</a>
                 }
                 <button type="button" onclick="location.reload()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                     <i class="bi bi-arrow-clockwise text-base"></i>
@@ -104,79 +104,81 @@
         </div>
     </form>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
-                <tr>
-                    <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
-                    <th class="px-6 py-4">Image</th>
-                    <th class="px-6 py-4">Item Name</th>
-                    <th class="px-6 py-4">Category</th>
-                    <th class="px-6 py-4">Sub-Category</th>
-                    <th class="px-6 py-4">Supplier</th>
-                    <th class="px-6 py-4">Yield</th>
-                    <th class="px-6 py-4">In Stock</th>
-                    <th class="px-6 py-4">Unit Cost</th>
-                    <th class="px-6 py-4">Selling Price</th>
-                    <th class="px-6 py-4">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
-                @if (Model.Items != null && Model.Items.Any())
-                {
-                    foreach (var item in Model.Items)
+    <!-- Table & Pagination -->
+    <div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                    <tr>
+                        <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
+                        <th class="px-6 py-4">Image</th>
+                        <th class="px-6 py-4">Item Name</th>
+                        <th class="px-6 py-4">Category</th>
+                        <th class="px-6 py-4">Sub-Category</th>
+                        <th class="px-6 py-4">Supplier</th>
+                        <th class="px-6 py-4">Yield</th>
+                        <th class="px-6 py-4">In Stock</th>
+                        <th class="px-6 py-4">Unit Cost</th>
+                        <th class="px-6 py-4">Selling Price</th>
+                        <th class="px-6 py-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                    @if (Model.Items != null && Model.Items.Any())
                     {
-                        <tr class="hover:bg-gray-50/50 transition-colors group">
-                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600" data-id="@item.ComId" data-item-name="@item.ItemName" data-stock="@item.Stock" data-uom="@item.Uom" onchange="updateSelectAll()"></td>
-                            <td class="px-6 py-5">
-                                <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
-                                    <i class="bi bi-image text-2xl"></i>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">@item.ItemName</td>
-                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Category?.CategoryName ?? "-")</td>
-                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.SubCategory?.SubCategoryName ?? "-")</td>
-                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Vendor?.VendorName ?? "-")</td>
-                            <td class="px-6 py-5 text-gray-600 font-semibold dark:text-gray-300">@item.Yield</td>
-                            <td class="px-6 py-5">
-                                <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold border border-blue-100">@item.Stock.ToString("G29") @item.Uom</span>
-                            </td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.CostPrice)</td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.SellingPrice)</td>
-                            <td class="px-6 py-5">
-                                @if (PermissionHelper.HasPermission(User, "Items", 'U'))
-                                {
-                                    <button onclick='openEditItemModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
-                                        comId = item.ComId, 
-                                        itemName = item.ItemName, 
-                                        categoryId = item.CategoryId, 
-                                        subCategoryId = item.SubCategoryId,
-                                        vendorId = item.VendorId,
-                                        uom = item.Uom,
-                                        costPrice = item.CostPrice,
-                                        sellingPrice = item.SellingPrice,
-                                        yield = item.Yield,
-                                        stock = item.Stock
-                                    })))' class="text-blue-500 hover:text-blue-700 transition-colors">
-                                        <i class="bi bi-pencil-square text-lg"></i>
-                                    </button>
-                                }
-                            </td>
+                        foreach (var item in Model.Items)
+                        {
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600" data-id="@item.ComId" data-item-name="@item.ItemName" data-stock="@item.Stock" data-uom="@item.Uom" onchange="updateSelectAll()"></td>
+                                <td class="px-6 py-5">
+                                    <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
+                                        <i class="bi bi-image text-2xl"></i>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">@item.ItemName</td>
+                                <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Category?.CategoryName ?? "-")</td>
+                                <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.SubCategory?.SubCategoryName ?? "-")</td>
+                                <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Vendor?.VendorName ?? "-")</td>
+                                <td class="px-6 py-5 text-gray-600 font-semibold dark:text-gray-300">@item.Yield</td>
+                                <td class="px-6 py-5">
+                                    <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold border border-blue-100">@item.Stock.ToString("G29") @item.Uom</span>
+                                </td>
+                                <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.CostPrice)</td>
+                                <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.SellingPrice)</td>
+                                <td class="px-6 py-5">
+                                    @if (PermissionHelper.HasPermission(User, "Items", 'U'))
+                                    {
+                                        <button onclick='openEditItemModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
+                                            comId = item.ComId, 
+                                            itemName = item.ItemName, 
+                                            categoryId = item.CategoryId, 
+                                            subCategoryId = item.SubCategoryId,
+                                            vendorId = item.VendorId,
+                                            uom = item.Uom,
+                                            costPrice = item.CostPrice,
+                                            sellingPrice = item.SellingPrice,
+                                            yield = item.Yield,
+                                            stock = item.Stock
+                                        })))' class="text-blue-500 hover:text-blue-700 transition-colors">
+                                            <i class="bi bi-pencil-square text-lg"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="11" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No items found. Create a new item to get started.</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="11" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No items found. Create a new item to get started.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
 
-    <partial name="_Pagination" model="Model.Items" />
+        <partial name="_Pagination" model="Model.Items" />
+    </div>
 </div>
 
 <!-- Create New Item Modal -->
@@ -274,14 +276,14 @@
                 <div class="grid grid-cols-2 gap-5">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Add Stock</label>
-                        <input type="number" name="Stock" id="newStock" step="any" placeholder="0.00" required
+                        <input type="number" name="Stock" id="newStock" step="any" placeholder="0.00" required onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                            <input type="number" step="0.01" name="CostPrice" id="newCostPrice" placeholder="0.00" 
+                            <input type="number" step="0.01" name="CostPrice" id="newCostPrice" placeholder="0.00" onfocus="this.select()"
                                    class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                     </div>
@@ -292,7 +294,7 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                        <input type="number" step="0.01" name="SellingPrice" id="newSellingPrice" placeholder="0.00" 
+                        <input type="number" step="0.01" name="SellingPrice" id="newSellingPrice" placeholder="0.00" onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                 </div>
@@ -415,14 +417,14 @@
                 <div class="grid grid-cols-2 gap-5">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">In Stock</label>
-                        <input type="number" name="Stock" id="editStock" step="any" placeholder="0.00" required
+                        <input type="number" name="Stock" id="editStock" step="any" placeholder="0.00" required onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                            <input type="number" step="0.01" name="CostPrice" id="editCostPrice" placeholder="0.00" 
+                            <input type="number" step="0.01" name="CostPrice" id="editCostPrice" placeholder="0.00" onfocus="this.select()"
                                    class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                     </div>
@@ -433,7 +435,7 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                        <input type="number" step="0.01" name="SellingPrice" id="editSellingPrice" placeholder="0.00" 
+                        <input type="number" step="0.01" name="SellingPrice" id="editSellingPrice" placeholder="0.00" onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                 </div>

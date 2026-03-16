@@ -20,16 +20,44 @@ namespace LeKatsuMNL.Pages.Dashboard
         }
 
         public PaginatedList<OrderInfo> Orders { get; set; } = default!;
+        
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? Status { get; set; }
+
         public List<BranchManager> BranchManagers { get; set; } = new();
         public List<SkuHeader> AvailableSkus { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
-            var query = _context.OrderInfos
+            IQueryable<OrderInfo> query = _context.OrderInfos
                 .Include(o => o.BranchManager)
                     .ThenInclude(bm => bm.BranchLocation)
                 .Include(o => o.Invoices)
                 .OrderByDescending(o => o.OrderDate);
+
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var cleanSearch = SearchTerm.Trim();
+                // Handle "ORD-" prefix
+                if (cleanSearch.StartsWith("ORD-", StringComparison.OrdinalIgnoreCase))
+                {
+                    cleanSearch = cleanSearch.Substring(4);
+                }
+
+                var isNumeric = int.TryParse(cleanSearch, out int orderId);
+                
+                query = query.Where(o => (isNumeric && o.OrderId == orderId) || 
+                                       o.OrderId.ToString().Contains(SearchTerm) || 
+                                       (o.BranchManager != null && o.BranchManager.BranchLocation != null && o.BranchManager.BranchLocation.BranchName.Contains(SearchTerm)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(Status) && Status != "Status")
+            {
+                query = query.Where(o => o.Status == Status);
+            }
             
             Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, 10);
             

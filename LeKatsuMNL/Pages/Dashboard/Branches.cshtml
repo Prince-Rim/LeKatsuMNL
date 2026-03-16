@@ -44,16 +44,19 @@
     </div>
 }
 
-<div class="h-[calc(100vh-12rem)] flex flex-col">
+<div class="h-[calc(100vh-12rem)] flex flex-col" data-ajax-container>
     <!-- Top toolbar -->
     <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
         <div class="relative flex-1 max-w-lg">
-            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                <i class="bi bi-search text-sm"></i>
-            </span>
-            <input type="text" id="branchSearchInput" 
-                   class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
-                   placeholder="Search branches...">
+            <form method="get" data-ajax-form onchange="this.requestSubmit()">
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm" id="branchSearchInput" 
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
+                       placeholder="Search branches..."
+                       oninput="debouncedSubmit(this.form)">
+            </form>
         </div>
 
         <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
@@ -243,18 +246,7 @@
 
 @section Scripts {
     <script>
-        // Search functionality (Live Search)
-        document.getElementById('branchSearchInput')?.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#branchTableBody tr');
-            
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                // Skip the "No branches found" row if it exists
-                if (row.querySelector('td[colspan]')) return;
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        });
+        // Search functionality - Handled via AJAX form and debouncedSubmit
 
         const overlay = document.getElementById('modalOverlay');
         const branchModal = document.getElementById('branchModal');

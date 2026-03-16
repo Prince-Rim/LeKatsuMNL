@@ -29,8 +29,6 @@ namespace LeKatsuMNL.Models
         [MaxLength(50)]
         public string Uom { get; set; }
 
-        [MaxLength(150)]
-        public string Supplier { get; set; }
 
         public bool IsSellingPriceEnabled { get; set; } = true;
         public bool IsReorderLevelEnabled { get; set; } = true;

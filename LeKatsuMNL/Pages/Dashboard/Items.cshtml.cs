@@ -67,6 +67,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             StockStatus = stockStatus ?? "All";
 
             var query = _context.CommissaryInventories
+                .Where(i => i.SkuId == null)
                 .Include(i => i.Category)
                 .Include(i => i.SubCategory)
                 .Include(i => i.Vendor)
@@ -241,8 +242,23 @@ namespace LeKatsuMNL.Pages.Dashboard
             // Deduct Stock
             item.Stock -= RejectQty;
 
-            // Log Transaction (Optional, but good practice if available)
-            // _context.InventoryTransactions.Add(new InventoryTransaction { ... });
+            // Log Transaction
+            var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Rejected");
+            if (transactionType == null)
+            {
+                transactionType = new InvTransactionType { TransactionType = "Rejected" };
+                _context.InvTransactionTypes.Add(transactionType);
+                await _context.SaveChangesAsync();
+            }
+
+            var transaction = new InventoryTransaction
+            {
+                ComId = RejectId,
+                TypeId = transactionType.TypeId,
+                QuantityChange = -RejectQty,
+                TimeStamp = System.DateTime.Now
+            };
+            _context.InventoryTransactions.Add(transaction);
 
             var reject = new RejectItem
             {

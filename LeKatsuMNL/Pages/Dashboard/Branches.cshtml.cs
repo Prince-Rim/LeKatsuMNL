@@ -20,6 +20,9 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<BranchLocation> Branches { get; set; } = default!;
 
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
+
         [BindProperty]
         public BranchLocation NewBranch { get; set; } = default!;
 
@@ -28,9 +31,17 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
-            var query = _context.BranchLocations
+            IQueryable<BranchLocation> query = _context.BranchLocations
                 .Include(b => b.BranchManagers)
                 .OrderByDescending(b => b.CreatedAt);
+
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var isNumeric = int.TryParse(SearchTerm, out int branchId);
+                query = query.Where(b => b.BranchName.Contains(SearchTerm) || 
+                                       b.BranchLocationAddress.Contains(SearchTerm) ||
+                                       (isNumeric && b.BranchId == branchId));
+            }
 
             Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, 10);
             return Page();

@@ -6,42 +6,48 @@
 
 
 
-    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="flex items-center space-x-4">
-            <div class="relative inline-block text-left">
-                <button onclick="toggleActions(event)" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-400 dark:border-gray-600">
-                    <span>Actions</span>
-                    <i class="bi bi-chevron-down text-xs"></i>
-                </button>
-                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
-                    <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export</button>
-                    <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print</button>
+<div data-ajax-container>
+    <form method="get" data-ajax-form>
+        <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
+            <div class="flex items-center space-x-4">
+                <div class="relative inline-block text-left">
+                    <button type="button" onclick="toggleActions(event)" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-400 dark:border-gray-600">
+                        <span>Actions</span>
+                        <i class="bi bi-chevron-down text-xs"></i>
+                    </button>
+                    <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
+                        <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export</button>
+                        <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print</button>
+                    </div>
+                </div>
+
+                <div class="relative w-80">
+                    <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                        <i class="bi bi-search text-sm"></i>
+                    </span>
+                    <input type="text" name="SearchTerm" value="@Model.SearchTerm" oninput="debouncedSubmit(this.form)" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:text-gray-800 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search orders...">
                 </div>
             </div>
 
-            <div class="relative w-80">
-                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                    <i class="bi bi-search text-sm"></i>
-                </span>
-                <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:text-gray-800 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search orders...">
+            <div class="flex items-center space-x-4">
+                <button type="button" onclick="openCreateOrderModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                    <i class="bi bi-plus-lg mr-2"></i> Create New Invoice
+                </button>
+                <select name="Status" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white outline-none cursor-pointer font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-600">
+                    <option value="Status" selected="@(Model.Status == "Status")">Status</option>
+                    <option value="Pending" selected="@(Model.Status == "Pending")">Pending</option>
+                    <option value="Approved" selected="@(Model.Status == "Approved")">Approved</option>
+                    <option value="Preparing" selected="@(Model.Status == "Preparing")">Preparing</option>
+                    <option value="Delivered" selected="@(Model.Status == "Delivered")">Delivered</option>
+                    <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
+                </select>
+                <button type="button" onclick="this.form.requestSubmit()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+                    <i class="bi bi-arrow-clockwise text-base"></i>
+                    <span>Refresh</span>
+                </button>
             </div>
         </div>
-
-        <div class="flex items-center space-x-4">
-            <button onclick="openCreateOrderModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                <i class="bi bi-plus-lg mr-2"></i> Create New Invoice
-            </button>
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white outline-none cursor-pointer font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-600">
-                <option>Status</option>
-                <option>Pending</option>
-                <option>Completed</option>
-            </select>
-            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
-                <i class="bi bi-arrow-clockwise text-base"></i>
-                <span>Refresh</span>
-            </button>
-        </div>
-    </div>
+    </form>
 
     <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
         <table class="w-full text-left text-xs whitespace-nowrap">
@@ -119,6 +125,7 @@
     </div>
 
     <partial name="_Pagination" model="Model.Orders" />
+</div>
 
 @section Scripts {
     <script>
