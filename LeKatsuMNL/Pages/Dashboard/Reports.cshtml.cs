@@ -117,7 +117,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<RestaurantSalesReportRow> RestaurantSalesReports { get; set; }
 
-        public async Task OnGetAsync(int? pageIndex)
+        public async Task OnGetAsync(int? pageIndex, int? pageSize)
         {
             // Set default dates if not provided (default to current month)
             StartDate ??= new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
@@ -128,30 +128,30 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (StartDate.HasValue) StartDate = StartDate.Value.Date;
             if (EndDate.HasValue) EndDate = EndDate.Value.Date.AddDays(1).AddTicks(-1);
 
-            int pageSize = 15;
+            int size = pageSize ?? 15;
 
             switch (ReportType)
             {
                 case "Inventory":
-                    await LoadIngredientReport(pageIndex ?? 1, pageSize);
+                    await LoadIngredientReport(pageIndex ?? 1, size);
                     break;
                 case "SkuInventory":
-                    await LoadSkuInventoryReport(pageIndex ?? 1, pageSize);
+                    await LoadSkuInventoryReport(pageIndex ?? 1, size);
                     break;
                 case "Sales":
-                    await LoadSalesReport(pageIndex ?? 1, pageSize);
+                    await LoadSalesReport(pageIndex ?? 1, size);
                     break;
                 case "Expenses":
-                    await LoadExpenseReport(pageIndex ?? 1, pageSize);
+                    await LoadExpenseReport(pageIndex ?? 1, size);
                     break;
                 case "Rejects":
-                    await LoadRejectReport(pageIndex ?? 1, pageSize);
+                    await LoadRejectReport(pageIndex ?? 1, size);
                     break;
                 case "RestaurantInventory":
-                    await LoadRestaurantInventoryReport(pageIndex ?? 1, pageSize);
+                    await LoadRestaurantInventoryReport(pageIndex ?? 1, size);
                     break;
                 case "RestaurantSales":
-                    await LoadRestaurantSalesReport(pageIndex ?? 1, pageSize);
+                    await LoadRestaurantSalesReport(pageIndex ?? 1, size);
                     break;
             }
         }

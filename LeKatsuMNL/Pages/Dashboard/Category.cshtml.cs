@@ -30,7 +30,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public Category EditCategory { get; set; } = default!;
 
-        public async Task OnGetAsync(int? pageIndex)
+        public async Task OnGetAsync(int? pageIndex, int? pageSize)
         {
             IQueryable<Category> query = _context.Categories.OrderBy(c => c.CategoryName);
 
@@ -40,7 +40,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 query = query.Where(c => c.CategoryName.ToLower().Contains(search));
             }
 
-            Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, 10);
+            Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, pageSize ?? 10);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()
