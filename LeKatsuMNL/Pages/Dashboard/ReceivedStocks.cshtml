@@ -16,7 +16,7 @@
         </div>
     </div>
 }
-<div data-ajax-container>
+
     <form id="receiveForm" method="post" asp-page-handler="Save" onsubmit="return validateForm()">
         <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
             <div class="flex items-center space-x-6">
@@ -116,7 +116,6 @@
         </div>
         <partial name="_Pagination" model="Model.SupplyOrders" />
     </div>
-</div>
 
 @section Scripts {
     <script>

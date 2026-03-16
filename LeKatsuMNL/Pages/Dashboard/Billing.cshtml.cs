@@ -22,46 +22,12 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<Invoice> Invoices { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? SearchTerm { get; set; }
-        public string CurrentSortColumn { get; set; } = "Date";
-        public string CurrentSortOrder { get; set; } = "desc";
-
-        public async Task OnGetAsync(int? pageIndex, string sortColumn, string sortOrder)
+        public async Task OnGetAsync(int? pageIndex)
         {
-            CurrentSortColumn = sortColumn ?? "Date";
-            CurrentSortOrder = sortOrder ?? "desc";
-
-            IQueryable<Invoice> query = _context.Invoices
-                .Include(i => i.OrderInfo);
+            var query = _context.Invoices
+                .Include(i => i.OrderInfo)
+                .OrderByDescending(i => i.InvoiceDate);
             
-            if (!string.IsNullOrWhiteSpace(SearchTerm))
-            {
-                var cleanSearch = SearchTerm.Trim();
-                // Handle "ORD-" prefix
-                if (cleanSearch.StartsWith("ORD-", StringComparison.OrdinalIgnoreCase))
-                {
-                    cleanSearch = cleanSearch.Substring(4);
-                }
-
-                var isNumeric = int.TryParse(cleanSearch, out int orderId);
-
-                // Filter by Order ID (ORD-XXXXX) or status
-                query = query.Where(i => (isNumeric && i.OrderId == orderId) || 
-                                       i.OrderId.ToString().Contains(SearchTerm) || 
-                                       i.PaymentStatus.Contains(SearchTerm));
-            }
-
-            // Apply Sorting
-            query = CurrentSortColumn switch
-            {
-                "Date" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.InvoiceDate) : query.OrderByDescending(i => i.InvoiceDate),
-                "OrderId" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.OrderId) : query.OrderByDescending(i => i.OrderId),
-                "Amount" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.TotalPrice) : query.OrderByDescending(i => i.TotalPrice),
-                "Status" => CurrentSortOrder == "asc" ? query.OrderBy(i => i.PaymentStatus) : query.OrderByDescending(i => i.PaymentStatus),
-                _ => query.OrderByDescending(i => i.InvoiceDate)
-            };
-
             Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, 10);
         }
 

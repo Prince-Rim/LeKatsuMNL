@@ -48,7 +48,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         [TempData]
         public string StatusMessage { get; set; }
 
-        public async Task OnGetAsync(int? pageIndex, int? pageSize)
+        public async Task OnGetAsync(int? pageIndex)
         {
             Vendors = await _context.VendorInfos.OrderBy(v => v.VendorName).ToListAsync();
             AllItems = await _context.CommissaryInventories
@@ -60,7 +60,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ThenInclude(sl => sl.CommissaryInventory)
                 .OrderByDescending(so => so.SupplyDate);
 
-            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, pageSize ?? 10);
+            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, 10);
         }
 
         public async Task<IActionResult> OnPostSaveAsync()

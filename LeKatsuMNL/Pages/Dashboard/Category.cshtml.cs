@@ -20,9 +20,6 @@ namespace LeKatsuMNL.Pages.Dashboard
         }
 
         public PaginatedList<Category> Categories { get; set; } = default!;
-        
-        [BindProperty(SupportsGet = true)]
-        public string? SearchTerm { get; set; }
 
         [BindProperty]
         public Category NewCategory { get; set; } = default!;
@@ -30,17 +27,10 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public Category EditCategory { get; set; } = default!;
 
-        public async Task OnGetAsync(int? pageIndex, int? pageSize)
+        public async Task OnGetAsync(int? pageIndex)
         {
-            IQueryable<Category> query = _context.Categories.OrderBy(c => c.CategoryName);
-
-            if (!string.IsNullOrWhiteSpace(SearchTerm))
-            {
-                var search = SearchTerm.ToLower().Trim();
-                query = query.Where(c => c.CategoryName.ToLower().Contains(search));
-            }
-
-            Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, pageSize ?? 10);
+            var query = _context.Categories.OrderBy(c => c.CategoryName);
+            Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, 10);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()

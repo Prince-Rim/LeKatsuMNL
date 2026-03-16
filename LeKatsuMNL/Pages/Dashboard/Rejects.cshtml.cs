@@ -24,7 +24,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty(SupportsGet = true)]
         public string Tab { get; set; } = "recipe";
 
-        public async Task OnGetAsync(int? pageIndex, int? pageSize)
+        public async Task OnGetAsync(int? pageIndex)
         {
             if (Tab != "recipe" && Tab != "sku")
             {
@@ -44,7 +44,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             RejectLogs = await PaginatedList<RejectItem>.CreateAsync(
                 query.OrderByDescending(r => r.RejectedAt), 
-                pageIndex ?? 1, pageSize ?? 10);
+                pageIndex ?? 1, 10);
         }
     }
 }

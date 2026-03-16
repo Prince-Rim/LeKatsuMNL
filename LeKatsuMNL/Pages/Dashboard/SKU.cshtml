@@ -14,15 +14,15 @@
     }
 }
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700" data-ajax-container>
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
     <!-- Tabs -->
     <div class="flex border-b border-gray-200 dark:border-gray-700">
-        <a href="/Dashboard/Items" data-ajax-link class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all dark:text-gray-500">Ingredient</a>
+        <a href="/Dashboard/Items" class="px-10 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all dark:text-gray-500">Ingredient</a>
         <button class="px-10 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">SKU</button>
     </div>
 
     <!-- Toolbar -->
-    <form method="get" data-ajax-form class="p-5 flex flex-wrap items-center gap-4 bg-white border-b border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+    <form method="get" class="p-5 flex flex-wrap items-center gap-4 bg-white border-b border-gray-100 dark:bg-slate-800 dark:border-gray-700">
         <div class="relative inline-block text-left">
             <button type="button" onclick="toggleActions(event)" class="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <span>Actions</span>
@@ -42,11 +42,11 @@
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" name="searchTerm" value="@Model.SearchTerm" oninput="debouncedSubmit(this.form)" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" placeholder="Search SKU product...">
+            <input type="text" name="searchTerm" value="@Model.SearchTerm" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" placeholder="Search SKU product...">
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <select name="categoryId" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+            <select name="categoryId" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
                 <option value="">All Categories</option>
                 @foreach (var cat in Model.Categories)
                 {
@@ -61,7 +61,7 @@
                 }
             </select>
 
-            <select name="subCategoryId" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+            <select name="subCategoryId" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
                 <option value="">All Sub-Categories</option>
                 @foreach (var sub in Model.SubCategories.Where(s => !Model.FilterCategoryId.HasValue || s.CategoryId == Model.FilterCategoryId))
                 {
@@ -78,9 +78,12 @@
 
 
             <div class="flex items-center gap-2">
+                <button type="submit" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors dark:bg-slate-700 dark:text-gray-200">
+                    Filter
+                </button>
                 @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FilterCategoryId.HasValue || Model.FilterSubCategoryId.HasValue)
                 {
-                    <a href="/Dashboard/SKU" data-ajax-link class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest px-2">Clear</a>
+                    <a href="/Dashboard/SKU" class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest px-2">Clear</a>
                 }
                 <button type="button" onclick="location.reload()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
                     <i class="bi bi-arrow-clockwise text-base"></i>
@@ -89,130 +92,82 @@
         </div>
     </form>
 
-    <!-- Table & Pagination -->
-    <div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs whitespace-nowrap">
-                <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
-                    <tr>
-                        <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
-                        <th class="px-6 py-4">Image</th>
-                        <th class="px-6 py-4 text-center">
-                            <a asp-page="./SKU" data-ajax-link 
-                               asp-route-sortColumn="Id" 
-                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Id" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
-                               asp-route-searchTerm="@Model.SearchTerm"
-                               asp-route-categoryId="@Model.FilterCategoryId"
-                               asp-route-subCategoryId="@Model.FilterSubCategoryId"
-                               class="flex items-center justify-center hover:text-[#C41E24] transition-colors">
-                                ID
-                                <i class="bi @(Model.CurrentSortColumn == "Id" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
-                            </a>
-                        </th>
-                        <th class="px-6 py-4">
-                            <a asp-page="./SKU" data-ajax-link 
-                               asp-route-sortColumn="Name" 
-                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Name" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
-                               asp-route-searchTerm="@Model.SearchTerm"
-                               asp-route-categoryId="@Model.FilterCategoryId"
-                               asp-route-subCategoryId="@Model.FilterSubCategoryId"
-                               class="flex items-center hover:text-[#C41E24] transition-colors">
-                                Product Name
-                                <i class="bi @(Model.CurrentSortColumn == "Name" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
-                            </a>
-                        </th>
-                        <th class="px-6 py-4">Category</th>
-                        <th class="px-6 py-4">Sub-Category</th>
-                        <th class="px-6 py-4">Yield</th>
-                        <th class="px-6 py-4 text-right">
-                            <a asp-page="./SKU" data-ajax-link 
-                               asp-route-sortColumn="Cost" 
-                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Cost" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
-                               asp-route-searchTerm="@Model.SearchTerm"
-                               asp-route-categoryId="@Model.FilterCategoryId"
-                               asp-route-subCategoryId="@Model.FilterSubCategoryId"
-                               class="flex items-center justify-end hover:text-[#C41E24] transition-colors">
-                                Unit Cost
-                                <i class="bi @(Model.CurrentSortColumn == "Cost" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
-                            </a>
-                        </th>
-                        <th class="px-6 py-4 text-right">
-                            <a asp-page="./SKU" data-ajax-link 
-                               asp-route-sortColumn="Price" 
-                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Price" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
-                               asp-route-searchTerm="@Model.SearchTerm"
-                               asp-route-categoryId="@Model.FilterCategoryId"
-                               asp-route-subCategoryId="@Model.FilterSubCategoryId"
-                               class="flex items-center justify-end hover:text-[#C41E24] transition-colors">
-                                Selling Price
-                                <i class="bi @(Model.CurrentSortColumn == "Price" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
-                            </a>
-                        </th>
-                        <th class="px-6 py-4 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
-                    @if (Model.SkuHeaders != null && Model.SkuHeaders.Any())
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
+                    <th class="px-6 py-4">Image</th>
+                    <th class="px-6 py-4">Product Name</th>
+                    <th class="px-6 py-4">Category</th>
+                    <th class="px-6 py-4">Sub-Category</th>
+                    <th class="px-6 py-4">Yield</th>
+                    <th class="px-6 py-4">Unit Cost</th>
+                    <th class="px-6 py-4">Selling Price</th>
+                    <th class="px-6 py-4">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                @if (Model.SkuHeaders != null && Model.SkuHeaders.Any())
+                {
+                    foreach (var sku in Model.SkuHeaders)
                     {
-                        foreach (var sku in Model.SkuHeaders)
-                        {
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-id="@sku.SkuId" data-item-name="@sku.ItemName" data-uom="@sku.Uom" onchange="updateSelectAll()"></td>
-                                <td class="px-6 py-5">
-                                    <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
-                                        <i class="bi bi-image text-2xl"></i>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 text-center font-black text-[#C41E24] dark:text-red-400">SKU-@sku.SkuId.ToString("D4")</td>
-                                <td class="px-6 py-5">
-                                    <a href="/Dashboard/SkuDetails/@sku.SkuId" class="font-bold text-gray-900 hover:text-[#C41E24] hover:underline text-sm dark:text-white">@sku.ItemName</a>
-                                </td>
-                                <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.Category?.CategoryName ?? "-")</td>
-                                <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.SubCategory?.SubCategoryName ?? "-")</td>
-                                <td class="px-6 py-5 text-gray-600 font-semibold uppercase dark:text-gray-300">
-                                    @if(!string.IsNullOrEmpty(sku.PackagingType)) {
-                                        @($"{sku.PackagingType} / {sku.PackSize}{sku.PackagingUnit}")
-                                    } else {
-                                        @("-")
-                                    }
-                                </td>
-                                <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
-                                <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">₱ @sku.SellingPrice.ToString("F2")</td>
-                                <td class="px-6 py-5">
-                                    @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
-                                    {
-                                        <button onclick='openEditProductModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
-                                            skuId = sku.SkuId, 
-                                            itemName = sku.ItemName, 
-                                            categoryId = sku.CategoryId, 
-                                            subCategoryId = sku.SubCategoryId,
-                                            packagingType = sku.PackagingType,
-                                            packagingUnit = sku.PackagingUnit,
-                                            packSize = sku.PackSize,
-                                            uom = sku.Uom,
-                                            isSellingPriceEnabled = sku.IsSellingPriceEnabled,
-                                            sellingPrice = sku.SellingPrice,
-                                            unitCost = sku.UnitCost
-                                        })))' class="text-blue-500 hover:text-blue-700 transition-colors">
-                                            <i class="bi bi-pencil-square text-lg"></i>
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="10" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No SKU products found. Create a new product to get started.</td>
+                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-id="@sku.SkuId" data-item-name="@sku.ItemName" data-uom="@sku.Uom" onchange="updateSelectAll()"></td>
+                            <td class="px-6 py-5">
+                                <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
+                                    <i class="bi bi-image text-2xl"></i>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <a href="/Dashboard/SkuDetails/@sku.SkuId" class="font-bold text-gray-900 hover:text-[#C41E24] hover:underline text-sm dark:text-white">@sku.ItemName</a>
+                            </td>
+                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.Category?.CategoryName ?? "-")</td>
+                            <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.SubCategory?.SubCategoryName ?? "-")</td>
+                            <td class="px-6 py-5 text-gray-600 font-semibold uppercase dark:text-gray-300">
+                                @if(!string.IsNullOrEmpty(sku.PackagingType)) {
+                                    @($"{sku.PackagingType} / {sku.PackSize}{sku.PackagingUnit}")
+                                } else {
+                                    @("-")
+                                }
+                            </td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">₱ @sku.SellingPrice.ToString("F2")</td>
+                            <td class="px-6 py-5">
+                                @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
+                                {
+                                    <button onclick='openEditProductModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
+                                        skuId = sku.SkuId, 
+                                        itemName = sku.ItemName, 
+                                        categoryId = sku.CategoryId, 
+                                        subCategoryId = sku.SubCategoryId,
+                                        packagingType = sku.PackagingType,
+                                        packagingUnit = sku.PackagingUnit,
+                                        packSize = sku.PackSize,
+                                        uom = sku.Uom,
+                                        isSellingPriceEnabled = sku.IsSellingPriceEnabled,
+                                        sellingPrice = sku.SellingPrice,
+                                        unitCost = sku.UnitCost
+                                    })))' class="text-blue-500 hover:text-blue-700 transition-colors">
+                                        <i class="bi bi-pencil-square text-lg"></i>
+                                    </button>
+                                }
+                            </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
-
-        <partial name="_Pagination" model="Model.SkuHeaders" />
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No SKU products found. Create a new product to get started.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
+
+    <partial name="_Pagination" model="Model.SkuHeaders" />
 </div>
 
 <!-- Modal: Create New Product -->
@@ -562,7 +517,6 @@
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             const content = modal.querySelector('div');
-            const form = modal.querySelector('form');
             
             content.classList.add('opacity-0', 'scale-95');
             content.classList.remove('opacity-100', 'scale-100');
@@ -570,7 +524,6 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
-                if (form) form.reset();
             }, 300);
         }
 
@@ -696,12 +649,9 @@
             if (menu && !menu.contains(event.target)) {
                 menu.classList.add('hidden');
             }
-            // Backdrop click closure disabled as per plan
-            /*
             if (event.target.classList.contains('fixed')) {
                 closeModal(event.target.id);
             }
-            */
         });
 
         // Datalist Usability Helpers

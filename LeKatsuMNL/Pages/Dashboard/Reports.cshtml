@@ -4,66 +4,12 @@
     ViewData["Title"] = "Reports Dashboard";
 }
 
-@section Styles {
-    <style>
-        @@media print {
-            /* Hide dashboard elements */
-            header, aside, .sidebar-text, .logout-text, 
-            nav, footer, .mb-6, [data-ajax-form], 
-            .bg-white.rounded-t-xl.border.p-5,
-            .fixed.top-0, .fixed.top-20, main > div:first-child {
-                display: none !important;
-            }
-
-            /* Reset main content layout */
-            main {
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-                position: static !important;
-                background: white !important;
-            }
-
-            .rounded-xl, .shadow-sm {
-                border: none !important;
-                box-shadow: none !important;
-            }
-
-            /* Container adjustments */
-            .bg-white.border-x.border-b {
-                border: none !important;
-            }
-
-            /* Ensure table fits and is visible */
-            table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-            }
-
-            th, td {
-                border: 1px solid #e5e7eb !important;
-                padding: 8px !important;
-                font-size: 10pt !important;
-            }
-
-            thead {
-                display: table-header-group !important;
-            }
-
-            /* Hide pagination during print */
-            #pagination-container, .pagination-bar {
-                display: none !important;
-            }
-        }
-    </style>
-}
-
 <!-- Filters Section -->
 <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm dark:bg-slate-800 dark:border-gray-700 mb-6">
-    <form method="get" data-ajax-form class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-end">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div>
             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Report Type</label>
-            <select name="ReportType" asp-for="ReportType" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white" onchange="this.form.requestSubmit()">
+            <select name="ReportType" asp-for="ReportType" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white" onchange="this.form.submit()">
                 <option value="Inventory">Ingredient Report</option>
                 <option value="SkuInventory">SKU Report</option>
                 <option value="Sales">Branch Orders</option>
@@ -75,49 +21,43 @@
         </div>
         <div>
             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
-            <div class="relative group">
-                <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
-            </div>
+            <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
         </div>
-        <div class="flex items-end space-x-2">
-            <div class="flex-1">
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
-                <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
-            </div>
-            <a asp-page="./Reports" data-ajax-link class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600 h-[42px]" title="Clear Filters">
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
+            <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <div class="flex space-x-2">
+            <button type="submit" class="flex-1 bg-[#C41E24] text-white rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-[#A0181D] transition-all">
+                <i class="bi bi-filter mr-2"></i>Apply Filters
+            </button>
+            <a asp-page="./Reports" class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <i class="bi bi-arrow-clockwise"></i>
             </a>
         </div>
     </form>
 </div>
 
-<!-- Dynamic Content Container -->
-<div data-ajax-container>
-    <!-- Search Section -->
-    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="relative flex-1 max-w-lg">
-            <form method="get" data-ajax-form>
+<!-- Search Section -->
+<div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
+    <div class="relative flex-1 max-w-lg">
+        <form method="get">
             <input type="hidden" name="ReportType" value="@Model.ReportType" />
             <input type="hidden" name="StartDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
             <input type="hidden" name="EndDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" asp-for="SearchQuery" oninput="debouncedSubmit(this.form)" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search report data...">
+            <input type="text" asp-for="SearchQuery" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search report data...">
         </form>
     </div>
     <div class="flex space-x-3">
         <button onclick="window.print()" class="flex items-center space-x-2 border border-blue-600 bg-blue-50 text-blue-600 rounded-lg px-5 py-2.5 text-sm hover:bg-blue-100 transition-all font-bold dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400">
             <i class="bi bi-printer"></i> <span>Print Report</span>
         </button>
-        <a asp-page-handler="ExportExcel" 
-           asp-route-ReportType="@Model.ReportType" 
-           asp-route-StartDate="@Model.StartDate?.ToString("yyyy-MM-dd")" 
-           asp-route-EndDate="@Model.EndDate?.ToString("yyyy-MM-dd")" 
-           asp-route-SearchQuery="@Model.SearchQuery"
-           class="flex items-center space-x-2 border border-green-600 bg-green-50 text-green-600 rounded-lg px-5 py-2.5 text-sm hover:bg-green-100 transition-all font-bold dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 no-underline">
+        <button class="flex items-center space-x-2 border border-green-600 bg-green-50 text-green-600 rounded-lg px-5 py-2.5 text-sm hover:bg-green-100 transition-all font-bold dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
             <i class="bi bi-file-earmark-excel"></i> <span>Export Excel</span>
-        </a>
+        </button>
     </div>
 </div>
 
@@ -345,7 +285,6 @@
         </table>
         <partial name="_Pagination" model="Model.RestaurantSalesReports" />
     }
-    </div>
 </div>
 
 @section Scripts {
@@ -353,7 +292,7 @@
         // Automatic form submission on date change
         document.querySelectorAll('input[type="date"]').forEach(input => {
             input.addEventListener('change', () => {
-                input.form.requestSubmit();
+                input.form.submit();
             });
         });
     </script>
