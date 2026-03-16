@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -156,6 +158,169 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
         }
 
+        public async Task<IActionResult> OnGetExportExcel()
+        {
+            // Set default dates if not provided
+            StartDate ??= new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            EndDate ??= DateTime.Now;
+
+            if (StartDate.HasValue) StartDate = StartDate.Value.Date;
+            if (EndDate.HasValue) EndDate = EndDate.Value.Date.AddDays(1).AddTicks(-1);
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add(ReportType + " Report");
+                int currentRow = 1;
+
+                switch (ReportType)
+                {
+                    case "Inventory":
+                        var invData = await GetIngredientReportData();
+                        worksheet.Cell(currentRow, 1).Value = "Ingredient Name";
+                        worksheet.Cell(currentRow, 2).Value = "Beginning Stock";
+                        worksheet.Cell(currentRow, 3).Value = "Received";
+                        worksheet.Cell(currentRow, 4).Value = "Consumed";
+                        worksheet.Cell(currentRow, 5).Value = "Rejected";
+                        worksheet.Cell(currentRow, 6).Value = "Ending";
+                        worksheet.Cell(currentRow, 7).Value = "UOM";
+                        
+                        foreach (var item in invData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ItemName;
+                            worksheet.Cell(currentRow, 2).Value = item.Beginning;
+                            worksheet.Cell(currentRow, 3).Value = item.Received;
+                            worksheet.Cell(currentRow, 4).Value = item.Consumed;
+                            worksheet.Cell(currentRow, 5).Value = item.Rejected;
+                            worksheet.Cell(currentRow, 6).Value = item.Ending;
+                            worksheet.Cell(currentRow, 7).Value = item.Uom;
+                        }
+                        break;
+
+                    case "SkuInventory":
+                        var skuData = await GetSkuInventoryReportData();
+                        worksheet.Cell(currentRow, 1).Value = "SKU Name";
+                        worksheet.Cell(currentRow, 2).Value = "Beginning Stock";
+                        worksheet.Cell(currentRow, 3).Value = "Produced/Added";
+                        worksheet.Cell(currentRow, 4).Value = "Orders/Sent";
+                        worksheet.Cell(currentRow, 5).Value = "Rejected";
+                        worksheet.Cell(currentRow, 6).Value = "Ending";
+                        worksheet.Cell(currentRow, 7).Value = "UOM";
+
+                        foreach (var item in skuData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ItemName;
+                            worksheet.Cell(currentRow, 2).Value = item.Beginning;
+                            worksheet.Cell(currentRow, 3).Value = item.Received;
+                            worksheet.Cell(currentRow, 4).Value = item.Consumed;
+                            worksheet.Cell(currentRow, 5).Value = item.Rejected;
+                            worksheet.Cell(currentRow, 6).Value = item.Ending;
+                            worksheet.Cell(currentRow, 7).Value = item.Uom;
+                        }
+                        break;
+
+                    case "Sales":
+                        var salesData = await GetSalesReportData();
+                        worksheet.Cell(currentRow, 1).Value = "Item Name";
+                        worksheet.Cell(currentRow, 2).Value = "Qty Sold";
+                        worksheet.Cell(currentRow, 3).Value = "Total Price";
+                        worksheet.Cell(currentRow, 4).Value = "Date";
+
+                        foreach (var item in salesData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ItemName;
+                            worksheet.Cell(currentRow, 2).Value = item.Quantity;
+                            worksheet.Cell(currentRow, 3).Value = item.TotalSales;
+                            worksheet.Cell(currentRow, 4).Value = item.Date.ToString("yyyy-MM-dd");
+                        }
+                        break;
+
+                    case "Expenses":
+                        var expenseData = await GetExpenseReportData();
+                        worksheet.Cell(currentRow, 1).Value = "Expense Name";
+                        worksheet.Cell(currentRow, 2).Value = "Category";
+                        worksheet.Cell(currentRow, 3).Value = "Amount";
+                        worksheet.Cell(currentRow, 4).Value = "Date";
+
+                        foreach (var item in expenseData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ExpenseName;
+                            worksheet.Cell(currentRow, 2).Value = item.Category;
+                            worksheet.Cell(currentRow, 3).Value = item.Amount;
+                            worksheet.Cell(currentRow, 4).Value = item.Date.ToString("yyyy-MM-dd");
+                        }
+                        break;
+
+                    case "Rejects":
+                        var rejectData = await GetRejectReportData();
+                        worksheet.Cell(currentRow, 1).Value = "Item Name";
+                        worksheet.Cell(currentRow, 2).Value = "Quantity";
+                        worksheet.Cell(currentRow, 3).Value = "Type";
+                        worksheet.Cell(currentRow, 4).Value = "Reason";
+                        worksheet.Cell(currentRow, 5).Value = "Date";
+
+                        foreach (var item in rejectData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ItemName;
+                            worksheet.Cell(currentRow, 2).Value = item.Quantity;
+                            worksheet.Cell(currentRow, 3).Value = item.Type;
+                            worksheet.Cell(currentRow, 4).Value = item.Reason;
+                            worksheet.Cell(currentRow, 5).Value = item.Date.ToString("yyyy-MM-dd");
+                        }
+                        break;
+
+                    case "RestaurantInventory":
+                        var resInvData = await GetRestaurantInventoryReportData();
+                        worksheet.Cell(currentRow, 1).Value = "Item Name";
+                        worksheet.Cell(currentRow, 2).Value = "Beginning";
+                        worksheet.Cell(currentRow, 3).Value = "Added";
+                        worksheet.Cell(currentRow, 4).Value = "Deducted";
+                        worksheet.Cell(currentRow, 5).Value = "Current";
+
+                        foreach (var item in resInvData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ItemName;
+                            worksheet.Cell(currentRow, 2).Value = item.Beginning;
+                            worksheet.Cell(currentRow, 3).Value = item.Added;
+                            worksheet.Cell(currentRow, 4).Value = item.Deducted;
+                            worksheet.Cell(currentRow, 5).Value = item.Current;
+                        }
+                        break;
+
+                    case "RestaurantSales":
+                        var resSalesData = await GetRestaurantSalesReportData();
+                        worksheet.Cell(currentRow, 1).Value = "Receipt #";
+                        worksheet.Cell(currentRow, 2).Value = "Total Price";
+                        worksheet.Cell(currentRow, 3).Value = "Date";
+                        worksheet.Cell(currentRow, 4).Value = "Staff";
+
+                        foreach (var item in resSalesData)
+                        {
+                            currentRow++;
+                            worksheet.Cell(currentRow, 1).Value = item.ReceiptNum;
+                            worksheet.Cell(currentRow, 2).Value = item.TotalPrice;
+                            worksheet.Cell(currentRow, 3).Value = item.Date.ToString("yyyy-MM-dd HH:mm");
+                            worksheet.Cell(currentRow, 4).Value = item.StaffName;
+                        }
+                        break;
+                }
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{ReportType}_Report_{DateTime.Now:yyyyMMddHHmm}.xlsx");
+                }
+            }
+        }
+
         private async Task LoadIngredientReport(int pageIndex, int pageSize)
         {
             await EnsureTransactionsLogged();
@@ -212,7 +377,58 @@ namespace LeKatsuMNL.Pages.Dashboard
             IngredientReports = PaginatedList<InventoryReportRow>.Create(reportData, pageIndex, pageSize);
         }
 
+        private async Task<List<InventoryReportRow>> GetIngredientReportData()
+        {
+            await EnsureTransactionsLogged();
+
+            var items = await _context.CommissaryInventories
+                .Include(i => i.InventoryTransactions)
+                    .ThenInclude(t => t.InvTransactionType)
+                .Where(i => i.SkuId == null)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return items.Select(item =>
+            {
+                var transactionsInPeriod = item.InventoryTransactions
+                    .Where(t => t.TimeStamp >= StartDate && t.TimeStamp <= EndDate)
+                    .ToList();
+
+                var transactionsAfterPeriod = item.InventoryTransactions
+                    .Where(t => t.TimeStamp > EndDate)
+                    .Sum(t => t.QuantityChange);
+
+                decimal stockAtEnd = item.Stock - transactionsAfterPeriod;
+                decimal received = transactionsInPeriod.Where(t => t.QuantityChange > 0).Sum(t => t.QuantityChange);
+                decimal consumed = Math.Abs(transactionsInPeriod.Where(t => t.QuantityChange < 0).Sum(t => t.QuantityChange));
+                
+                decimal netChange = transactionsInPeriod.Sum(t => t.QuantityChange);
+                decimal stockAtBeginning = stockAtEnd - netChange;
+
+                return new InventoryReportRow
+                {
+                    ItemName = item.ItemName,
+                    Beginning = stockAtBeginning,
+                    Ending = stockAtEnd,
+                    Received = received,
+                    Consumed = consumed,
+                    Rejected = Math.Abs(transactionsInPeriod
+                        .Where(t => t.InvTransactionType?.TransactionType == "Rejected")
+                        .Sum(t => t.QuantityChange)),
+                    Uom = item.Uom
+                };
+            })
+            .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        }
+
         private async Task LoadSkuInventoryReport(int pageIndex, int pageSize)
+        {
+            var reportData = await GetSkuInventoryReportData();
+            SkuInventoryReports = PaginatedList<SkuInventoryReportRow>.Create(reportData, pageIndex, pageSize);
+        }
+
+        private async Task<List<SkuInventoryReportRow>> GetSkuInventoryReportData()
         {
             await EnsureTransactionsLogged();
 
@@ -227,7 +443,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .AsNoTracking()
                 .ToListAsync();
 
-            var reportData = skus.Select(sku =>
+            return skus.Select(sku =>
             {
                 var item = inventoryItems.FirstOrDefault(i => i.SkuId == sku.SkuId);
                 
@@ -275,8 +491,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
             .OrderBy(r => r.ItemName)
             .ToList();
-
-            SkuInventoryReports = PaginatedList<SkuInventoryReportRow>.Create(reportData, pageIndex, pageSize);
         }
 
         private async Task EnsureTransactionsLogged()
@@ -387,7 +601,13 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         private async Task LoadSalesReport(int pageIndex, int pageSize)
         {
-            var sales = await _context.OrderListArchives
+            var sales = await GetSalesReportData();
+            SalesReports = PaginatedList<SalesReportRow>.Create(sales, pageIndex, pageSize);
+        }
+
+        private async Task<List<SalesReportRow>> GetSalesReportData()
+        {
+            return await _context.OrderListArchives
                 .Join(_context.OrderInfos,
                     ola => ola.OrderId,
                     oi => oi.OrderId,
@@ -406,13 +626,17 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(r => r.Date)
                 .ToListAsync();
-
-            SalesReports = PaginatedList<SalesReportRow>.Create(sales, pageIndex, pageSize);
         }
 
         private async Task LoadExpenseReport(int pageIndex, int pageSize)
         {
-            var expenses = await _context.CashExpenses
+            var expenses = await GetExpenseReportData();
+            ExpenseReports = PaginatedList<ExpenseReportRow>.Create(expenses, pageIndex, pageSize);
+        }
+
+        private async Task<List<ExpenseReportRow>> GetExpenseReportData()
+        {
+            return await _context.CashExpenses
                 .Include(e => e.ExpenseType)
                 .Where(e => e.DateTime >= StartDate && e.DateTime <= EndDate)
                 .Select(e => new ExpenseReportRow
@@ -425,13 +649,17 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ExpenseName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(r => r.Date)
                 .ToListAsync();
-
-            ExpenseReports = PaginatedList<ExpenseReportRow>.Create(expenses, pageIndex, pageSize);
         }
 
         private async Task LoadRejectReport(int pageIndex, int pageSize)
         {
-            var rejects = await _context.RejectItems
+            var rejects = await GetRejectReportData();
+            RejectReports = PaginatedList<RejectReportRow>.Create(rejects, pageIndex, pageSize);
+        }
+
+        private async Task<List<RejectReportRow>> GetRejectReportData()
+        {
+            return await _context.RejectItems
                 .Where(r => r.RejectedAt >= StartDate && r.RejectedAt <= EndDate)
                 .Select(r => new RejectReportRow
                 {
@@ -444,17 +672,21 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(r => r.Date)
                 .ToListAsync();
-
-            RejectReports = PaginatedList<RejectReportRow>.Create(rejects, pageIndex, pageSize);
         }
 
         private async Task LoadRestaurantInventoryReport(int pageIndex, int pageSize)
+        {
+            var reportData = await GetRestaurantInventoryReportData();
+            RestaurantInventoryReports = PaginatedList<RestaurantInventoryReportRow>.Create(reportData, pageIndex, pageSize);
+        }
+
+        private async Task<List<RestaurantInventoryReportRow>> GetRestaurantInventoryReportData()
         {
             var resItems = await _context.RestaurantInventories
                 .AsNoTracking()
                 .ToListAsync();
 
-            var reportData = resItems.Select(item => new RestaurantInventoryReportRow
+            return resItems.Select(item => new RestaurantInventoryReportRow
             {
                 ItemName = item.ItemName,
                 Beginning = item.BeginningStock,
@@ -464,13 +696,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             })
             .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
             .ToList();
-
-            RestaurantInventoryReports = PaginatedList<RestaurantInventoryReportRow>.Create(reportData, pageIndex, pageSize);
         }
 
         private async Task LoadRestaurantSalesReport(int pageIndex, int pageSize)
         {
-            var sales = await _context.RestaurantTransactions
+            var sales = await GetRestaurantSalesReportData();
+            RestaurantSalesReports = PaginatedList<RestaurantSalesReportRow>.Create(sales, pageIndex, pageSize);
+        }
+
+        private async Task<List<RestaurantSalesReportRow>> GetRestaurantSalesReportData()
+        {
+            return await _context.RestaurantTransactions
                 .Include(t => t.Staff)
                 .Where(t => t.DateTime >= StartDate && t.DateTime <= EndDate && !t.IsRefunded)
                 .Select(t => new RestaurantSalesReportRow
@@ -483,8 +719,6 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ReceiptNum.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(r => r.Date)
                 .ToListAsync();
-
-            RestaurantSalesReports = PaginatedList<RestaurantSalesReportRow>.Create(sales, pageIndex, pageSize);
         }
     }
 }
