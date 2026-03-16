@@ -25,6 +25,7 @@ namespace LeKatsuMNL.Pages.Login
         [BindProperty]
         public string Password { get; set; }
 
+        [TempData]
         public string ErrorMessage { get; set; }
 
         public void OnGet()

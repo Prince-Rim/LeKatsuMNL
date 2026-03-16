@@ -5,7 +5,7 @@
     var hasPreviousPage = (bool)Model.HasPreviousPage;
     var hasNextPage = (bool)Model.HasNextPage;
     var totalItems = (int)Model.TotalItems;
-    var pageSize = (int)Model.PageSize; 
+    var pageSize = 10; 
     
     var startRecord = totalItems == 0 ? 0 : (pageIndex - 1) * pageSize + 1;
     var endRecord = Math.Min(pageIndex * pageSize, totalItems);
@@ -36,42 +36,31 @@
     <div class="flex items-center space-x-8">
         <div class="hidden sm:flex items-center space-x-3">
             <span>Records per page</span>
-            <select name="pageSize" class="border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-700 focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:text-gray-200 dark:border-gray-700 text-[10px]" onchange="updatePageSize(this.value)">
-                @foreach (var size in new[] { 5, 10, 15, 20, 50 })
-                {
-                    <option value="@size" selected="@(pageSize == size)">@size</option>
-                }
-            </select>
+            <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
+                <span>@pageSize</span>
+            </div>
         </div>
         
         <div class="flex items-center space-x-2">
             @{
-                var firstPageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1" };
-            }
-            <a asp-all-route-data="firstPageRoute" data-ajax-link
-               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(pageIndex == 1 ? "pointer-events-none opacity-50" : "")" title="First Page">
-                <i class="bi bi-chevron-double-left"></i>
-            </a>
-
-            @{
                 var prevRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex - 1).ToString() };
             }
-            <a asp-all-route-data="prevRoute" data-ajax-link
+            <a asp-all-route-data="prevRoute" 
                class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasPreviousPage ? "pointer-events-none opacity-50" : "")">
                 <i class="bi bi-chevron-left"></i>
             </a>
 
             @if (startPage > 1)
             {
-                var firstNumRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1" };
-                <a asp-all-route-data="firstNumRoute" data-ajax-link class="w-9 h-9 sort-btn flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">1</a>
+                var firstRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1" };
+                <a asp-all-route-data="firstRoute" class="w-9 h-9 sort-btn flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">1</a>
                 @if (startPage > 2) { <span class="px-1 text-gray-300 dark:text-gray-600">...</span> }
             }
 
             @for (int i = startPage; i <= endPage; i++)
             {
                 var pageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = i.ToString() };
-                <a asp-all-route-data="pageRoute" data-ajax-link
+                <a asp-all-route-data="pageRoute"
                    class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg transition-all @(i == pageIndex ? "bg-[#C41E24] text-white shadow-md border-[#C41E24]" : "text-gray-400 bg-gray-50 hover:bg-gray-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700")">
                     @i
                 </a>
@@ -80,47 +69,17 @@
             @if (endPage < totalPages)
             {
                 @if (endPage < totalPages - 1) { <span class="px-1 text-gray-300 dark:text-gray-600">...</span> }
-                var lastNumRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString() };
-                <a asp-all-route-data="lastNumRoute" data-ajax-link class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">@totalPages</a>
+                var lastRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString() };
+                <a asp-all-route-data="lastRoute" class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">@totalPages</a>
             }
 
             @{
                 var nextRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex + 1).ToString() };
             }
-            <a asp-all-route-data="nextRoute" data-ajax-link
+            <a asp-all-route-data="nextRoute"
                class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasNextPage ? "pointer-events-none opacity-50" : "")">
                 <i class="bi bi-chevron-right"></i>
-            </a>
-
-            @{
-                var lastPageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString() };
-            }
-            <a asp-all-route-data="lastPageRoute" data-ajax-link
-               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(pageIndex == totalPages || totalPages == 0 ? "pointer-events-none opacity-50" : "")" title="Last Page">
-                <i class="bi bi-chevron-double-right"></i>
             </a>
         </div>
     </div>
 </div>
-
-<script>
-    function updatePageSize(size) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('pageSize', size);
-        url.searchParams.set('pageIndex', 1);
-        
-        // Use data-ajax loading if available, otherwise full reload
-        const container = document.querySelector('[data-ajax-container]');
-        if (container) {
-            // Trigger AJAX update
-            const ajaxLink = document.createElement('a');
-            ajaxLink.href = url.pathname + url.search;
-            ajaxLink.setAttribute('data-ajax-link', '');
-            document.body.appendChild(ajaxLink);
-            ajaxLink.click();
-            document.body.removeChild(ajaxLink);
-        } else {
-            window.location.href = url.href;
-        }
-    }
-</script>

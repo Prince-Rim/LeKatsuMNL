@@ -15,19 +15,14 @@
     }
 }
 
-<div class="h-[calc(100vh-12rem)] flex flex-col" data-ajax-container>
+<div class="h-[calc(100vh-12rem)] flex flex-col">
     <!-- Top toolbar -->
     <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
         <div class="relative flex-1 max-w-lg">
-            <form method="get" data-ajax-form onchange="this.requestSubmit()">
-                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                    <i class="bi bi-search text-sm"></i>
-                </span>
-                <input type="text" name="SearchTerm" value="@Model.SearchTerm" id="categorySearchInput" 
-                       class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
-                       placeholder="Search categories..."
-                       oninput="debouncedSubmit(this.form)">
-            </form>
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                <i class="bi bi-search text-sm"></i>
+            </span>
+            <input type="text" id="categorySearchInput" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" placeholder="Search categories...">
         </div>
 
         <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
@@ -221,7 +216,6 @@
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             const content = modal.querySelector('div');
-            const form = modal.querySelector('form');
             
             content.classList.add('opacity-0', 'scale-95');
             content.classList.remove('opacity-100', 'scale-100');
@@ -229,19 +223,6 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
-                if (form) {
-                    form.reset();
-                    const createContainer = document.getElementById('createSubCategoryContainer');
-                    const editContainer = document.getElementById('editSubCategoryContainer');
-                    if (createContainer) {
-                        createContainer.innerHTML = `
-                            <div class="flex items-center space-x-2 group">
-                                <input type="text" placeholder="Sub-Category name" required
-                                       class="sub-input flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
-                            </div>`;
-                    }
-                    if (editContainer) editContainer.innerHTML = '';
-                }
             }, 300);
         }
 
@@ -293,17 +274,24 @@
             openModal('editCategoryModal');
         }
 
-        // Search logic - Handled via AJAX form and debouncedSubmit
+        // Search logic
+        document.getElementById('categorySearchInput')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#categoryTableBody tr');
+            
+            rows.forEach(row => {
+               const text = row.innerText.toLowerCase();
+               if (row.querySelector('td[colspan]')) return;
+               row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
 
-        // Modal backdrop click disabled as per plan
-        /*
         window.onclick = function(event) {
             if (event.target.classList.contains('fixed')) {
                 const modalId = event.target.id;
                 closeModal(modalId);
             }
         }
-        */
 
         // Close on escape
         document.addEventListener('keydown', (e) => {

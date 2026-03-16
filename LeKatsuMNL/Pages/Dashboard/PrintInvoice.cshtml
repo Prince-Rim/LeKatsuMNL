@@ -2,7 +2,7 @@
 @model LeKatsuMNL.Pages.Dashboard.PrintInvoiceModel
 @{
     Layout = null; // Clean slate for printing
-    string formattedOrderId = $"{Model.Order.OrderDate.Year}-{Model.Order.OrderId:D5}";
+    string formattedOrderId = $"ORD-{Model.Order.OrderId:D5}";
 }
 
 <!DOCTYPE html>
@@ -51,7 +51,7 @@
     <!-- Print Action Header (Hidden when printing) -->
     <div class="no-print bg-slate-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
         <div class="flex items-center space-x-4">
-            <a href="javascript:void(0)" onclick="window.close()" class="text-slate-400 hover:text-white transition-colors">
+            <a href="/Dashboard/Billing" class="text-slate-400 hover:text-white transition-colors">
                 <i class="bi bi-arrow-left"></i> Back to Billing
             </a>
             <span class="text-slate-500">|</span>

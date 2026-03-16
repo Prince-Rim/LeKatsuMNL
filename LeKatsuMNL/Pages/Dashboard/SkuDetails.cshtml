@@ -142,6 +142,13 @@
                 </div>
 
 
+                <div class="pt-2">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Settings</p>
+                    <div class="mt-2 text-xs font-bold text-gray-700 dark:text-gray-300">
+                        Selling Price & Reorder tracking are enabled for this product.
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4 pt-2">
                     <div class="space-y-2">
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Selling Price</label>
@@ -185,7 +192,9 @@
                                 <button type="button" onclick="openSkuModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
                                     <i class="bi bi-box-seam mr-2"></i> Add an SKU
                                 </button>
-
+                                <button type="submit" form="skuForm" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                                    <i class="bi bi-arrow-repeat mr-2"></i> Update
+                                </button>
                             }
                         </div>
                         @if (PermissionHelper.HasPermission(User, "SKU", 'D'))

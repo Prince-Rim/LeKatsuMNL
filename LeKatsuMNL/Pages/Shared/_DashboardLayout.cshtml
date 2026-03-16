@@ -287,17 +287,6 @@
     </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/ajax-navigation.js"></script>
-    <script>
-        // Global utility for debounced form submission
-        let searchTimeout;
-        function debouncedSubmit(form) {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                form.requestSubmit();
-            }, 300);
-        }
-    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
