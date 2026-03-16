@@ -22,12 +22,32 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<Invoice> Invoices { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
+
         public async Task OnGetAsync(int? pageIndex)
         {
-            var query = _context.Invoices
+            IQueryable<Invoice> query = _context.Invoices
                 .Include(i => i.OrderInfo)
                 .OrderByDescending(i => i.InvoiceDate);
             
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var cleanSearch = SearchTerm.Trim();
+                // Handle "ORD-" prefix
+                if (cleanSearch.StartsWith("ORD-", StringComparison.OrdinalIgnoreCase))
+                {
+                    cleanSearch = cleanSearch.Substring(4);
+                }
+
+                var isNumeric = int.TryParse(cleanSearch, out int orderId);
+
+                // Filter by Order ID (ORD-XXXXX) or status
+                query = query.Where(i => (isNumeric && i.OrderId == orderId) || 
+                                       i.OrderId.ToString().Contains(SearchTerm) || 
+                                       i.PaymentStatus.Contains(SearchTerm));
+            }
+
             Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, 10);
         }
 

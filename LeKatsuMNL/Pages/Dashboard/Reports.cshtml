@@ -1,60 +1,302 @@
 @page
 @model LeKatsuMNL.Pages.Dashboard.ReportsModel
 @{
-    ViewData["Title"] = "Inventory Reports";
+    ViewData["Title"] = "Reports Dashboard";
 }
 
-    <div class="mb-6">
-        <h2 class="text-base font-bold text-gray-800 tracking-tight dark:text-white">December 25, 2026</h2>
-    </div>
+<!-- Filters Section -->
+<div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm dark:bg-slate-800 dark:border-gray-700 mb-6">
+    <form method="get" data-ajax-form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Report Type</label>
+            <select name="ReportType" asp-for="ReportType" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white" onchange="this.form.requestSubmit()">
+                <option value="Inventory">Ingredient Report</option>
+                <option value="SkuInventory">SKU Report</option>
+                <option value="Sales">Branch Orders</option>
+                <option value="Expenses">Expense Report</option>
+                <option value="Rejects">Reject Report</option>
+                <option value="RestaurantInventory">Res. Inventory Report</option>
+                <option value="RestaurantSales">Res. Sales Report</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
+            <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
+            <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <div class="flex space-x-2">
+            <button type="submit" class="flex-1 bg-[#C41E24] text-white rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-[#A0181D] transition-all">
+                <i class="bi bi-filter mr-2"></i>Apply Filters
+            </button>
+            <a asp-page="./Reports" data-ajax-link class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+                <i class="bi bi-arrow-clockwise"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Dynamic Content Container -->
+<div data-ajax-container>
+    <!-- Search Section -->
     <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
         <div class="relative flex-1 max-w-lg">
+            <form method="get" data-ajax-form>
+            <input type="hidden" name="ReportType" value="@Model.ReportType" />
+            <input type="hidden" name="StartDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="EndDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search inventory item...">
-        </div>
-
-        <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
-            <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
+            <input type="text" asp-for="SearchQuery" oninput="debouncedSubmit(this.form)" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search report data...">
+        </form>
+    </div>
+    <div class="flex space-x-3">
+        <button onclick="window.print()" class="flex items-center space-x-2 border border-blue-600 bg-blue-50 text-blue-600 rounded-lg px-5 py-2.5 text-sm hover:bg-blue-100 transition-all font-bold dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400">
+            <i class="bi bi-printer"></i> <span>Print Report</span>
+        </button>
+        <button class="flex items-center space-x-2 border border-green-600 bg-green-50 text-green-600 rounded-lg px-5 py-2.5 text-sm hover:bg-green-100 transition-all font-bold dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
+            <i class="bi bi-file-earmark-excel"></i> <span>Export Excel</span>
         </button>
     </div>
+</div>
 
-    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+<div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+    @if (Model.ReportType == "Inventory")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Ingredient Name</th>
+                    <th class="px-8 py-4 text-center">Beginning Stock</th>
+                    <th class="px-8 py-4 text-center">Received</th>
+                    <th class="px-8 py-4 text-center">Consumed</th>
+                    <th class="px-8 py-4 text-center">Rejected</th>
+                    <th class="px-8 py-4 text-center">Ending</th>
+                    <th class="px-8 py-4">UOM</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.IngredientReports != null && Model.IngredientReports.Any())
+                {
+                    foreach (var report in Model.IngredientReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">@report.Received.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-orange-600 font-bold dark:text-orange-400">@report.Consumed.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">@report.Rejected.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">@report.Ending.ToString("N2")</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@report.Uom</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.IngredientReports" />
+    }
+    else if (Model.ReportType == "SkuInventory")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">SKU Name</th>
+                    <th class="px-8 py-4 text-center">Beginning Stock</th>
+                    <th class="px-8 py-4 text-center">Produced/Added</th>
+                    <th class="px-8 py-4 text-center">Orders/Sent</th>
+                    <th class="px-8 py-4 text-center">Rejected</th>
+                    <th class="px-8 py-4 text-center">Ending</th>
+                    <th class="px-8 py-4">UOM</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.SkuInventoryReports != null && Model.SkuInventoryReports.Any())
+                {
+                    foreach (var report in Model.SkuInventoryReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">@report.Received.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-orange-600 font-bold dark:text-orange-400">@report.Consumed.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">@report.Rejected.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">@report.Ending.ToString("N2")</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@report.Uom</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.SkuInventoryReports" />
+    }
+    else if (Model.ReportType == "Sales")
+    {
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
                     <th class="px-8 py-4">Item Name</th>
-                    <th class="px-8 py-4 text-center">Computed Beginning</th>
-                    <th class="px-8 py-4 text-center">Computed Ending</th>
-                    <th class="px-8 py-4 text-center">Received</th>
-                    <th class="px-8 py-4 text-center">Consumed</th>
-                    <th class="px-8 py-4 text-center">Rejected</th>
+                    <th class="px-8 py-4 text-center">Qty Sold</th>
+                    <th class="px-8 py-4 text-center">Total Price</th>
+                    <th class="px-8 py-4 text-center">Date</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                @if (Model.InventoryReports != null && Model.InventoryReports.Any())
+                @if (Model.SalesReports != null && Model.SalesReports.Any())
                 {
-                    foreach (var report in Model.InventoryReports)
+                    foreach (var report in Model.SalesReports)
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Ending</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Received</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Consumed</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Rejected</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Quantity.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.TotalSales.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy")</td>
                         </tr>
                     }
                 }
-                else
-                {
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No inventory reports found.</td>
-                    </tr>
-                }
+                else { <partial name="_EmptyReport" /> }
             </tbody>
         </table>
+        <partial name="_Pagination" model="Model.SalesReports" />
+    }
+    else if (Model.ReportType == "Expenses")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Expense Name</th>
+                    <th class="px-8 py-4 text-center">Category</th>
+                    <th class="px-8 py-4 text-center">Amount</th>
+                    <th class="px-8 py-4 text-center">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.ExpenseReports != null && Model.ExpenseReports.Any())
+                {
+                    foreach (var report in Model.ExpenseReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ExpenseName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Category</td>
+                            <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">₱@report.Amount.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.ExpenseReports" />
+    }
+    else if (Model.ReportType == "Rejects")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Item Name</th>
+                    <th class="px-8 py-4 text-center">Quantity</th>
+                    <th class="px-8 py-4 text-center">Type</th>
+                    <th class="px-8 py-4">Reason</th>
+                    <th class="px-8 py-4 text-center">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.RejectReports != null && Model.RejectReports.Any())
+                {
+                    foreach (var report in Model.RejectReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Quantity.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-700 dark:text-gray-300">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider @(report.Type == "Recipe" ? "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400" : "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400")">
+                                    @report.Type
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@report.Reason</td>
+                            <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.RejectReports" />
+    }
+    else if (Model.ReportType == "RestaurantInventory")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Item Name</th>
+                    <th class="px-8 py-4 text-center">Beginning</th>
+                    <th class="px-8 py-4 text-center">Added</th>
+                    <th class="px-8 py-4 text-center">Deducted</th>
+                    <th class="px-8 py-4 text-center">Current</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.RestaurantInventoryReports != null && Model.RestaurantInventoryReports.Any())
+                {
+                    foreach (var report in Model.RestaurantInventoryReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">@report.Added.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">@report.Deducted.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">@report.Current.ToString("N2")</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.RestaurantInventoryReports" />
+    }
+    else if (Model.ReportType == "RestaurantSales")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Receipt #</th>
+                    <th class="px-8 py-4 text-center">Total Price</th>
+                    <th class="px-8 py-4 text-center">Date</th>
+                    <th class="px-8 py-4">Staff</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.RestaurantSalesReports != null && Model.RestaurantSalesReports.Any())
+                {
+                    foreach (var report in Model.RestaurantSalesReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ReceiptNum</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.TotalPrice.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@report.StaffName</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.RestaurantSalesReports" />
+    }
     </div>
+</div>
 
-    <partial name="_Pagination" model="Model.InventoryReports" />
+@section Scripts {
+    <script>
+        // Automatic form submission on date change
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            input.addEventListener('change', () => {
+                input.form.requestSubmit();
+            });
+        });
+    </script>
+}

@@ -51,7 +51,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         public async Task OnGetAsync(int? pageIndex)
         {
             Vendors = await _context.VendorInfos.OrderBy(v => v.VendorName).ToListAsync();
-            AllItems = await _context.CommissaryInventories.OrderBy(i => i.ItemName).ToListAsync();
+            AllItems = await _context.CommissaryInventories
+                .Where(i => i.SkuId == null)
+                .OrderBy(i => i.ItemName).ToListAsync();
 
             var orders = _context.SupplyOrders
                 .Include(so => so.SupplyLists)

@@ -82,10 +82,28 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (!string.IsNullOrEmpty(SearchString))
             {
-                var search = SearchString.ToLower();
-                adminQuery = adminQuery.Where(a => a.FirstName.ToLower().Contains(search) || a.LastName.ToLower().Contains(search) || a.Email.ToLower().Contains(search));
-                managerQuery = managerQuery.Where(m => m.FirstName.ToLower().Contains(search) || m.LastName.ToLower().Contains(search) || m.Email.ToLower().Contains(search) || (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)));
-                staffQuery = staffQuery.Where(s => s.FirstName.ToLower().Contains(search) || s.LastName.ToLower().Contains(search) || s.Email.ToLower().Contains(search));
+                var search = SearchString.ToLower().Trim();
+                
+                // Extract numeric parts if they match system ID patterns
+                int? adminSearchId = search.StartsWith("adm-") && search.Length > 4 ? int.TryParse(search.Substring(4), out int aId) ? aId : null : null;
+                int? managerSearchId = search.StartsWith("brch-") && search.Length > 5 ? int.TryParse(search.Substring(5), out int mId) ? mId : null : null;
+                int? staffSearchId = search.StartsWith("stf-") && search.Length > 4 ? int.TryParse(search.Substring(4), out int sId) ? sId : null : null;
+
+                adminQuery = adminQuery.Where(a => a.FirstName.ToLower().Contains(search) || 
+                                                 a.LastName.ToLower().Contains(search) || 
+                                                 a.Email.ToLower().Contains(search) ||
+                                                 (adminSearchId.HasValue && a.ManagerId == adminSearchId.Value));
+
+                managerQuery = managerQuery.Where(m => m.FirstName.ToLower().Contains(search) || 
+                                                      m.LastName.ToLower().Contains(search) || 
+                                                      m.Email.ToLower().Contains(search) || 
+                                                      (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)) ||
+                                                      (managerSearchId.HasValue && m.BManagerId == managerSearchId.Value));
+
+                staffQuery = staffQuery.Where(s => s.FirstName.ToLower().Contains(search) || 
+                                                 s.LastName.ToLower().Contains(search) || 
+                                                 s.Email.ToLower().Contains(search) ||
+                                                 (staffSearchId.HasValue && s.StaffId == staffSearchId.Value));
             }
 
             if (!string.IsNullOrEmpty(StatusFilter) && StatusFilter != "All")

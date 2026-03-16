@@ -100,6 +100,25 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.SkuHeaders.Add(newSku);
             await _context.SaveChangesAsync();
 
+            var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
+            int defaultVendorId = firstVendor?.VendorId ?? 0;
+
+            // Automatically create inventory entry for tracking
+            var inventory = new CommissaryInventory
+            {
+                SkuId = newSku.SkuId,
+                ItemName = newSku.ItemName,
+                Stock = 0,
+                Uom = newSku.Uom,
+                CostPrice = newSku.UnitCost ?? 0,
+                ReorderValue = 0,
+                CategoryId = newSku.CategoryId,
+                VendorId = defaultVendorId,
+                Yield = "100%"
+            };
+            _context.CommissaryInventories.Add(inventory);
+            await _context.SaveChangesAsync();
+
             return RedirectToPage();
         }
 
@@ -141,6 +160,35 @@ namespace LeKatsuMNL.Pages.Dashboard
             sku.SellingPrice = SellingPrice;
             sku.UnitCost = UnitCost;
 
+            // Ensure inventory record exists
+            var inv = await _context.CommissaryInventories.FirstOrDefaultAsync(i => i.SkuId == sku.SkuId);
+            if (inv == null)
+            {
+                var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
+                int defaultVendorId = firstVendor?.VendorId ?? 0;
+
+                inv = new CommissaryInventory
+                {
+                    SkuId = sku.SkuId,
+                    ItemName = sku.ItemName,
+                    Stock = 0,
+                    Uom = sku.Uom,
+                    CostPrice = sku.UnitCost ?? 0,
+                    ReorderValue = 0,
+                    CategoryId = sku.CategoryId,
+                    VendorId = defaultVendorId,
+                    Yield = "100%"
+                };
+                _context.CommissaryInventories.Add(inv);
+            }
+            else
+            {
+                inv.ItemName = sku.ItemName;
+                inv.Uom = sku.Uom;
+                inv.CostPrice = sku.UnitCost ?? 0;
+                inv.CategoryId = sku.CategoryId;
+            }
+
             await _context.SaveChangesAsync();
             return RedirectToPage();
         }
@@ -163,6 +211,31 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (sku == null)
             {
                 return await InitializeAndReturnPage();
+            }
+
+            // Log Transaction
+            var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Rejected");
+            if (transactionType == null)
+            {
+                transactionType = new InvTransactionType { TransactionType = "Rejected" };
+                _context.InvTransactionTypes.Add(transactionType);
+                await _context.SaveChangesAsync();
+            }
+
+            // Find matching commissary inventory for this SKU to track stock movement
+            var ci = await _context.CommissaryInventories.FirstOrDefaultAsync(i => i.SkuId == RejectId);
+            if (ci != null)
+            {
+                ci.Stock -= RejectQty;
+                
+                var transaction = new InventoryTransaction
+                {
+                    ComId = ci.ComId,
+                    TypeId = transactionType.TypeId,
+                    QuantityChange = -RejectQty,
+                    TimeStamp = System.DateTime.Now
+                };
+                _context.InventoryTransactions.Add(transaction);
             }
 
             var reject = new RejectItem
