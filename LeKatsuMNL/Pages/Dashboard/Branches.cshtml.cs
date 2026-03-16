@@ -32,7 +32,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         [TempData]
         public string ErrorMessage { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? pageIndex, string sortColumn = null, string sortOrder = null)
+        public async Task<IActionResult> OnGetAsync(int? pageIndex, string sortColumn = null, string sortOrder = null, int? pageSize = null)
         {
             CurrentSortColumn = sortColumn ?? "Date";
             CurrentSortOrder = sortOrder ?? "desc";
@@ -62,7 +62,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 _ => query.OrderByDescending(b => b.CreatedAt)
             };
 
-            Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, 10);
+            Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, pageSize ?? 10);
             return Page();
         }
 

@@ -30,7 +30,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         public List<BranchManager> BranchManagers { get; set; } = new();
         public List<SkuHeader> AvailableSkus { get; set; } = new();
 
-        public async Task<IActionResult> OnGetAsync(int? pageIndex)
+        public async Task<IActionResult> OnGetAsync(int? pageIndex, int? pageSize)
         {
             IQueryable<OrderInfo> query = _context.OrderInfos
                 .Include(o => o.BranchManager)
@@ -59,7 +59,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 query = query.Where(o => o.Status == Status);
             }
             
-            Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, 10);
+            Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, pageSize ?? 10);
             
             BranchManagers = await _context.BranchManagers
                 .Include(bm => bm.BranchLocation)

@@ -72,7 +72,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             string roleFilter = null, 
             string statusFilter = null,
             string sortColumn = null,
-            string sortOrder = null)
+            string sortOrder = null,
+            int? pageSize = null)
         {
             SearchString = searchString;
             RoleFilter = roleFilter;
@@ -81,10 +82,10 @@ namespace LeKatsuMNL.Pages.Dashboard
             CurrentSortOrder = sortOrder ?? "asc";
 
             Branches = await _context.BranchLocations.ToListAsync();
-            await LoadUsersAsync(pageIndex ?? 1);
+            await LoadUsersAsync(pageIndex ?? 1, pageSize ?? 10);
         }
 
-        private async Task LoadUsersAsync(int pageIndex)
+        private async Task LoadUsersAsync(int pageIndex, int pageSize)
         {
             var adminQuery = _context.AdminAccounts.Where(a => !a.IsSuperAdmin);
             var managerQuery = _context.BranchManagers.Include(m => m.BranchLocation).AsQueryable();
@@ -199,7 +200,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 _ => combined.OrderBy(u => u.LastName)
             };
 
-            AllUsers = PaginatedList<UserViewModel>.Create(sortedList.AsQueryable(), pageIndex, 10);
+            AllUsers = PaginatedList<UserViewModel>.Create(sortedList.AsQueryable(), pageIndex, pageSize);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()

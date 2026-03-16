@@ -62,7 +62,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             int? vendorId = null, 
             string stockStatus = null,
             string sortColumn = null,
-            string sortOrder = null)
+            string sortOrder = null,
+            int? pageSize = null)
         {
             SearchTerm = searchTerm;
             FilterCategoryId = categoryId;
@@ -133,7 +134,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 _ => query.OrderByDescending(i => i.ComId)
             };
 
-            Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, 10);
+            Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, pageSize ?? 10);
             
             Categories = await _context.Categories.ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
