@@ -48,7 +48,7 @@
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" name="searchTerm" value="@Model.SearchTerm" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" placeholder="Search item name...">
+            <input type="text" name="searchTerm" value="@Model.SearchTerm" oninput="debouncedSubmit(this.form)" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" placeholder="Search item name...">
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -67,7 +67,7 @@
                 }
             </select>
 
-            <select name="vendorId" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+            <select name="vendorId" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
                 <option value="">All Suppliers</option>
                 @foreach (var vendor in Model.Vendors)
                 {
@@ -90,9 +90,6 @@
             </select>
 
             <div class="flex items-center gap-2">
-                <button type="submit" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors dark:bg-slate-700 dark:text-gray-200">
-                    Filter
-                </button>
                 @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.FilterCategoryId.HasValue || Model.FilterVendorId.HasValue || Model.StockStatus != "All")
                 {
                     <a href="/Dashboard/Items" data-ajax-link class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-widest px-2">Clear</a>
@@ -112,15 +109,76 @@
                     <tr>
                         <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
                         <th class="px-6 py-4">Image</th>
-                        <th class="px-6 py-4">Item Name</th>
+                        <th class="px-6 py-4 text-center">
+                            <a asp-page="./Items" data-ajax-link 
+                               asp-route-sortColumn="Id" 
+                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Id" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.FilterCategoryId"
+                               asp-route-vendorId="@Model.FilterVendorId"
+                               asp-route-stockStatus="@Model.StockStatus"
+                               class="flex items-center justify-center hover:text-[#C41E24] transition-colors">
+                                ID
+                                <i class="bi @(Model.CurrentSortColumn == "Id" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                            </a>
+                        </th>
+                        <th class="px-6 py-4">
+                            <a asp-page="./Items" data-ajax-link 
+                               asp-route-sortColumn="Name" 
+                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Name" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.FilterCategoryId"
+                               asp-route-vendorId="@Model.FilterVendorId"
+                               asp-route-stockStatus="@Model.StockStatus"
+                               class="flex items-center hover:text-[#C41E24] transition-colors">
+                                Item Name
+                                <i class="bi @(Model.CurrentSortColumn == "Name" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                            </a>
+                        </th>
                         <th class="px-6 py-4">Category</th>
                         <th class="px-6 py-4">Sub-Category</th>
                         <th class="px-6 py-4">Supplier</th>
                         <th class="px-6 py-4">Yield</th>
-                        <th class="px-6 py-4">In Stock</th>
-                        <th class="px-6 py-4">Unit Cost</th>
-                        <th class="px-6 py-4">Selling Price</th>
-                        <th class="px-6 py-4">Action</th>
+                        <th class="px-6 py-4 text-center">
+                            <a asp-page="./Items" data-ajax-link 
+                               asp-route-sortColumn="Stock" 
+                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Stock" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.FilterCategoryId"
+                               asp-route-vendorId="@Model.FilterVendorId"
+                               asp-route-stockStatus="@Model.StockStatus"
+                               class="flex items-center justify-center hover:text-[#C41E24] transition-colors">
+                                In Stock
+                                <i class="bi @(Model.CurrentSortColumn == "Stock" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-right">
+                            <a asp-page="./Items" data-ajax-link 
+                               asp-route-sortColumn="Cost" 
+                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Cost" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.FilterCategoryId"
+                               asp-route-vendorId="@Model.FilterVendorId"
+                               asp-route-stockStatus="@Model.StockStatus"
+                               class="flex items-center justify-end hover:text-[#C41E24] transition-colors">
+                                Unit Cost
+                                <i class="bi @(Model.CurrentSortColumn == "Cost" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-right">
+                            <a asp-page="./Items" data-ajax-link 
+                               asp-route-sortColumn="Price" 
+                               asp-route-sortOrder="@(Model.CurrentSortColumn == "Price" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.FilterCategoryId"
+                               asp-route-vendorId="@Model.FilterVendorId"
+                               asp-route-stockStatus="@Model.StockStatus"
+                               class="flex items-center justify-end hover:text-[#C41E24] transition-colors">
+                                Selling Price
+                                <i class="bi @(Model.CurrentSortColumn == "Price" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -135,6 +193,7 @@
                                         <i class="bi bi-image text-2xl"></i>
                                     </div>
                                 </td>
+                                <td class="px-6 py-5 text-center font-black text-[#C41E24] dark:text-red-400">ITEM-@item.ComId.ToString("D4")</td>
                                 <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">@item.ItemName</td>
                                 <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Category?.CategoryName ?? "-")</td>
                                 <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.SubCategory?.SubCategoryName ?? "-")</td>
@@ -170,7 +229,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="11" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No items found. Create a new item to get started.</td>
+                            <td colspan="12" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No items found. Create a new item to get started.</td>
                         </tr>
                     }
                 </tbody>
@@ -579,6 +638,7 @@
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             const content = modal.querySelector('div');
+            const form = modal.querySelector('form');
             
             content.classList.add('opacity-0', 'scale-95');
             content.classList.remove('opacity-100', 'scale-100');
@@ -586,6 +646,7 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
+                if (form) form.reset();
             }, 300);
         }
 
@@ -727,9 +788,12 @@
             if (!event.target.closest('.relative')) {
                 if(actionsMenu) actionsMenu.classList.add('hidden');
             }
+            // Backdrop click closure disabled as per plan
+            /*
             if (event.target.classList.contains('fixed')) {
                 closeModal(event.target.id);
             }
+            */
         }
 
         // Datalist Usability Helpers

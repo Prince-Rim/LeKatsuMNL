@@ -47,6 +47,8 @@ namespace LeKatsuMNL.Pages.Dashboard
         public string SearchString { get; set; }
         public string RoleFilter { get; set; }
         public string StatusFilter { get; set; }
+        public string CurrentSortColumn { get; set; } = "Name";
+        public string CurrentSortOrder { get; set; } = "asc";
 
         public class UserInputModel
         {
@@ -64,11 +66,19 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Type { get; set; } // "Admin" or "Manager"
         }
 
-        public async Task OnGetAsync(int? pageIndex, string searchString, string roleFilter, string statusFilter)
+        public async Task OnGetAsync(
+            int? pageIndex = null, 
+            string searchString = null, 
+            string roleFilter = null, 
+            string statusFilter = null,
+            string sortColumn = null,
+            string sortOrder = null)
         {
             SearchString = searchString;
             RoleFilter = roleFilter;
             StatusFilter = statusFilter;
+            CurrentSortColumn = sortColumn ?? "Name";
+            CurrentSortOrder = sortOrder ?? "asc";
 
             Branches = await _context.BranchLocations.ToListAsync();
             await LoadUsersAsync(pageIndex ?? 1);
@@ -88,22 +98,26 @@ namespace LeKatsuMNL.Pages.Dashboard
                 int? adminSearchId = search.StartsWith("adm-") && search.Length > 4 ? int.TryParse(search.Substring(4), out int aId) ? aId : null : null;
                 int? managerSearchId = search.StartsWith("brch-") && search.Length > 5 ? int.TryParse(search.Substring(5), out int mId) ? mId : null : null;
                 int? staffSearchId = search.StartsWith("stf-") && search.Length > 4 ? int.TryParse(search.Substring(4), out int sId) ? sId : null : null;
+                var isNumeric = int.TryParse(search, out int numericId);
 
                 adminQuery = adminQuery.Where(a => a.FirstName.ToLower().Contains(search) || 
                                                  a.LastName.ToLower().Contains(search) || 
                                                  a.Email.ToLower().Contains(search) ||
-                                                 (adminSearchId.HasValue && a.ManagerId == adminSearchId.Value));
+                                                 (adminSearchId.HasValue && a.ManagerId == adminSearchId.Value) ||
+                                                 (isNumeric && a.ManagerId == numericId));
 
                 managerQuery = managerQuery.Where(m => m.FirstName.ToLower().Contains(search) || 
                                                       m.LastName.ToLower().Contains(search) || 
                                                       m.Email.ToLower().Contains(search) || 
                                                       (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)) ||
-                                                      (managerSearchId.HasValue && m.BManagerId == managerSearchId.Value));
+                                                      (managerSearchId.HasValue && m.BManagerId == managerSearchId.Value) ||
+                                                      (isNumeric && m.BManagerId == numericId));
 
                 staffQuery = staffQuery.Where(s => s.FirstName.ToLower().Contains(search) || 
                                                  s.LastName.ToLower().Contains(search) || 
                                                  s.Email.ToLower().Contains(search) ||
-                                                 (staffSearchId.HasValue && s.StaffId == staffSearchId.Value));
+                                                 (staffSearchId.HasValue && s.StaffId == staffSearchId.Value) ||
+                                                 (isNumeric && s.StaffId == numericId));
             }
 
             if (!string.IsNullOrEmpty(StatusFilter) && StatusFilter != "All")
@@ -173,8 +187,19 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }).ToListAsync();
             }
 
-            var combined = admins.Concat(managers).Concat(staff).OrderBy(u => u.LastName);
-            AllUsers = PaginatedList<UserViewModel>.Create(combined.AsQueryable(), pageIndex, 10);
+            var combined = admins.Concat(managers).Concat(staff);
+            
+            // Apply Sorting to the combined list
+            var sortedList = CurrentSortColumn switch
+            {
+                "Name" => CurrentSortOrder == "asc" ? combined.OrderBy(u => u.LastName) : combined.OrderByDescending(u => u.LastName),
+                "Role" => CurrentSortOrder == "asc" ? combined.OrderBy(u => u.Role) : combined.OrderByDescending(u => u.Role),
+                "Status" => CurrentSortOrder == "asc" ? combined.OrderBy(u => u.Status) : combined.OrderByDescending(u => u.Status),
+                "Branch" => CurrentSortOrder == "asc" ? combined.OrderBy(u => u.BranchName) : combined.OrderByDescending(u => u.BranchName),
+                _ => combined.OrderBy(u => u.LastName)
+            };
+
+            AllUsers = PaginatedList<UserViewModel>.Create(sortedList.AsQueryable(), pageIndex, 10);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()

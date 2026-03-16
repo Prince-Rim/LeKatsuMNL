@@ -6,7 +6,7 @@
 
 <!-- Filters Section -->
 <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm dark:bg-slate-800 dark:border-gray-700 mb-6">
-    <form method="get" data-ajax-form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <form method="get" data-ajax-form class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-end">
         <div>
             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Report Type</label>
             <select name="ReportType" asp-for="ReportType" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white" onchange="this.form.requestSubmit()">
@@ -21,17 +21,16 @@
         </div>
         <div>
             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
-            <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+            <div class="relative group">
+                <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+            </div>
         </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
-            <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
-        </div>
-        <div class="flex space-x-2">
-            <button type="submit" class="flex-1 bg-[#C41E24] text-white rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-[#A0181D] transition-all">
-                <i class="bi bi-filter mr-2"></i>Apply Filters
-            </button>
-            <a asp-page="./Reports" data-ajax-link class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+        <div class="flex items-end space-x-2">
+            <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
+                <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+            </div>
+            <a asp-page="./Reports" data-ajax-link class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600 h-[42px]" title="Clear Filters">
                 <i class="bi bi-arrow-clockwise"></i>
             </a>
         </div>

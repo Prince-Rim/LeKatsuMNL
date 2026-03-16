@@ -30,10 +30,46 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
                 <tr>
-                    <th class="px-8 py-4">Date</th>
-                    <th class="px-8 py-4">Order ID</th>
-                    <th class="px-8 py-4 text-right">Total Amount</th>
-                    <th class="px-8 py-4 text-center">Payment Status</th>
+                    <th class="px-8 py-4">
+                        <a asp-page="./Billing" data-ajax-link 
+                           asp-route-sortColumn="Date" 
+                           asp-route-sortOrder="@(Model.CurrentSortColumn == "Date" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           class="flex items-center hover:text-[#C41E24] transition-colors">
+                            Date
+                            <i class="bi @(Model.CurrentSortColumn == "Date" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                        </a>
+                    </th>
+                    <th class="px-8 py-4">
+                        <a asp-page="./Billing" data-ajax-link 
+                           asp-route-sortColumn="OrderId" 
+                           asp-route-sortOrder="@(Model.CurrentSortColumn == "OrderId" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           class="flex items-center hover:text-[#C41E24] transition-colors">
+                            Order ID
+                            <i class="bi @(Model.CurrentSortColumn == "OrderId" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                        </a>
+                    </th>
+                    <th class="px-8 py-4 text-right">
+                        <a asp-page="./Billing" data-ajax-link 
+                           asp-route-sortColumn="Amount" 
+                           asp-route-sortOrder="@(Model.CurrentSortColumn == "Amount" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           class="flex items-center justify-end hover:text-[#C41E24] transition-colors">
+                            Total Amount
+                            <i class="bi @(Model.CurrentSortColumn == "Amount" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                        </a>
+                    </th>
+                    <th class="px-8 py-4 text-center">
+                        <a asp-page="./Billing" data-ajax-link 
+                           asp-route-sortColumn="Status" 
+                           asp-route-sortOrder="@(Model.CurrentSortColumn == "Status" && Model.CurrentSortOrder == "asc" ? "desc" : "asc")"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           class="flex items-center justify-center hover:text-[#C41E24] transition-colors">
+                            Payment Status
+                            <i class="bi @(Model.CurrentSortColumn == "Status" ? (Model.CurrentSortOrder == "asc" ? "bi-sort-up" : "bi-sort-down-alt") : "bi-arrow-down-up opacity-30") ml-1"></i>
+                        </a>
+                    </th>
                     <th class="px-8 py-4 text-center">Order Status</th>
                     <th class="px-8 py-4 text-center">Actions</th>
                 </tr>
@@ -47,7 +83,7 @@
                             <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@invoice.InvoiceDate.ToString("MMM dd, yyyy")</td>
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">
                                 <a asp-page="PrintInvoice" asp-route-id="@invoice.OrderId" target="_blank" class="text-blue-600 hover:text-blue-800 transition-colors">
-                                    ORD-@invoice.OrderId.ToString("D5")
+                                    @invoice.InvoiceDate.Year-@invoice.OrderId.ToString("D5")
                                 </a>
                             </td>
                             <td class="px-8 py-5 text-right font-bold text-gray-900 text-sm dark:text-white">₱ @invoice.TotalPrice.ToString("N2")</td>

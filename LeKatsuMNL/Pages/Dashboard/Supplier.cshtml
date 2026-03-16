@@ -272,6 +272,7 @@
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             const content = modal.querySelector('div');
+            const form = modal.querySelector('form');
             
             content.classList.add('opacity-0', 'scale-95');
             content.classList.remove('opacity-100', 'scale-100');
@@ -279,6 +280,7 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
+                if (form) form.reset();
             }, 300);
         }
 
@@ -338,12 +340,15 @@
         }
 
         // Close modal on click outside
+        // Modal backdrop click disabled as per plan
+        /*
         window.onclick = function(event) {
             if (event.target.classList.contains('fixed')) {
                 const modalId = event.target.id;
                 closeModal(modalId);
             }
         }
+        */
 
         // Close on escape
         document.addEventListener('keydown', (e) => {

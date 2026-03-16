@@ -26,12 +26,22 @@ namespace LeKatsuMNL.Pages.Dashboard
         public string SearchTerm { get; set; } = "";
         public int? FilterCategoryId { get; set; }
         public int? FilterSubCategoryId { get; set; }
+        public string CurrentSortColumn { get; set; } = "Id";
+        public string CurrentSortOrder { get; set; } = "desc";
 
-        public async Task OnGetAsync(int? pageIndex = null, string searchTerm = null, int? categoryId = null, int? subCategoryId = null)
+        public async Task OnGetAsync(
+            int? pageIndex = null, 
+            string searchTerm = null, 
+            int? categoryId = null, 
+            int? subCategoryId = null,
+            string sortColumn = null,
+            string sortOrder = null)
         {
             SearchTerm = searchTerm;
             FilterCategoryId = categoryId;
             FilterSubCategoryId = subCategoryId;
+            CurrentSortColumn = sortColumn ?? "Id";
+            CurrentSortOrder = sortOrder ?? "desc";
 
             var query = _context.SkuHeaders
                 .Include(s => s.Category)
@@ -41,7 +51,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             // Apply Filters
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                query = query.Where(s => s.ItemName.Contains(SearchTerm));
+                var search = SearchTerm.ToLower().Trim();
+                int? skuSearchId = search.StartsWith("sku-") && search.Length > 4 ? int.TryParse(search.Substring(4), out int sId) ? sId : null : null;
+                var isNumeric = int.TryParse(search, out int numericId);
+
+                query = query.Where(s => s.ItemName.ToLower().Contains(search) ||
+                                       (skuSearchId.HasValue && s.SkuId == skuSearchId.Value) ||
+                                       (isNumeric && s.SkuId == numericId));
             }
 
             if (FilterCategoryId.HasValue)
@@ -54,8 +70,15 @@ namespace LeKatsuMNL.Pages.Dashboard
                 query = query.Where(s => s.SubCategoryId == FilterSubCategoryId);
             }
 
-
-            query = query.OrderByDescending(s => s.SkuId);
+            // Apply Sorting
+            query = CurrentSortColumn switch
+            {
+                "Id" => CurrentSortOrder == "asc" ? query.OrderBy(s => s.SkuId) : query.OrderByDescending(s => s.SkuId),
+                "Name" => CurrentSortOrder == "asc" ? query.OrderBy(s => s.ItemName) : query.OrderByDescending(s => s.ItemName),
+                "Price" => CurrentSortOrder == "asc" ? query.OrderBy(s => s.SellingPrice) : query.OrderByDescending(s => s.SellingPrice),
+                "Cost" => CurrentSortOrder == "asc" ? query.OrderBy(s => s.UnitCost) : query.OrderByDescending(s => s.UnitCost),
+                _ => query.OrderByDescending(s => s.SkuId)
+            };
 
             SkuHeaders = await PaginatedList<SkuHeader>.CreateAsync(query, pageIndex ?? 1, 10);
 

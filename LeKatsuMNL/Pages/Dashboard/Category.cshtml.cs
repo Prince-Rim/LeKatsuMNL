@@ -36,7 +36,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                query = query.Where(c => c.CategoryName.Contains(SearchTerm));
+                var search = SearchTerm.ToLower().Trim();
+                query = query.Where(c => c.CategoryName.ToLower().Contains(search));
             }
 
             Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, 10);
