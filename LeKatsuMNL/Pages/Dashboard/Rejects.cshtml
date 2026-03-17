@@ -4,13 +4,8 @@
     ViewData["Title"] = "Inventory Item Rejects";
 }
 
-    <!-- Tabs -->
-    <div class="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 rounded-t-xl mb-px">
-        <a href="/Dashboard/Rejects?tab=recipe" class="px-10 py-4 text-sm font-bold transition-all @(Model.Tab == "recipe" ? "text-[#C41E24] border-b-2 border-[#C41E24]" : "text-gray-400 hover:text-gray-600 dark:text-gray-500")">Ingredient Rejects</a>
-        <a href="/Dashboard/Rejects?tab=sku" class="px-10 py-4 text-sm font-bold transition-all @(Model.Tab == "sku" ? "text-[#C41E24] border-b-2 border-[#C41E24]" : "text-gray-400 hover:text-gray-600 dark:text-gray-500")">SKU Rejects</a>
-    </div>
 
-    <div class="bg-white border-t border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
+    <div class="bg-white rounded-t-xl border-t border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
 
         <div class="flex items-center space-x-4">
             <div class="relative inline-block text-left">

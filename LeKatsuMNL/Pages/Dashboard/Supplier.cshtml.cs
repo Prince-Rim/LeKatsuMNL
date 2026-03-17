@@ -30,6 +30,9 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public string SearchString { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
         public async Task OnGetAsync(int? pageIndex, string searchString)
         {
             SearchString = searchString;
@@ -45,7 +48,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                                        v.CommissaryInventories.Any(ci => ci.ItemName.ToLower().Contains(search)));
             }
 
-            Vendors = await PaginatedList<VendorInfo>.CreateAsync(query, pageIndex ?? 1, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            Vendors = await PaginatedList<VendorInfo>.CreateAsync(query, pageIndex ?? 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()

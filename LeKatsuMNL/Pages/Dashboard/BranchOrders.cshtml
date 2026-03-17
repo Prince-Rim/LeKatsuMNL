@@ -6,42 +6,45 @@
 
 
 
-    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="flex items-center space-x-4">
+    <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
+        <div class="flex items-center space-x-4 flex-1 max-w-4xl">
             <div class="relative inline-block text-left">
-                <button onclick="toggleActions(event)" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-400 dark:border-gray-600">
+                <button type="button" onclick="toggleActions(event)" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-400 dark:border-gray-600">
                     <span>Actions</span>
                     <i class="bi bi-chevron-down text-xs"></i>
                 </button>
                 <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
-                    <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export</button>
-                    <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print</button>
+                    <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export</button>
+                    <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print</button>
                 </div>
             </div>
-
-            <div class="relative w-80">
+ 
+            <div class="relative flex-1 group">
                 <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                     <i class="bi bi-search text-sm"></i>
                 </span>
-                <input type="text" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:text-gray-800 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search orders...">
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" 
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:text-gray-800 dark:placeholder:text-gray-500 dark:border-gray-600" 
+                       placeholder="Search Order ID or Branch...">
+                <div class="absolute inset-y-1 right-1 flex items-center">
+                    <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                        <i class="bi bi-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
             </div>
         </div>
-
+ 
         <div class="flex items-center space-x-4">
-            <button onclick="openCreateOrderModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                <i class="bi bi-plus-lg mr-2"></i> Create New Invoice
+            <button type="button" onclick="openCreateOrderModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                 <i class="bi bi-plus-lg mr-2"></i> Create New Invoice
             </button>
-            <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white outline-none cursor-pointer font-medium dark:bg-slate-800 dark:text-gray-400 dark:border-gray-600">
-                <option>Status</option>
-                <option>Pending</option>
-                <option>Completed</option>
-            </select>
-            <button class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+             <button type="button" onclick="location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <i class="bi bi-arrow-clockwise text-base"></i>
                 <span>Refresh</span>
             </button>
         </div>
-    </div>
+    </form>
 
     <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
         <table class="w-full text-left text-xs whitespace-nowrap">
@@ -62,7 +65,7 @@
                 {
                     foreach (var order in Model.Orders)
                     {
-                        string formattedOrderId = $"ORD-{order.OrderId:D5}";
+                        string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
                             <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
                             <td class="px-8 py-5">
@@ -134,11 +137,46 @@
         }
 
         function openCreateOrderModal() {
-            document.getElementById('createOrderModal').classList.remove('hidden');
+            const modal = document.getElementById('createOrderModal');
+            const content = modal.querySelector('.inline-block');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                content.classList.remove('opacity-0', 'scale-95');
+                content.classList.add('opacity-100', 'scale-100');
+            }, 10);
         }
 
         function closeCreateOrderModal() {
-            document.getElementById('createOrderModal').classList.add('hidden');
+            const modal = document.getElementById('createOrderModal');
+            const content = modal.querySelector('.inline-block');
+            content.classList.add('opacity-0', 'scale-95');
+            content.classList.remove('opacity-100', 'scale-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset();
+                    // Reset Invoice Items to initial single empty row
+                    const container = document.getElementById('orderItemsContainer');
+                    const rows = container.querySelectorAll('.order-item-row');
+                    rows.forEach((row, index) => {
+                        if (index > 0) {
+                            row.remove();
+                        } else {
+                            // Reset the first row inputs
+                            row.querySelectorAll('input, select').forEach(input => {
+                                input.value = '';
+                            });
+                            const totalSpan = row.querySelector('.row-total');
+                            totalSpan.innerText = '₱ 0.00';
+                            totalSpan.dataset.value = '0';
+                        }
+                    });
+                    calculateGrandTotal();
+                }
+            }, 300);
         }
 
         const skuData = {
@@ -213,11 +251,11 @@
 <!-- Create Order Modal -->
 <div id="createOrderModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm" onclick="closeCreateOrderModal()"></div>
+        <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm"></div>
 
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700 opacity-0 scale-95 duration-300">
             <form method="post" asp-page-handler="CreateOrder">
                 <div class="p-8">
                     <div class="flex items-center justify-between mb-8">

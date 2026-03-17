@@ -38,11 +38,19 @@
             </div>
         </div>
 
-        <div class="relative flex-1 min-w-[200px] max-w-md">
+        <div class="relative flex-1 min-w-[200px] max-w-md group">
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" name="searchTerm" value="@Model.SearchTerm" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" placeholder="Search SKU product...">
+            <input type="text" name="searchTerm" value="@Model.SearchTerm" 
+                   class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" 
+                   placeholder="Search SKU name or ID...">
+            <div class="absolute inset-y-1 right-1 flex items-center">
+                <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                    <i class="bi bi-search"></i>
+                    <span>Search</span>
+                </button>
+            </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -99,6 +107,7 @@
                 <tr>
                     <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
                     <th class="px-6 py-4">Image</th>
+                    <th class="px-6 py-4">ID</th>
                     <th class="px-6 py-4">Product Name</th>
                     <th class="px-6 py-4">Category</th>
                     <th class="px-6 py-4">Sub-Category</th>
@@ -120,6 +129,7 @@
                                     <i class="bi bi-image text-2xl"></i>
                                 </div>
                             </td>
+                            <td class="px-6 py-5 text-gray-600 font-bold dark:text-gray-400">SKU-@sku.SkuId.ToString("D3")</td>
                             <td class="px-6 py-5">
                                 <a href="/Dashboard/SkuDetails/@sku.SkuId" class="font-bold text-gray-900 hover:text-[#C41E24] hover:underline text-sm dark:text-white">@sku.ItemName</a>
                             </td>
@@ -160,7 +170,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No SKU products found. Create a new product to get started.</td>
+                        <td colspan="10" class="px-6 py-8 text-center text-gray-500 font-semibold italic dark:text-gray-400">No SKU products found. Create a new product to get started.</td>
                     </tr>
                 }
             </tbody>
@@ -524,6 +534,7 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
+                modal.querySelector('form')?.reset();
             }, 300);
         }
 
@@ -648,9 +659,6 @@
             const menu = document.getElementById('actionsMenu');
             if (menu && !menu.contains(event.target)) {
                 menu.classList.add('hidden');
-            }
-            if (event.target.classList.contains('fixed')) {
-                closeModal(event.target.id);
             }
         });
 

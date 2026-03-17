@@ -22,13 +22,17 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<Invoice> Invoices { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
         public async Task OnGetAsync(int? pageIndex)
         {
             var query = _context.Invoices
                 .Include(i => i.OrderInfo)
                 .OrderByDescending(i => i.InvoiceDate);
             
-            Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostMarkAsPaidAsync(int id, string paymentMethod, string referenceNumber)

@@ -5,7 +5,7 @@
     var hasPreviousPage = (bool)Model.HasPreviousPage;
     var hasNextPage = (bool)Model.HasNextPage;
     var totalItems = (int)Model.TotalItems;
-    var pageSize = 10; 
+    var pageSize = (int)Model.PageSize; 
     
     var startRecord = totalItems == 0 ? 0 : (pageIndex - 1) * pageSize + 1;
     var endRecord = Math.Min(pageIndex * pageSize, totalItems);
@@ -17,7 +17,11 @@
     var routeData = new Dictionary<string, string>();
     foreach (var key in Context.Request.Query.Keys)
     {
-        routeData[key] = Context.Request.Query[key];
+        if (!string.Equals(key, "pageIndex", StringComparison.OrdinalIgnoreCase) && 
+            !string.Equals(key, "PageSize", StringComparison.OrdinalIgnoreCase))
+        {
+            routeData[key] = Context.Request.Query[key];
+        }
     }
 }
 
@@ -35,31 +39,44 @@
 
     <div class="flex items-center space-x-8">
         <div class="hidden sm:flex items-center space-x-3">
-            <span>Records per page</span>
-            <div class="border border-gray-200 rounded-lg px-3 py-1 bg-gray-50 text-gray-700 flex items-center dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                <span>@pageSize</span>
-            </div>
+            <span>Rows per page</span>
+            <select onchange="const url = new URL(window.location.href); url.searchParams.set('pageIndex', '1'); url.searchParams.set('PageSize', this.value); window.location.href = url.href;" 
+                    class="border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-700 outline-none focus:ring-1 focus:ring-[#C41E24] dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
+                <!option value="5" @(pageSize == 5 ? "selected" : "")>5</!option>
+                <!option value="10" @(pageSize == 10 ? "selected" : "")>10</!option>
+                <!option value="20" @(pageSize == 20 ? "selected" : "")>20</!option>
+                <!option value="50" @(pageSize == 50 ? "selected" : "")>50</!option>
+            </select>
         </div>
         
         <div class="flex items-center space-x-2">
             @{
-                var prevRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex - 1).ToString() };
+                var firstPageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1", ["pageSize"] = pageSize.ToString() };
+                var prevPageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex - 1).ToString(), ["pageSize"] = pageSize.ToString() };
             }
-            <a asp-all-route-data="prevRoute" 
-               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasPreviousPage ? "pointer-events-none opacity-50" : "")">
+            
+            <a asp-all-route-data="firstPageRoute" 
+               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasPreviousPage ? "pointer-events-none opacity-50" : "")"
+               title="First Page">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+
+            <a asp-all-route-data="prevPageRoute" 
+               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasPreviousPage ? "pointer-events-none opacity-50" : "")"
+               title="Previous Page">
                 <i class="bi bi-chevron-left"></i>
             </a>
 
             @if (startPage > 1)
             {
-                var firstRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1" };
-                <a asp-all-route-data="firstRoute" class="w-9 h-9 sort-btn flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">1</a>
+                var fRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = "1", ["pageSize"] = pageSize.ToString() };
+                <a asp-all-route-data="fRoute" class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">1</a>
                 @if (startPage > 2) { <span class="px-1 text-gray-300 dark:text-gray-600">...</span> }
             }
 
             @for (int i = startPage; i <= endPage; i++)
             {
-                var pageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = i.ToString() };
+                var pageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = i.ToString(), ["pageSize"] = pageSize.ToString() };
                 <a asp-all-route-data="pageRoute"
                    class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg transition-all @(i == pageIndex ? "bg-[#C41E24] text-white shadow-md border-[#C41E24]" : "text-gray-400 bg-gray-50 hover:bg-gray-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700")">
                     @i
@@ -69,16 +86,24 @@
             @if (endPage < totalPages)
             {
                 @if (endPage < totalPages - 1) { <span class="px-1 text-gray-300 dark:text-gray-600">...</span> }
-                var lastRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString() };
-                <a asp-all-route-data="lastRoute" class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">@totalPages</a>
+                var lRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString(), ["pageSize"] = pageSize.ToString() };
+                <a asp-all-route-data="lRoute" class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700">@totalPages</a>
             }
 
             @{
-                var nextRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex + 1).ToString() };
+                var nextPageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = (pageIndex + 1).ToString(), ["pageSize"] = pageSize.ToString() };
+                var lastPageRoute = new Dictionary<string, string>(routeData) { ["pageIndex"] = totalPages.ToString(), ["pageSize"] = pageSize.ToString() };
             }
-            <a asp-all-route-data="nextRoute"
-               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasNextPage ? "pointer-events-none opacity-50" : "")">
+            <a asp-all-route-data="nextPageRoute"
+               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasNextPage ? "pointer-events-none opacity-50" : "")"
+               title="Next Page">
                 <i class="bi bi-chevron-right"></i>
+            </a>
+
+            <a asp-all-route-data="lastPageRoute"
+               class="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 bg-gray-50 hover:bg-gray-100 transition-colors dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-gray-500 dark:border-gray-700 @(!hasNextPage ? "pointer-events-none opacity-50" : "")"
+               title="Last Page">
+                <i class="bi bi-chevron-double-right"></i>
             </a>
         </div>
     </div>

@@ -48,6 +48,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         public string RoleFilter { get; set; }
         public string StatusFilter { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
         public class UserInputModel
         {
             public int Id { get; set; }
@@ -71,7 +74,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             StatusFilter = statusFilter;
 
             Branches = await _context.BranchLocations.ToListAsync();
-            await LoadUsersAsync(pageIndex ?? 1);
+            int currentStepPageIndex = pageIndex ?? 1;
+            await LoadUsersAsync(currentStepPageIndex);
         }
 
         private async Task LoadUsersAsync(int pageIndex)
@@ -83,9 +87,30 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (!string.IsNullOrEmpty(SearchString))
             {
                 var search = SearchString.ToLower();
-                adminQuery = adminQuery.Where(a => a.FirstName.ToLower().Contains(search) || a.LastName.ToLower().Contains(search) || a.Email.ToLower().Contains(search));
-                managerQuery = managerQuery.Where(m => m.FirstName.ToLower().Contains(search) || m.LastName.ToLower().Contains(search) || m.Email.ToLower().Contains(search) || (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)));
-                staffQuery = staffQuery.Where(s => s.FirstName.ToLower().Contains(search) || s.LastName.ToLower().Contains(search) || s.Email.ToLower().Contains(search));
+                
+                // Support searching by System ID (e.g., ADM-0001, BRCH-0001, STF-0001)
+                int? adminSearchId = (search.StartsWith("adm-") && int.TryParse(search.Substring(4), out int aId)) ? aId : (int.TryParse(search, out int aId2) ? aId2 : (int?)null);
+                int? managerSearchId = (search.StartsWith("brch-") && int.TryParse(search.Substring(5), out int mId)) ? mId : (int.TryParse(search, out int mId2) ? mId2 : (int?)null);
+                int? staffSearchId = (search.StartsWith("stf-") && int.TryParse(search.Substring(4), out int sId)) ? sId : (int.TryParse(search, out int sId2) ? sId2 : (int?)null);
+
+                adminQuery = adminQuery.Where(a => 
+                    a.FirstName.ToLower().Contains(search) || 
+                    a.LastName.ToLower().Contains(search) || 
+                    a.Email.ToLower().Contains(search) ||
+                    (adminSearchId.HasValue && a.ManagerId == adminSearchId.Value));
+
+                managerQuery = managerQuery.Where(m => 
+                    m.FirstName.ToLower().Contains(search) || 
+                    m.LastName.ToLower().Contains(search) || 
+                    m.Email.ToLower().Contains(search) || 
+                    (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)) ||
+                    (managerSearchId.HasValue && m.BManagerId == managerSearchId.Value));
+
+                staffQuery = staffQuery.Where(s => 
+                    s.FirstName.ToLower().Contains(search) || 
+                    s.LastName.ToLower().Contains(search) || 
+                    s.Email.ToLower().Contains(search) ||
+                    (staffSearchId.HasValue && s.StaffId == staffSearchId.Value));
             }
 
             if (!string.IsNullOrEmpty(StatusFilter) && StatusFilter != "All")
@@ -156,7 +181,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             var combined = admins.Concat(managers).Concat(staff).OrderBy(u => u.LastName);
-            AllUsers = PaginatedList<UserViewModel>.Create(combined.AsQueryable(), pageIndex, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            AllUsers = PaginatedList<UserViewModel>.Create(combined.AsQueryable(), pageIndex, pageSize);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()

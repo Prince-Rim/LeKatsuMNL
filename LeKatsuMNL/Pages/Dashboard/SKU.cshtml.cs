@@ -27,6 +27,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         public int? FilterCategoryId { get; set; }
         public int? FilterSubCategoryId { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
         public async Task OnGetAsync(int? pageIndex = null, string searchTerm = null, int? categoryId = null, int? subCategoryId = null)
         {
             SearchTerm = searchTerm;
@@ -39,9 +42,18 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .AsQueryable();
 
             // Apply Filters
-            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            if (!string.IsNullOrEmpty(SearchTerm))
             {
-                query = query.Where(s => s.ItemName.Contains(SearchTerm));
+                var search = SearchTerm.ToLower();
+                int? parsedId = null;
+                if (search.StartsWith("sku-") && int.TryParse(search.Substring(4), out int id))
+                    parsedId = id;
+                else if (int.TryParse(search, out int id2))
+                    parsedId = id2;
+
+                query = query.Where(s => 
+                    s.ItemName.ToLower().Contains(search) || 
+                    (parsedId.HasValue && s.SkuId == parsedId.Value));
             }
 
             if (FilterCategoryId.HasValue)
@@ -57,7 +69,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             query = query.OrderByDescending(s => s.SkuId);
 
-            SkuHeaders = await PaginatedList<SkuHeader>.CreateAsync(query, pageIndex ?? 1, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            SkuHeaders = await PaginatedList<SkuHeader>.CreateAsync(query, pageIndex ?? 1, pageSize);
 
             Categories = await _context.Categories.ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();

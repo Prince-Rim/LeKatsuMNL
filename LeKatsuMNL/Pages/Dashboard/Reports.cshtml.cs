@@ -32,6 +32,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty(SupportsGet = true)]
         public string SearchQuery { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
         // Ingredient Report
         public class InventoryReportRow
         {
@@ -128,7 +131,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (StartDate.HasValue) StartDate = StartDate.Value.Date;
             if (EndDate.HasValue) EndDate = EndDate.Value.Date.AddDays(1).AddTicks(-1);
 
-            int pageSize = 15;
+            int pageSize = PageSize > 0 ? PageSize : 10;
 
             switch (ReportType)
             {

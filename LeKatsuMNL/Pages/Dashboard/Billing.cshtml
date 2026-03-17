@@ -42,7 +42,7 @@
                             <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@invoice.InvoiceDate.ToString("MMM dd, yyyy")</td>
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">
                                 <a asp-page="PrintInvoice" asp-route-id="@invoice.OrderId" target="_blank" class="text-blue-600 hover:text-blue-800 transition-colors">
-                                    ORD-@invoice.OrderId.ToString("D5")
+                                    @(invoice.OrderInfo?.OrderDate.Year)-@invoice.OrderId.ToString("D4")
                                 </a>
                             </td>
                             <td class="px-8 py-5 text-right font-bold text-gray-900 text-sm dark:text-white">₱ @invoice.TotalPrice.ToString("N2")</td>
@@ -93,16 +93,18 @@
 
 <!-- Mark as Paid Modal -->
 <div id="paymentModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closePaymentModal()"></div>
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm"></div>
+
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:bg-slate-800">
+
+        <div class="inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:bg-slate-800 opacity-0 scale-95 duration-300">
             <form method="post" asp-page-handler="MarkAsPaid">
                 <input type="hidden" id="modalInvoiceId" name="id" />
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 dark:bg-slate-800">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <i class="bi bi-currency-dollar text-green-600 text-xl"></i>
+                            <span class="text-green-600 text-xl font-bold">₱</span>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white" id="modal-title">Complete Payment</h3>
@@ -141,12 +143,27 @@
 @section Scripts {
     <script>
         function openPaymentModal(invoiceId) {
+            const modal = document.getElementById('paymentModal');
+            const content = modal.querySelector('.inline-block');
             document.getElementById('modalInvoiceId').value = invoiceId;
-            document.getElementById('paymentModal').classList.remove('hidden');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                content.classList.remove('opacity-0', 'scale-95');
+                content.classList.add('opacity-100', 'scale-100');
+            }, 10);
         }
 
         function closePaymentModal() {
-            document.getElementById('paymentModal').classList.add('hidden');
+            const modal = document.getElementById('paymentModal');
+            const content = modal.querySelector('.inline-block');
+            content.classList.add('opacity-0', 'scale-95');
+            content.classList.remove('opacity-100', 'scale-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                modal.querySelector('form')?.reset();
+            }, 300);
         }
 
         // Search functionality

@@ -36,6 +36,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         public int? FilterSubCategoryId { get; set; }
         public int? FilterVendorId { get; set; }
         public string StockStatus { get; set; } = "All";
+        
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
 
         public class InputModel
         {
@@ -76,7 +79,16 @@ namespace LeKatsuMNL.Pages.Dashboard
             // Apply Filters
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                query = query.Where(i => i.ItemName.Contains(SearchTerm));
+                var search = SearchTerm.ToLower();
+                int? parsedId = null;
+                if (search.StartsWith("ing-") && int.TryParse(search.Substring(4), out int id))
+                    parsedId = id;
+                else if (int.TryParse(search, out int id2))
+                    parsedId = id2;
+
+                query = query.Where(i => 
+                    i.ItemName.ToLower().Contains(search) || 
+                    (parsedId.HasValue && i.ComId == parsedId.Value));
             }
 
             if (FilterCategoryId.HasValue)
@@ -112,7 +124,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             query = query.OrderByDescending(i => i.ComId);
 
-            Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, pageSize);
             
             Categories = await _context.Categories.ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();

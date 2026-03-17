@@ -40,17 +40,20 @@
 
 <!-- Search Section -->
 <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-    <div class="relative flex-1 max-w-lg">
-        <form method="get">
+        <form method="get" class="flex items-center gap-2">
             <input type="hidden" name="ReportType" value="@Model.ReportType" />
             <input type="hidden" name="StartDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
             <input type="hidden" name="EndDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
-            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                <i class="bi bi-search text-sm"></i>
-            </span>
-            <input type="text" asp-for="SearchQuery" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600" placeholder="Search report data...">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" asp-for="SearchQuery" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:text-gray-800 dark:bg-white" placeholder="Search report data...">
+            </div>
+            <button type="submit" class="bg-[#C41E24] text-white px-4 py-2.5 rounded-lg hover:bg-[#a51a1f] transition-colors flex items-center shadow-md">
+                <i class="bi bi-search mr-2"></i> Search
+            </button>
         </form>
-    </div>
     <div class="flex space-x-3">
         <button onclick="window.print()" class="flex items-center space-x-2 border border-blue-600 bg-blue-50 text-blue-600 rounded-lg px-5 py-2.5 text-sm hover:bg-blue-100 transition-all font-bold dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400">
             <i class="bi bi-printer"></i> <span>Print Report</span>
@@ -68,12 +71,12 @@
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
                     <th class="px-8 py-4">Ingredient Name</th>
+                    <th class="px-8 py-4">UOM</th>
                     <th class="px-8 py-4 text-center">Beginning Stock</th>
                     <th class="px-8 py-4 text-center">Received</th>
                     <th class="px-8 py-4 text-center">Consumed</th>
                     <th class="px-8 py-4 text-center">Rejected</th>
                     <th class="px-8 py-4 text-center">Ending</th>
-                    <th class="px-8 py-4">UOM</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -83,12 +86,12 @@
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@report.Uom</td>
                             <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">@report.Received.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-orange-600 font-bold dark:text-orange-400">@report.Consumed.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">@report.Rejected.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">@report.Ending.ToString("N2")</td>
-                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@report.Uom</td>
                         </tr>
                     }
                 }
@@ -103,12 +106,12 @@
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
                     <th class="px-8 py-4">SKU Name</th>
+                    <th class="px-8 py-4">UOM</th>
                     <th class="px-8 py-4 text-center">Beginning Stock</th>
                     <th class="px-8 py-4 text-center">Produced/Added</th>
                     <th class="px-8 py-4 text-center">Orders/Sent</th>
                     <th class="px-8 py-4 text-center">Rejected</th>
                     <th class="px-8 py-4 text-center">Ending</th>
-                    <th class="px-8 py-4">UOM</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -118,12 +121,12 @@
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@report.Uom</td>
                             <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">@report.Received.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-orange-600 font-bold dark:text-orange-400">@report.Consumed.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">@report.Rejected.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">@report.Ending.ToString("N2")</td>
-                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@report.Uom</td>
                         </tr>
                     }
                 }

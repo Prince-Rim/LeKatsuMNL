@@ -42,11 +42,12 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage("/Dashboard/BranchOrders");
             }
 
-            // Parse ID from string like "ORD-00001" to int 1
+            // Parse ID from string like "ORD-00001" or "2026-0001" to int
             int orderId = 0;
-            if (id.StartsWith("ORD-"))
+            if (id.Contains("-"))
             {
-                int.TryParse(id.Replace("ORD-", ""), out orderId);
+                // Handles both ORD-XXXXX and YYYY-XXXX
+                int.TryParse(id.Split('-').Last(), out orderId);
             }
             else
             {
@@ -103,11 +104,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             return Page();
         }
 
+
         public async Task<IActionResult> OnPostAddCommentAsync(int OrderId, string CommentText)
         {
             if (string.IsNullOrWhiteSpace(CommentText))
             {
-                return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+                var o = await _context.OrderInfos.FindAsync(OrderId);
+                string fId = o != null ? $"{o.OrderDate.Year}-{o.OrderId:D4}" : OrderId.ToString();
+                return RedirectToPage(new { id = fId, tab = "issues" });
             }
 
             // Get user info from Claims
@@ -116,7 +120,9 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+                var o = await _context.OrderInfos.FindAsync(OrderId);
+                string fId = o != null ? $"{o.OrderDate.Year}-{o.OrderId:D4}" : OrderId.ToString();
+                return RedirectToPage(new { id = fId, tab = "issues" });
             }
 
             var newComment = new OrderComment
@@ -137,7 +143,24 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.OrderComments.Add(newComment);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}", tab = "issues" });
+            var finalOrder = await _context.OrderInfos.FindAsync(OrderId);
+            string finalFormattedId = finalOrder != null ? $"{finalOrder.OrderDate.Year}-{finalOrder.OrderId:D4}" : OrderId.ToString();
+            return RedirectToPage(new { id = finalFormattedId, tab = "issues" });
+        }
+
+        public async Task<IActionResult> OnPostRejectOrderAsync(int OrderId)
+        {
+            var order = await _context.OrderInfos.FindAsync(OrderId);
+            if (order == null) return NotFound();
+
+            if (order.Status == "Pending")
+            {
+                order.Status = "Cancelled";
+                await _context.SaveChangesAsync();
+            }
+
+            string formattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+            return RedirectToPage(new { id = formattedId });
         }
 
         public async Task<IActionResult> OnPostApproveOrderAsync(int OrderId)
@@ -150,7 +173,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .FirstOrDefaultAsync(o => o.OrderId == OrderId);
 
             if (order == null) return NotFound();
-            if (order.Status != "Pending") return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            
+            string formattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+            if (order.Status != "Pending") return RedirectToPage(new { id = formattedId });
 
             // 1. Check stock availability recursively across all items in the order
             var stockRequirements = new Dictionary<int, decimal>();
@@ -167,7 +192,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 if (inventory == null || inventory.Stock < req.Value)
                 {
                     ErrorMessage = $"Insufficient stock for: {inventory?.ItemName ?? "Unknown Item"} (Required: {req.Value:0.##} {inventory?.Uom}, Available: {inventory?.Stock:0.##} {inventory?.Uom})";
-                    return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+                    string fId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+                    return RedirectToPage(new { id = fId });
                 }
             }
 
@@ -256,7 +282,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             order.Status = "Approved";
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            string approvedFormattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+            return RedirectToPage(new { id = approvedFormattedId });
         }
 
         public async Task<IActionResult> OnPostPrepareAsync(int OrderId)
@@ -270,7 +297,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            string prepFormattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+            return RedirectToPage(new { id = prepFormattedId });
         }
 
         public async Task<IActionResult> OnPostDeliverAsync(int OrderId)
@@ -285,7 +313,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage(new { id = $"ORD-{OrderId:D5}" });
+            string deliverFormattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+            return RedirectToPage(new { id = deliverFormattedId });
         }
 
         private async Task AggregateStockRequirements(int skuId, decimal multiplier, Dictionary<int, decimal> requirements, HashSet<int> visitedSkuIds = null)
