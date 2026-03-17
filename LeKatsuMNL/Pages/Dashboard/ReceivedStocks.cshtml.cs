@@ -45,6 +45,9 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Unit { get; set; }
         }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
         [TempData]
         public string StatusMessage { get; set; }
 
@@ -60,7 +63,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ThenInclude(sl => sl.CommissaryInventory)
                 .OrderByDescending(so => so.SupplyDate);
 
-            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostSaveAsync()

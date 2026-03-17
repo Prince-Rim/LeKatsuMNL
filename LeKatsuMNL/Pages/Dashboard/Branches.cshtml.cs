@@ -26,13 +26,27 @@ namespace LeKatsuMNL.Pages.Dashboard
         [TempData]
         public string ErrorMessage { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
             var query = _context.BranchLocations
                 .Include(b => b.BranchManagers)
-                .OrderByDescending(b => b.CreatedAt);
+                .AsQueryable();
 
-            Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, 10);
+            if (!string.IsNullOrEmpty(SearchTerm))
+            {
+                query = query.Where(b => b.BranchName.Contains(SearchTerm) || b.BranchLocationAddress.Contains(SearchTerm));
+            }
+
+            query = query.OrderByDescending(b => b.CreatedAt);
+
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, pageSize);
             return Page();
         }
 
@@ -51,7 +65,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 var query = _context.BranchLocations
                     .Include(b => b.BranchManagers)
                     .OrderByDescending(b => b.CreatedAt);
-                Branches = await PaginatedList<BranchLocation>.CreateAsync(query, 1, 10);
+                
+                int pageSize = PageSize > 0 ? PageSize : 10;
+                Branches = await PaginatedList<BranchLocation>.CreateAsync(query, 1, pageSize);
                 
                 var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 ErrorMessage = $"Validation Failed: {errors}";
@@ -75,7 +91,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 var query = _context.BranchLocations
                     .Include(b => b.BranchManagers)
                     .OrderByDescending(b => b.CreatedAt);
-                Branches = await PaginatedList<BranchLocation>.CreateAsync(query, 1, 10);
+                
+                int pageSize = PageSize > 0 ? PageSize : 10;
+                Branches = await PaginatedList<BranchLocation>.CreateAsync(query, 1, pageSize);
 
                 ErrorMessage = $"Database Error: {ex.Message} {(ex.InnerException != null ? " | Inner: " + ex.InnerException.Message : "")}";
                 return Page();

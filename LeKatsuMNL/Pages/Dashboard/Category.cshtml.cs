@@ -27,10 +27,24 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public Category EditCategory { get; set; } = default!;
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
+
         public async Task OnGetAsync(int? pageIndex)
         {
-            var query = _context.Categories.OrderBy(c => c.CategoryName);
-            Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, 10);
+            var query = _context.Categories.AsQueryable();
+
+            if (!string.IsNullOrEmpty(SearchTerm))
+            {
+                query = query.Where(c => c.CategoryName.Contains(SearchTerm) || (c.SubCategoryNames != null && c.SubCategoryNames.Contains(SearchTerm)));
+            }
+
+            query = query.OrderBy(c => c.CategoryName);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            Categories = await PaginatedList<Category>.CreateAsync(query, pageIndex ?? 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostCreateAsync()

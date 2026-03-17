@@ -166,6 +166,7 @@
     <div class="space-y-1">
         <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Transaction">
             <i class="bi bi-node-plus mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Transaction</span>
+            <i class="bi bi-chevron-down ml-auto text-xs opacity-50 group-hover:opacity-100 transition-transform @(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "rotate-180" : "")"></i>
         </a>
 
         @if (currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails"))
@@ -184,6 +185,7 @@
     <div class="space-y-1">
         <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Inventory">
             <i class="bi bi-box-seam mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Inventory</span>
+            <i class="bi bi-chevron-down ml-auto text-xs opacity-50 group-hover:opacity-100 transition-transform @(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "rotate-180" : "")"></i>
         </a>
 
         @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))

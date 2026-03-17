@@ -22,11 +22,13 @@
                 <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                     <i class="bi bi-search text-sm"></i>
                 </span>
-                <input type="text" id="supplierSearchLive" name="searchString" value="@Model.SearchString" 
+                <input type="text" name="searchString" value="@Model.SearchString" 
                        class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
-                       placeholder="Search name, contact, or products..."
-                       autofocus onfocus="this.value = this.value;">
+                       placeholder="Search name, contact, or products...">
             </div>
+            <button type="submit" class="bg-[#C41E24] text-white px-4 py-2.5 rounded-lg hover:bg-[#a51a1f] transition-colors flex items-center shadow-md">
+                <i class="bi bi-search mr-2"></i> Search
+            </button>
 
             @if (!string.IsNullOrEmpty(Model.SearchString))
             {
@@ -279,6 +281,7 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
+                modal.querySelector('form')?.reset();
             }, 300);
         }
 
@@ -290,31 +293,7 @@
             openModal('editModal');
         }
 
-        // Debounced Live Search
-        let searchTimeout;
-        const searchInput = document.getElementById('supplierSearchLive');
-        const filterForm = document.getElementById('supplierFilterForm');
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    filterForm.submit();
-                }, 500); // 500ms debounce
-            });
-
-            // Set cursor to end of text on focus
-            searchInput.addEventListener('focus', function() {
-                const val = this.value;
-                this.value = '';
-                this.value = val;
-            });
-            
-            // Auto-focus on page load if there's a search string
-            if (searchInput.value) {
-                searchInput.focus();
-            }
-        }
+        // Manual search handled by form submission
 
         function openViewProductsModal(vendorName, products) {
             document.getElementById('viewProductsVendorName').innerText = "Supplier: " + vendorName;
@@ -337,13 +316,13 @@
             openModal('viewProductsModal');
         }
 
-        // Close modal on click outside
-        window.onclick = function(event) {
-            if (event.target.classList.contains('fixed')) {
-                const modalId = event.target.id;
-                closeModal(modalId);
+        // Close on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('.fixed:not(.hidden)');
+                openModals.forEach(modal => closeModal(modal.id));
             }
-        }
+        });
 
         // Close on escape
         document.addEventListener('keydown', (e) => {

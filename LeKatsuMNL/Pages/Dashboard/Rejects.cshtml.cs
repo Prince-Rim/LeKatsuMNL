@@ -21,30 +21,16 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<RejectItem> RejectLogs { get; set; } = default!;
 
-        [BindProperty(SupportsGet = true)]
-        public string Tab { get; set; } = "recipe";
-
-        public async Task OnGetAsync(int? pageIndex)
-        {
-            if (Tab != "recipe" && Tab != "sku")
-            {
-                Tab = "recipe";
-            }
-
-            var query = _context.RejectItems.AsQueryable();
-
-            if (Tab == "recipe")
-            {
-                query = query.Where(r => r.RejectType == "Recipe");
-            }
-            else if (Tab == "sku")
-            {
-                query = query.Where(r => r.RejectType == "SKU");
-            }
-
-            RejectLogs = await PaginatedList<RejectItem>.CreateAsync(
-                query.OrderByDescending(r => r.RejectedAt), 
-                pageIndex ?? 1, 10);
-        }
+        public int PageSize { get; set; } = 10;
+ 
+         public async Task OnGetAsync(int? pageIndex)
+         {
+             var query = _context.RejectItems.Where(r => r.RejectType == "Recipe");
+ 
+             int pageSize = PageSize > 0 ? PageSize : 10;
+             RejectLogs = await PaginatedList<RejectItem>.CreateAsync(
+                 query.OrderByDescending(r => r.RejectedAt), 
+                 pageIndex ?? 1, pageSize);
+         }
     }
 }

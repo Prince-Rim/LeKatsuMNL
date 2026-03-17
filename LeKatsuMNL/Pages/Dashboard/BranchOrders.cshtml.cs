@@ -23,15 +23,49 @@ namespace LeKatsuMNL.Pages.Dashboard
         public List<BranchManager> BranchManagers { get; set; } = new();
         public List<SkuHeader> AvailableSkus { get; set; } = new();
 
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = 10;
+
+        [BindProperty(SupportsGet = true)]
+        public string SearchTerm { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
             var query = _context.OrderInfos
                 .Include(o => o.BranchManager)
                     .ThenInclude(bm => bm.BranchLocation)
                 .Include(o => o.Invoices)
-                .OrderByDescending(o => o.OrderDate);
+                .AsQueryable(); // Add AsQueryable() to allow further filtering
+
+            if (!string.IsNullOrEmpty(SearchTerm))
+            {
+                var search = SearchTerm.ToLower();
+                
+                // If search contains hyphen, try to parse the part after hyphen as ID
+                int? parsedId = null;
+                if (search.Contains("-"))
+                {
+                    var parts = search.Split('-');
+                    if (int.TryParse(parts.Last(), out int id))
+                    {
+                        parsedId = id;
+                    }
+                }
+                else if (int.TryParse(search, out int id))
+                {
+                    parsedId = id;
+                }
+
+                query = query.Where(o =>
+                    o.BranchManager.BranchLocation.BranchName.ToLower().Contains(search) ||
+                    o.Status.ToLower().Contains(search) ||
+                    (parsedId.HasValue && o.OrderId == parsedId.Value));
+            }
+
+            query = query.OrderByDescending(o => o.OrderDate);
             
-            Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, 10);
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            Orders = await PaginatedList<OrderInfo>.CreateAsync(query, pageIndex ?? 1, pageSize);
             
             BranchManagers = await _context.BranchManagers
                 .Include(bm => bm.BranchLocation)

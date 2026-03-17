@@ -30,14 +30,20 @@
     <!-- Top toolbar -->
     <form id="userFilterForm" method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 space-x-4">
         <div class="flex-1 flex items-center space-x-4 max-w-4xl">
-            <div class="relative flex-1">
+            <div class="relative flex-1 group">
                 <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                     <i class="bi bi-search text-sm"></i>
                 </span>
-                <input type="text" id="userSearchLive" name="searchString" value="@Model.SearchString" 
-                       class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
-                       placeholder="Search name, email, or branch..."
-                       autofocus onfocus="this.value = this.value;">
+                <input type="text" id="userSearchManual" name="searchString" value="@Model.SearchString" 
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
+                       placeholder="Search name, email, branch or ID..."
+                       autofocus>
+                <div class="absolute inset-y-1 right-1 flex items-center">
+                    <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                        <i class="bi bi-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
             </div>
 
             <select name="roleFilter" onchange="this.form.submit()" 
@@ -437,19 +443,8 @@
 
 @section Scripts {
     <script>
-        // Debounced Live Search
-        let searchTimeout;
-        const searchInput = document.getElementById('userSearchLive');
-        const filterForm = document.getElementById('userFilterForm');
-
+        const searchInput = document.getElementById('userSearchManual');
         if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    filterForm.submit();
-                }, 500); // 500ms debounce
-            });
-
             // Set cursor to end of text on focus
             searchInput.addEventListener('focus', function() {
                 const val = this.value;
@@ -606,7 +601,16 @@
             const content = modal.querySelector('div');
             content.classList.remove('opacity-100', 'scale-100');
             content.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                // Reset inputs in Step 1
+                document.getElementById('newFirstName').value = '';
+                document.getElementById('newMiddleName').value = '';
+                document.getElementById('newLastName').value = '';
+                document.getElementById('newEmail').value = '';
+                document.getElementById('newContactNum').value = '';
+                document.getElementById('newPassword').value = '';
+            }, 300);
         }
 
         function openCreateStep2() {
@@ -644,7 +648,10 @@
             const content = modal.querySelector('div');
             content.classList.remove('opacity-100', 'scale-100');
             content.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('createForm').reset();
+            }, 300);
         }
 
         function backToStep1() {
@@ -693,13 +700,12 @@
             const content = modal.querySelector('div');
             content.classList.remove('opacity-100', 'scale-100');
             content.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('editForm').reset();
+            }, 300);
         }
 
-        window.onclick = function(event) {
-            if (event.target.id === 'createUserModal') closeCreateModal();
-            if (event.target.id === 'createUserStep2Modal') closeCreateStep2();
-            if (event.target.id === 'editUserModal') closeEditModal();
-        }
+        // Backdrop clicking disabled by removing window.onclick handled logic
     </script>
 }
