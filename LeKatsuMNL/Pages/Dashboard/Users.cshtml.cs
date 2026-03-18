@@ -80,9 +80,9 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         private async Task LoadUsersAsync(int pageIndex)
         {
-            var adminQuery = _context.AdminAccounts.Where(a => !a.IsSuperAdmin);
-            var managerQuery = _context.BranchManagers.Include(m => m.BranchLocation).AsQueryable();
-            var staffQuery = _context.StaffInformations.AsQueryable();
+            var adminQuery = _context.AdminAccounts.Where(a => !a.IsSuperAdmin && !a.IsArchived);
+            var managerQuery = _context.BranchManagers.Where(m => !m.IsArchived).Include(m => m.BranchLocation).AsQueryable();
+            var staffQuery = _context.StaffInformations.Where(s => !s.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(SearchString))
             {
@@ -340,24 +340,59 @@ namespace LeKatsuMNL.Pages.Dashboard
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync(int id, string type)
+        public async Task<IActionResult> OnPostArchiveAsync(int id, string type)
         {
             if (!PermissionHelper.HasPermission(User, "Users", 'D')) return Forbid();
 
             if (type == "Admin")
             {
                 var admin = await _context.AdminAccounts.FindAsync(id);
-                if (admin != null) _context.AdminAccounts.Remove(admin);
+                if (admin != null) admin.IsArchived = true;
             }
             else if (type == "Manager")
             {
                 var manager = await _context.BranchManagers.FindAsync(id);
-                if (manager != null) _context.BranchManagers.Remove(manager);
+                if (manager != null) manager.IsArchived = true;
             }
             else if (type == "Staff")
             {
                 var staff = await _context.StaffInformations.FindAsync(id);
-                if (staff != null) _context.StaffInformations.Remove(staff);
+                if (staff != null) staff.IsArchived = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync(string ids)
+        {
+            if (!PermissionHelper.HasPermission(User, "Users", 'D')) return Forbid();
+            if (string.IsNullOrEmpty(ids)) return RedirectToPage();
+
+            var idList = ids.Split(',');
+            foreach (var idStr in idList)
+            {
+                var parts = idStr.Split(':'); // Expected format "id:type"
+                if (parts.Length != 2) continue;
+                
+                int id = int.Parse(parts[0]);
+                string type = parts[1];
+
+                if (type == "Admin")
+                {
+                    var admin = await _context.AdminAccounts.FindAsync(id);
+                    if (admin != null) admin.IsArchived = true;
+                }
+                else if (type == "Manager")
+                {
+                    var manager = await _context.BranchManagers.FindAsync(id);
+                    if (manager != null) manager.IsArchived = true;
+                }
+                else if (type == "Staff")
+                {
+                    var staff = await _context.StaffInformations.FindAsync(id);
+                    if (staff != null) staff.IsArchived = true;
+                }
             }
 
             await _context.SaveChangesAsync();

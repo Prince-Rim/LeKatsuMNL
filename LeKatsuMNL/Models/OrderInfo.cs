@@ -25,5 +25,7 @@ namespace LeKatsuMNL.Models
         public ICollection<OrderList> OrderLists { get; set; } = new List<OrderList>();
         public ICollection<OrderComment> OrderComments { get; set; } = new List<OrderComment>();
         public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+
+        public bool IsArchived { get; set; } = false;
     }
 }

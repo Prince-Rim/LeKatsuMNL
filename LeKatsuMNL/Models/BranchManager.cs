@@ -44,5 +44,7 @@ namespace LeKatsuMNL.Models
         // Navigation Properties
         public ICollection<OrderInfo> Orders { get; set; } = new List<OrderInfo>();
         public ICollection<OrderComment> OrderComments { get; set; } = new List<OrderComment>();
+
+        public bool IsArchived { get; set; } = false;
     }
 }

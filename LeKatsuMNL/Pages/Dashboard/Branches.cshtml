@@ -105,12 +105,12 @@
                                                  onclick="openEditModal('@branch.BranchId', '@branch.BranchName', '@branch.IslandGroup', '@branch.Region', '@branch.Province', '@branch.CityMunicipality', '@branch.Barangay', '@branch.StreetAddress', '@branch.ZipCode')" 
                                                  class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-300">Edit</button>
                                      }
-                                     @if (PermissionHelper.HasPermission(User, "Branches", 'D'))
-                                     {
-                                         <form method="post" asp-page-handler="Delete" asp-route-id="@branch.BranchId" class="inline m-0">
-                                             <button type="submit" onclick="return confirm('Delete this branch?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all dark:bg-slate-700 dark:text-gray-500">Delete</button>
-                                         </form>
-                                     }
+                                      @if (PermissionHelper.HasPermission(User, "Branches", 'D'))
+                                      {
+                                          <form method="post" asp-page-handler="Archive" asp-route-id="@branch.BranchId" class="inline m-0">
+                                              <button type="submit" onclick="return confirm('Archive this branch?')" class="px-3 py-1.5 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold hover:bg-yellow-100 transition-all dark:bg-slate-700 dark:text-gray-500">Archive</button>
+                                          </form>
+                                      }
                                  </div>
                              </td>
                         </tr>

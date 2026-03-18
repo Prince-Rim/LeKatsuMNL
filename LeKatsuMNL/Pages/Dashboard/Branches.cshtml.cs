@@ -35,6 +35,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
             var query = _context.BranchLocations
+                .Where(b => !b.IsArchived)
                 .Include(b => b.BranchManagers)
                 .AsQueryable();
 
@@ -157,7 +158,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             return string.Join(", ", parts);
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        public async Task<IActionResult> OnPostArchiveAsync(int id)
         {
             if (!PermissionHelper.HasPermission(User, "Branches", 'D'))
             {
@@ -167,10 +168,26 @@ namespace LeKatsuMNL.Pages.Dashboard
             var branch = await _context.BranchLocations.FindAsync(id);
             if (branch != null)
             {
-                _context.BranchLocations.Remove(branch);
+                branch.IsArchived = true;
                 await _context.SaveChangesAsync();
             }
 
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync(string ids)
+        {
+            if (!PermissionHelper.HasPermission(User, "Branches", 'D')) return Forbid();
+            if (string.IsNullOrEmpty(ids)) return RedirectToPage();
+
+            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var branches = await _context.BranchLocations.Where(b => idList.Contains(b.BranchId)).ToListAsync();
+            foreach (var branch in branches)
+            {
+                branch.IsArchived = true;
+            }
+
+            await _context.SaveChangesAsync();
             return RedirectToPage();
         }
     }

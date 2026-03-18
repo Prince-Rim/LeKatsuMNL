@@ -48,5 +48,7 @@ namespace LeKatsuMNL.Models
 
         // Navigation Properties
         public ICollection<BranchManager> BranchManagers { get; set; } = new List<BranchManager>();
+
+        public bool IsArchived { get; set; } = false;
     }
 }

@@ -81,6 +81,7 @@
                         <th class="px-8 py-3">Received Date</th>
                         <th class="px-8 py-3">Items</th>
                         <th class="px-8 py-3 text-center">Status</th>
+                        <th class="px-8 py-4 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -107,6 +108,11 @@
                                 </td>
                                 <td class="px-8 py-4 text-center">
                                     <span class="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-bold uppercase tracking-widest dark:bg-green-500/10 dark:text-green-400">Received</span>
+                                </td>
+                                <td class="px-8 py-4 text-right">
+                                    <form method="post" asp-page-handler="Archive" asp-route-id="@order.SoaId" class="inline m-0">
+                                        <button type="submit" onclick="return confirm('Archive this supply order?')" class="px-3 py-1.5 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold hover:bg-yellow-100 transition-all dark:bg-slate-700 dark:text-gray-500">Archive</button>
+                                    </form>
                                 </td>
                             </tr>
                         }

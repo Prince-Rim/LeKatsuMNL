@@ -1,0 +1,133 @@
+@page
+@model LeKatsuMNL.Pages.Dashboard.ArchiveModel
+@{
+    ViewData["Title"] = "System / Archive Module";
+}
+
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h2 class="text-2xl font-black text-gray-800 tracking-tight dark:text-white">Archive Management</h2>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Restore soft-deleted records to their original modules</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+    <!-- Tabs Header -->
+    <div class="flex border-b border-gray-200 px-4 bg-gray-50/50 dark:bg-slate-900/50 dark:border-gray-700">
+        @foreach (var tab in new[] { "Items", "SKU", "Users", "Suppliers", "Branches", "Orders", "SupplyOrders" })
+        {
+            <a asp-page="./Archive" asp-route-ActiveTab="@tab" 
+               class="px-6 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 @(Model.ActiveTab == tab ? "text-[#C41E24] border-[#C41E24]" : "text-gray-400 border-transparent hover:text-gray-600")">
+                @tab
+            </a>
+        }
+    </div>
+
+    <!-- Search & Bulk Actions -->
+    <div class="p-5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+        <div class="flex items-center space-x-4 flex-1 max-w-md">
+            <form method="get" class="relative w-full group">
+                <input type="hidden" name="ActiveTab" value="@Model.ActiveTab" />
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 group-focus-within:text-[#C41E24] transition-colors">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm" 
+                       class="w-full border border-gray-200 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-[#C41E24] outline-none transition-all dark:bg-slate-700 dark:text-white dark:border-gray-600" 
+                       placeholder="Search @Model.ActiveTab...">
+            </form>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button type="button" onclick="handleBulkRestore()" 
+                    class="px-6 py-2.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 transition-all shadow-sm flex items-center border border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20">
+                <i class="bi bi-arrow-counterclockwise mr-2"></i> Bulk Restore
+            </button>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4 w-10"><input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:bg-slate-800 dark:border-gray-600"></th>
+                    <th class="px-8 py-4">ID</th>
+                    <th class="px-8 py-4">Name / Reference</th>
+                    <th class="px-8 py-4">Sub-Type</th>
+                    <th class="px-8 py-4">Details</th>
+                    <th class="px-8 py-4 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.ArchivedItems != null && Model.ArchivedItems.Any())
+                {
+                    foreach (var item in Model.ArchivedItems)
+                    {
+                        <tr class="hover:bg-gray-50/50 transition-colors dark:hover:bg-slate-700/30">
+                            <td class="px-8 py-5"><input type="checkbox" value="@item.Id" class="item-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
+                            <td class="px-8 py-5 text-gray-400 font-bold">#@item.Id</td>
+                            <td class="px-8 py-5 text-gray-800 font-black dark:text-white">@item.Name</td>
+                            <td class="px-8 py-5">
+                                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[10px] font-black uppercase tracking-widest dark:bg-slate-700 dark:text-gray-400">
+                                    @item.Type
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-gray-500 italic">@item.Details</td>
+                            <td class="px-8 py-5 text-center">
+                                <form method="post" asp-page-handler="Restore" onsubmit="return confirm('Restore this item?')">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden" name="tab" value="@Model.ActiveTab" />
+                                    <input type="hidden" name="subType" value="@item.Type" />
+                                    <button type="submit" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all dark:hover:bg-indigo-500/10" title="Restore">
+                                        <i class="bi bi-arrow-counterclockwise text-lg"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-8 py-20 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-3 opacity-20">
+                                <i class="bi bi-archive text-6xl"></i>
+                                <span class="text-sm font-black uppercase tracking-widest text-gray-400">Empty Archive</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <partial name="_Pagination" model="Model.ArchivedItems" />
+</div>
+
+<form id="bulkRestoreForm" method="post" asp-page-handler="BulkRestore">
+    <input type="hidden" name="ids" id="bulkIds" />
+    <input type="hidden" name="tab" value="@Model.ActiveTab" />
+</form>
+
+@section Scripts {
+    <script>
+        // Select All toggle
+        document.getElementById('selectAll')?.addEventListener('change', function() {
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        function handleBulkRestore() {
+            const selected = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+            if (selected.length === 0) {
+                alert('Please select at least one item to restore.');
+                return;
+            }
+
+            if (confirm(`Restore ${selected.length} selected item(s)?`)) {
+                document.getElementById('bulkIds').value = selected.join(',');
+                document.getElementById('bulkRestoreForm').submit();
+            }
+        }
+    </script>
+}

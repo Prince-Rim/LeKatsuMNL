@@ -29,18 +29,16 @@
                 <i class="bi bi-chevron-down text-xs"></i>
             </button>
             <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
-                @if (PermissionHelper.HasPermission(User, "Items", 'D'))
-                {
-                    <button type="button" onclick="handleArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700">
-                        Archive
-                    </button>
-                }
+
                 @if (PermissionHelper.HasPermission(User, "Rejects", 'C'))
                 {
                     <button type="button" onclick="openRejectModal()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 hover:text-[#C41E24] transition-colors">
                         Reject
                     </button>
                 }
+                <button type="button" onclick="handleArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                    Archive
+                </button>
             </div>
         </div>
 
@@ -170,24 +168,35 @@
                             <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.CostPrice)</td>
                             <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">₱ @String.Format("{0:0.00}", item.SellingPrice)</td>
                             <td class="px-6 py-5">
-                                @if (PermissionHelper.HasPermission(User, "Items", 'U'))
-                                {
-                                    <button onclick='openEditItemModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
-                                        comId = item.ComId, 
-                                        itemName = item.ItemName, 
-                                        categoryId = item.CategoryId, 
-                                        subCategoryId = item.SubCategoryId,
-                                        vendorId = item.VendorId,
-                                        uom = item.Uom,
-                                        costPrice = item.CostPrice,
-                                        sellingPrice = item.SellingPrice,
-                                        yield = item.Yield,
-                                        stock = item.Stock,
-                                        isRepack = item.IsRepack
-                                    })))' class="text-blue-500 hover:text-blue-700 transition-colors">
-                                        <i class="bi bi-pencil-square text-lg"></i>
-                                    </button>
-                                }
+                                <div class="flex items-center space-x-3">
+                                    @if (PermissionHelper.HasPermission(User, "Items", 'U'))
+                                    {
+                                        <button onclick='openEditItemModal(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
+                                            comId = item.ComId, 
+                                            itemName = item.ItemName, 
+                                            categoryId = item.CategoryId, 
+                                            subCategoryId = item.SubCategoryId,
+                                            vendorId = item.VendorId,
+                                            uom = item.Uom,
+                                            costPrice = item.CostPrice,
+                                            sellingPrice = item.SellingPrice,
+                                            yield = item.Yield,
+                                            stock = item.Stock,
+                                            isRepack = item.IsRepack
+                                        })))' class="text-blue-500 hover:text-blue-700 transition-colors" title="Edit">
+                                            <i class="bi bi-pencil-square text-lg"></i>
+                                        </button>
+                                    }
+                                    @if (PermissionHelper.HasPermission(User, "Items", 'D'))
+                                    {
+                                        <form method="post" asp-page-handler="Archive" onsubmit="return confirm('Archive this item?')">
+                                            <input type="hidden" name="id" value="@item.ComId" />
+                                            <button type="submit" class="text-red-500 hover:text-red-700 transition-colors" title="Archive">
+                                                <i class="bi bi-archive text-lg"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -812,6 +821,35 @@
                     input.placeholder = input.dataset.tempPlaceholder;
                 }
             }, 200);
+        }
+        function handleArchive() {
+            const checked = document.querySelectorAll('.row-checkbox:checked');
+            if (checked.length === 0) {
+                alert('Please select at least one item to archive.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to archive ${checked.length} selected item(s)?`)) {
+                const ids = Array.from(checked).map(cb => cb.dataset.id).join(',');
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '?handler=BulkArchive';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids';
+                input.value = ids;
+                
+                const antiforgery = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (antiforgery) {
+                    form.appendChild(antiforgery.cloneNode());
+                }
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
     </script>
 }

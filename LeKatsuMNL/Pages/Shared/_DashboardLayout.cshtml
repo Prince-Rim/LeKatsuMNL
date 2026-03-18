@@ -183,17 +183,17 @@
 @if (HasPermission("Inventory"))
 {
     <div class="space-y-1">
-        <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Inventory">
+        <a href="/Dashboard/Items" class="@(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/IngredientDetails") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Inventory">
             <i class="bi bi-box-seam mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Inventory</span>
-            <i class="bi bi-chevron-down ml-auto text-xs opacity-50 group-hover:opacity-100 transition-transform @(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "rotate-180" : "")"></i>
+            <i class="bi bi-chevron-down ml-auto text-xs opacity-50 group-hover:opacity-100 transition-transform @(currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/IngredientDetails") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects") ? "rotate-180" : "")"></i>
         </a>
 
-        @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))
+        @if (currentPage.Contains("/Dashboard/Items") || currentPage.Contains("/Dashboard/IngredientDetails") || currentPage.Contains("/Dashboard/SKU") || currentPage.Contains("/Dashboard/SkuDetails") || currentPage.Contains("/Dashboard/Category") || currentPage.Contains("/Dashboard/Rejects"))
         {
             <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
                 @if (HasPermission("Items"))
                 {
-                    <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") || Context.Request.Path.StartsWithSegments("/Dashboard/SKU") || Context.Request.Path.StartsWithSegments("/Dashboard/SkuDetails") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
+                    <a href="/Dashboard/Items" class="flex items-center pl-6 text-sm text-gray-500 dark:text-gray-400 hover:text-[#C41E24] dark:hover:text-white transition-colors relative @(Context.Request.Path.StartsWithSegments("/Dashboard/Items") || Context.Request.Path.StartsWithSegments("/Dashboard/IngredientDetails") || Context.Request.Path.StartsWithSegments("/Dashboard/SKU") || Context.Request.Path.StartsWithSegments("/Dashboard/SkuDetails") ? "sub-nav-active dark:bg-gray-800 text-[#C41E24] font-bold" : "")">
                         <span class="sidebar-text">Items</span>
                     </a>
                 }
@@ -253,6 +253,10 @@
     </a>
 }
 
+<a href="/Dashboard/Archive" class="@(currentPage.Contains("/Dashboard/Archive") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Archive">
+    <i class="bi bi-archive mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Archive</span>
+</a>
+
             <a href="/Dashboard/Settings" class="@(currentPage.Contains("/Dashboard/Settings") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Settings">
                 <i class="bi bi-gear mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Settings</span>
             </a>
@@ -274,7 +278,7 @@
     <main class="pt-24 pl-64 pr-8 pb-8 min-h-screen bg-[#fcfcfc] dark:bg-gray-900 transition-colors duration-200">
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 py-3 px-5 mb-6 flex items-center justify-between shadow-sm transition-colors duration-200">
             <div class="flex items-center">
-                <button onclick="history.back()" class="bg-[#C41E24] text-white rounded-full p-2 mr-4 hover:bg-[#a51a1f] transition-colors shadow-md flex items-center justify-center">
+                <button onclick="smartBack()" class="bg-[#C41E24] text-white rounded-full p-2 mr-4 hover:bg-[#a51a1f] transition-colors shadow-md flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -290,5 +294,68 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Helper to normalize paths like "/Dashboard/Items/64" or "/Dashboard/Items" to "/dashboard/items"
+        function getCorePath(pathname) {
+            let parts = pathname.toLowerCase().split('/').filter(p => p);
+            if (parts.length >= 2) {
+                return '/' + parts[0] + '/' + parts[1]; // e.g., "/dashboard/items"
+            }
+            return pathname.toLowerCase();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentPath = window.location.pathname;
+            let currentCorePath = getCorePath(currentPath);
+            let referrer = document.referrer;
+            
+            if (referrer) {
+                try {
+                    let refUrl = new URL(referrer);
+                    let refCorePath = getCorePath(refUrl.pathname);
+                    
+                    // Only store if from same origin AND different core module
+                    if (refUrl.origin === window.location.origin && refCorePath !== currentCorePath) {
+                        sessionStorage.setItem('smartBack_' + currentCorePath, referrer);
+                    }
+                } catch (e) {
+                    console.error("Error parsing referrer:", e);
+                }
+            }
+        });
+
+        function smartBack() {
+            let currentPath = window.location.pathname;
+            let currentCorePath = getCorePath(currentPath);
+            let smartBackUrl = sessionStorage.getItem('smartBack_' + currentCorePath);
+            
+            if (smartBackUrl) {
+                try {
+                    let refCorePath = getCorePath(new URL(smartBackUrl).pathname);
+                    // Safety check to ensure we don't redirect to the exact same module
+                    if (refCorePath !== currentCorePath) {
+                        window.location.href = smartBackUrl;
+                        return;
+                    }
+                } catch(e) {}
+            } 
+            
+            // Logical fallbacks if no valid referrer was captured
+            if (currentCorePath.includes('/orderdetails')) {
+                window.location.href = '/Dashboard/BranchOrders';
+            } else if (currentCorePath.includes('/skudetails')) {
+                window.location.href = '/Dashboard/SKU';
+            } else if (currentCorePath.includes('/ingredientdetails')) {
+                window.location.href = '/Dashboard/Items';
+            } else if (currentCorePath !== '/dashboard' && currentCorePath !== '/dashboard/index') {
+                // Return to main dashboard for top-level modules
+                window.location.href = '/Dashboard';
+            } else {
+                // If on the dashboard itself with nowhere else to go
+                history.back();
+            }
+        }
+    </script>
 </body>
 </html>

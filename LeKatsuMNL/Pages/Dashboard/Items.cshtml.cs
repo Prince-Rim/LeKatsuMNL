@@ -74,6 +74,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             RepackStatus = repackStatus ?? "All";
 
             var query = _context.CommissaryInventories
+                .Where(i => !i.IsArchived)
                 .Where(i => i.SkuId == null)
                 .Include(i => i.Category)
                 .Include(i => i.SubCategory)
@@ -308,6 +309,32 @@ namespace LeKatsuMNL.Pages.Dashboard
             await _context.SaveChangesAsync();
 
             return RedirectToPage("/Dashboard/Rejects", new { tab = "recipe" });
+        }
+
+        public async Task<IActionResult> OnPostArchiveAsync(int id)
+        {
+            var item = await _context.CommissaryInventories.FindAsync(id);
+            if (item == null) return NotFound();
+
+            item.IsArchived = true;
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync(string ids)
+        {
+            if (!PermissionHelper.HasPermission(User, "Items", 'D')) return Forbid();
+            if (string.IsNullOrEmpty(ids)) return RedirectToPage();
+
+            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var items = await _context.CommissaryInventories.Where(i => idList.Contains(i.ComId)).ToListAsync();
+            foreach (var item in items)
+            {
+                item.IsArchived = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
         }
     }
 }

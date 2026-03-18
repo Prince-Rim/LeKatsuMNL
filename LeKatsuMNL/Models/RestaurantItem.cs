@@ -37,5 +37,7 @@ namespace LeKatsuMNL.Models
 
         // Navigation Properties
         public ICollection<ItemTransaction> ItemTransactions { get; set; } = new List<ItemTransaction>();
+
+        public bool IsArchived { get; set; } = false;
     }
 }

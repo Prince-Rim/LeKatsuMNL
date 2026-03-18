@@ -59,6 +59,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .OrderBy(i => i.ItemName).ToListAsync();
 
             var orders = _context.SupplyOrders
+                .Where(so => !so.IsArchived)
                 .Include(so => so.SupplyLists)
                     .ThenInclude(sl => sl.CommissaryInventory)
                 .OrderByDescending(so => so.SupplyDate);
@@ -130,6 +131,17 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             await _context.SaveChangesAsync();
             StatusMessage = "Successfully recorded stock receipt and updated inventory.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostArchiveAsync(int id)
+        {
+            var supplyOrder = await _context.SupplyOrders.FindAsync(id);
+            if (supplyOrder != null)
+            {
+                supplyOrder.IsArchived = true;
+                await _context.SaveChangesAsync();
+            }
             return RedirectToPage();
         }
     }

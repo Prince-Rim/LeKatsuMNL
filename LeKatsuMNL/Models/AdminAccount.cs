@@ -33,6 +33,8 @@ namespace LeKatsuMNL.Models
         [MaxLength(50)]
         public string Role { get; set; } = "Admin";
 
+        public bool IsArchived { get; set; } = false;
+
         [Required]
         [MaxLength(20)]
         public string Status { get; set; }
