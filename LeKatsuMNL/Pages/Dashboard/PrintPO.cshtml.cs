@@ -27,7 +27,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ThenInclude(ol => ol.SkuHeader)
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.CommissaryInventory)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
+                .FirstOrDefaultAsync(m => m.OrderId == id && !m.IsArchived);
 
             if (Order == null)
             {

@@ -4,6 +4,20 @@
     ViewData["Title"] = "Inventory Item Rejects";
 }
 
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="mb-6 animate-pulse">
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between shadow-sm dark:bg-green-500/10 dark:border-green-500/20">
+            <div class="flex items-center space-x-3 text-green-700 dark:text-green-400">
+                <i class="bi bi-check-circle-fill text-lg"></i>
+                <span class="text-xs font-bold uppercase tracking-wider">@Model.StatusMessage</span>
+            </div>
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-green-400 hover:text-green-600 dark:text-green-500"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+}
+
+
 
     <div class="bg-white rounded-t-xl border-t border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
 
@@ -18,7 +32,7 @@
                     <button class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 transition-colors dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">
                         Export List
                     </button>
-                    <button class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 transition-colors">
+                    <button type="button" onclick="confirmClearLogs()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 transition-colors">
                         Clear Logs
                     </button>
                 </div>
@@ -73,12 +87,20 @@
     <partial name="_Pagination" model="Model.RejectLogs" />
 
 @section Scripts {
+    <form id="clearLogsForm" method="post" asp-page-handler="ClearLogs" class="hidden"></form>
+
     <script>
         const actionsMenu = document.getElementById('actionsMenu');
 
         function toggleActions(e) {
             e.stopPropagation();
             actionsMenu.classList.toggle('hidden');
+        }
+
+        function confirmClearLogs() {
+            if (confirm('Are you sure you want to permanently clear all reject logs? This action cannot be undone.')) {
+                document.getElementById('clearLogsForm').submit();
+            }
         }
 
         window.onclick = function(event) {

@@ -73,7 +73,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(o => o.OrderComments)
                     .ThenInclude(oc => oc.AdminAccount)
                 .Include(o => o.Invoices)
-                .FirstOrDefaultAsync(m => m.OrderId == orderId);
+                .FirstOrDefaultAsync(m => m.OrderId == orderId && !m.IsArchived);
 
             if (Order == null)
             {
@@ -184,7 +184,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ThenInclude(ol => ol.CommissaryInventory)
                         .ThenInclude(ci => ci.IngredientRecipes)
                             .ThenInclude(r => r.Material)
-                .FirstOrDefaultAsync(o => o.OrderId == OrderId);
+                .Include(o => o.Invoices)
+                .FirstOrDefaultAsync(m => m.OrderId == OrderId && !m.IsArchived);
 
             if (order == null) return NotFound();
             

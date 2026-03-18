@@ -5,6 +5,20 @@
     ViewData["Title"] = "Inventory Items";
 }
 
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="mb-6 animate-pulse">
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between shadow-sm dark:bg-green-500/10 dark:border-green-500/20">
+            <div class="flex items-center space-x-3 text-green-700 dark:text-green-400">
+                <i class="bi bi-check-circle-fill text-lg"></i>
+                <span class="text-xs font-bold uppercase tracking-wider">@Model.StatusMessage</span>
+            </div>
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-green-400 hover:text-green-600 dark:text-green-500"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+}
+
+
 @section TitleActions {
     @if (PermissionHelper.HasPermission(User, "Items", 'C'))
     {
@@ -309,7 +323,7 @@
                 <div class="grid grid-cols-2 gap-5">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Add Stock</label>
-                        <input type="number" name="Stock" id="newStock" step="any" placeholder="0.00" required onfocus="this.select()"
+                        <input type="text" name="Stock" id="newStock" placeholder="0.00" required onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
@@ -457,7 +471,7 @@
                 <div class="grid grid-cols-2 gap-5">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">In Stock</label>
-                        <input type="number" name="Stock" id="editStock" step="any" placeholder="0.00" required onfocus="this.select()"
+                        <input type="text" name="Stock" id="editStock" placeholder="0.00" required onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
@@ -705,7 +719,7 @@
             document.getElementById('editUOM').value = item.uom;
             document.getElementById('editCostPrice').value = item.costPrice ? parseFloat(item.costPrice).toFixed(2) : '';
             document.getElementById('editSellingPrice').value = (item.sellingPrice && item.sellingPrice > 0) ? parseFloat(item.sellingPrice).toFixed(2) : '';
-            document.getElementById('editStock').value = item.stock;
+            document.getElementById('editStock').value = item.stock ? parseFloat(item.stock).toString() : '0';
             document.getElementById('editIsRepack').checked = item.isRepack || false;
             
             // Handle Selling Price Toggle

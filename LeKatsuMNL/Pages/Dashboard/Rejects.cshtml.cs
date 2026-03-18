@@ -23,6 +23,9 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public int PageSize { get; set; } = 10;
  
+        [TempData]
+        public string StatusMessage { get; set; }
+
          public async Task OnGetAsync(int? pageIndex)
          {
              var query = _context.RejectItems.Where(r => r.RejectType == "Recipe");
@@ -31,6 +34,18 @@ namespace LeKatsuMNL.Pages.Dashboard
              RejectLogs = await PaginatedList<RejectItem>.CreateAsync(
                  query.OrderByDescending(r => r.RejectedAt), 
                  pageIndex ?? 1, pageSize);
+         }
+
+         public async Task<IActionResult> OnPostClearLogsAsync()
+         {
+             if (!PermissionHelper.HasPermission(User, "Rejects", 'D')) return Forbid();
+
+             var rejects = await _context.RejectItems.ToListAsync();
+             _context.RejectItems.RemoveRange(rejects);
+             await _context.SaveChangesAsync();
+
+             StatusMessage = "All reject logs have been successfully cleared.";
+             return RedirectToPage();
          }
     }
 }

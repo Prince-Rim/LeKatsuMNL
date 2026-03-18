@@ -29,6 +29,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             var query = _context.Invoices
                 .Include(i => i.OrderInfo)
+                .Where(i => !i.OrderInfo.IsArchived)
                 .OrderByDescending(i => i.InvoiceDate);
             
             int pageSize = PageSize > 0 ? PageSize : 10;

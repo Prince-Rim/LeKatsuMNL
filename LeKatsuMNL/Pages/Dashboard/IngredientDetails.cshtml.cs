@@ -23,6 +23,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public CommissaryInventory Ingredient { get; set; }
 
+        [TempData]
+        public string StatusMessage { get; set; }
+
         public List<Category> Categories { get; set; }
         public List<SubCategory> SubCategories { get; set; }
         public List<CommissaryInventory> AvailableItems { get; set; }
@@ -52,7 +55,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             // Available items: exclude self to prevent circular reference, and only those that are not repacks themselves (optional, but keep it simple for now as per user request to be like SKU)
             // User said "adding an ingredient to an ingredient", didn't specify depth, but SKU allows recursion.
             AvailableItems = await _context.CommissaryInventories
-                .Where(i => i.ComId != id && i.SkuId == null)
+                .Where(i => i.ComId != id && i.SkuId == null && !i.IsArchived)
                 .ToListAsync();
 
             return Page();
@@ -112,6 +115,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             await _context.SaveChangesAsync();
 
+            StatusMessage = "Successfully recorded. The ingredient details have been updated.";
             return RedirectToPage(new { id = Ingredient.ComId });
         }
 
