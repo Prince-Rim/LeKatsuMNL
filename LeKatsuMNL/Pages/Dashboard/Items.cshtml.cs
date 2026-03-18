@@ -36,6 +36,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         public int? FilterSubCategoryId { get; set; }
         public int? FilterVendorId { get; set; }
         public string StockStatus { get; set; } = "All";
+        public string RepackStatus { get; set; } = "All";
         
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
@@ -53,6 +54,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public decimal? CostPrice { get; set; }
             public decimal? SellingPrice { get; set; }
             public decimal Stock { get; set; }
+            public bool IsRepack { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync(
@@ -61,13 +63,15 @@ namespace LeKatsuMNL.Pages.Dashboard
             int? categoryId = null, 
             int? subCategoryId = null, 
             int? vendorId = null, 
-            string stockStatus = null)
+            string stockStatus = null,
+            string repackStatus = null)
         {
             SearchTerm = searchTerm;
             FilterCategoryId = categoryId;
             FilterSubCategoryId = subCategoryId;
             FilterVendorId = vendorId;
             StockStatus = stockStatus ?? "All";
+            RepackStatus = repackStatus ?? "All";
 
             var query = _context.CommissaryInventories
                 .Where(i => i.SkuId == null)
@@ -122,6 +126,18 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
+            if (RepackStatus != "All")
+            {
+                if (RepackStatus == "Repack")
+                {
+                    query = query.Where(i => i.IsRepack);
+                }
+                else if (RepackStatus == "Non-Repack")
+                {
+                    query = query.Where(i => !i.IsRepack);
+                }
+            }
+
             query = query.OrderByDescending(i => i.ComId);
 
             int pageSize = PageSize > 0 ? PageSize : 10;
@@ -145,7 +161,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             string UOM,
             decimal? CostPrice,
             decimal? SellingPrice,
-            decimal Stock)
+            decimal Stock,
+            bool IsRepack)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'C')) return Forbid();
 
@@ -173,7 +190,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 Uom = UOM ?? "pack",
                 CostPrice = CostPrice ?? 0,
                 SellingPrice = SellingPrice ?? 0,
-                Stock = Stock
+                Stock = Stock,
+                IsRepack = IsRepack
             };
 
             _context.CommissaryInventories.Add(item);
@@ -194,7 +212,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             string UOM,
             decimal? CostPrice,
             decimal? SellingPrice,
-            decimal Stock)
+            decimal Stock,
+            bool IsRepack)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
 
@@ -227,6 +246,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             item.CostPrice = CostPrice ?? 0;
             item.SellingPrice = SellingPrice ?? 0;
             item.Stock = Stock;
+            item.IsRepack = IsRepack;
 
             await _context.SaveChangesAsync();
             return RedirectToPage();

@@ -1,0 +1,491 @@
+@page "{id:int?}"
+@model LeKatsuMNL.Pages.Dashboard.IngredientDetailsModel
+@using LeKatsuMNL.Helpers
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = $"Inventory Items / {Model.Ingredient?.ItemName ?? "Ingredient Details"}";
+}
+
+@section Styles {
+    <style>
+        .box-background {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+        }
+
+        .ingredient-table th {
+            background-color: #f9f9f9;
+            color: #999;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 12px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ingredient-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+}
+
+@section TitleActions {
+    <div class="flex items-center space-x-3">
+        @if (PermissionHelper.HasPermission(User, "Items", 'U'))
+        {
+            <button type="submit" form="ingredientForm" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100 flex items-center">
+                <i class="bi bi-floppy mr-2 text-sm"></i> Save Changes
+            </button>
+        }
+    </div>
+}
+
+<div class="space-y-6 max-w-7xl mx-auto py-8 px-6">
+    <!-- Ingredient Header Section -->
+    <div class="flex items-center space-x-8 mb-8">
+        <div class="w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm relative overflow-hidden group dark:bg-slate-700 dark:border-gray-700">
+            <i class="bi bi-basket text-3xl text-gray-300"></i>
+        </div>
+        <div class="flex-1 space-y-4">
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight dark:text-white">@Model.Ingredient?.ItemName: <span class="text-[#C41E24]">@Model.Ingredient?.Yield</span></h2>
+            <div class="flex items-center space-x-4">
+               <div class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold border border-blue-100">
+                   @Model.Ingredient?.Stock @Model.Ingredient?.Uom
+               </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <form id="ingredientForm" method="post" class="grid grid-cols-12 gap-8">
+        <!-- Left: Basic Information -->
+        <div class="col-span-12 lg:col-span-5 space-y-6">
+            <div class="space-y-5">
+                <input type="hidden" asp-for="Ingredient.ComId" />
+                
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Ingredient Name</label>
+                    <input type="text" asp-for="Ingredient.ItemName" class="w-full bg-white border border-gray-200 rounded-xl px-5 py-3.5 text-base font-bold text-gray-900 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all shadow-sm dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Category</label>
+                        <select asp-for="Ingredient.CategoryId" id="categorySelect" required class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            <option value="">Select Category</option>
+                            @foreach(var cat in Model.Categories)
+                            {
+                                <option value="@cat.CategoryId">@cat.CategoryName</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Sub-Category</label>
+                        <select asp-for="Ingredient.SubCategoryId" id="subCategorySelect" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            <option value="">Select Sub-Category</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit of Measurement</label>
+                        <input type="text" asp-for="Ingredient.Uom" list="uomList" placeholder="UOM"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    </div>
+                     <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Stock</label>
+                        <input type="number" step="any" asp-for="Ingredient.Stock" placeholder="0.00" onfocus="this.select()" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit Cost</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                            <input type="number" step="0.01" asp-for="Ingredient.CostPrice" asp-format="{0:F2}" placeholder="0.00" onfocus="this.select()" class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Selling Price</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                            <input type="number" step="0.01" asp-for="Ingredient.SellingPrice" asp-format="{0:F2}" placeholder="0.00" onfocus="this.select()" class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Repacking Materials -->
+        <div class="col-span-12 lg:col-span-7 space-y-6">
+            <div class="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+                <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">Repacking Materials</h3>
+                    <div class="flex items-center space-x-3">
+                        @if (PermissionHelper.HasPermission(User, "Items", 'U'))
+                        {
+                            <button type="button" onclick="openIngredientModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
+                                <i class="bi bi-plus-lg mr-2"></i> Add Material
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-x-auto">
+                    <table class="w-full text-left ingredient-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th class="w-32 text-center">Quantity</th>
+                                <th class="w-32 text-center">UOM</th>
+                                <th class="w-32 text-right">Cost</th>
+                                <th class="w-16"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialItemsList">
+                            @if (Model.Ingredient?.IngredientRecipes != null)
+                            {
+                                var recipes = Model.Ingredient.IngredientRecipes.ToList();
+                                for (int i = 0; i < recipes.Count; i++)
+                                {
+                                    <tr class="material-row" data-com-id="@recipes[i].MaterialId">
+                                        <td>
+                                            <input type="hidden" name="Ingredient.IngredientRecipes[@i].MaterialId" value="@recipes[i].MaterialId" />
+                                            <div class="flex items-center space-x-4">
+                                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                    <i class="bi bi-basket text-gray-400"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-bold text-gray-900 dark:text-white">@recipes[i].Material?.ItemName</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="Ingredient.IngredientRecipes[@i].QuantityNeeded" value="@recipes[i].QuantityNeeded.ToString("G29")" oninput="updateLineCost(this.closest('tr'))" class="qty-input w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                        </td>
+                                        <td>
+                                            <select name="Ingredient.IngredientRecipes[@i].Uom" onchange="updateLineCost(this.closest('tr'))" class="uom-select w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                                <option value="Grams" selected="@(recipes[i].Uom == "Grams")">Grams</option>
+                                                <option value="Dips" selected="@(recipes[i].Uom == "Dips")">Dips</option>
+                                                <option value="mL" selected="@(recipes[i].Uom == "mL")">mL</option>
+                                                <option value="Sticks" selected="@(recipes[i].Uom == "Sticks")">Sticks</option>
+                                                <option value="pcs" selected="@(recipes[i].Uom == "pcs")">pcs</option>
+                                                <option value="pack" selected="@(recipes[i].Uom == "pack")">pack</option>
+                                                <option value="bottle" selected="@(recipes[i].Uom == "bottle")">bottle</option>
+                                                <option value="cans" selected="@(recipes[i].Uom == "cans")">cans</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-right pr-4">
+                                            @{
+                                                decimal lineCost = 0;
+                                                if (recipes[i].Material != null)
+                                                {
+                                                    decimal convertedQty = UomConverter.Convert(recipes[i].QuantityNeeded, recipes[i].Uom, recipes[i].Material.Uom);
+                                                    lineCost = convertedQty * recipes[i].Material.CostPrice;
+                                                }
+                                            }
+                                            <span class="line-cost font-bold text-gray-900 dark:text-white" 
+                                                  data-unit-price="@(recipes[i].Material?.CostPrice ?? 0)" 
+                                                  data-base-uom="@(recipes[i].Material?.Uom)">
+                                                ₱ @lineCost.ToString("N2")
+                                            </span>
+                                        </td>
+                                        <td class="text-right pr-4">
+                                            @if (PermissionHelper.HasPermission(User, "Items", 'U'))
+                                            {
+                                                <button type="button" onclick="removeMaterialRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Add Ingredient Modal -->
+<div id="ingredientModal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeIngredientModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-gray-100 dark:bg-slate-800 dark:border-gray-700">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest dark:text-gray-200">Add material</h3>
+                    <button onclick="closeIngredientModal()" class="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500">
+                        <i class="bi bi-x-lg text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="relative mb-6">
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+                    <input type="text" id="modalSearch" onkeyup="filterItems()" placeholder="Search ingredient" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#C41E24]/5 focus:border-[#C41E24] outline-none transition-all placeholder:text-gray-400 dark:bg-slate-700/50 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-700">
+                </div>
+
+                <div class="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                    @if (Model.AvailableItems != null && Model.AvailableItems.Any())
+                    {
+                        @foreach (var item in Model.AvailableItems)
+                        {
+                            <div class="item-row flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100 cursor-pointer group dark:hover:bg-slate-700/50" onclick="toggleItemSelection(this)">
+                                <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded group-hover:border-[#C41E24] transition-all checkbox-container dark:border-gray-600">
+                                    <input type="checkbox" class="hidden item-checkbox" 
+                                           value="@item.ComId" 
+                                           data-name="@item.ItemName"
+                                           data-cost="@item.CostPrice"
+                                           data-uom="@item.Uom">
+                                    <i class="bi bi-check-lg text-white text-xs opacity-0"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="font-bold text-gray-900 dark:text-white">@item.ItemName</span>
+                                    <div class="text-[10px] text-gray-500 uppercase tracking-widest">₱ @item.CostPrice.ToString("N2") / @item.Uom</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-6 text-center text-gray-400 font-medium text-sm italic dark:text-gray-500">
+                            No other ingredients available to add.
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3 dark:bg-slate-700/50 dark:border-gray-700">
+                <button onclick="closeIngredientModal()" class="px-6 py-2.5 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors dark:text-gray-400">Cancel</button>
+                <button onclick="addSelectedItems()" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<datalist id="uomList">
+    <option value="Grams"></option>
+    <option value="Dips"></option>
+    <option value="mL"></option>
+    <option value="Sticks"></option>
+    <option value="pcs"></option>
+    <option value="pack"></option>
+    <option value="bottle"></option>
+    <option value="cans"></option>
+</datalist>
+
+@section Scripts {
+    <script>
+        function openIngredientModal() {
+            document.getElementById('ingredientModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeIngredientModal() {
+            document.getElementById('ingredientModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function toggleItemSelection(element) {
+            const checkboxContainer = element.querySelector('.checkbox-container');
+            const checkIcon = element.querySelector('.bi-check-lg');
+            const text = element.querySelector('span');
+            
+            if (checkboxContainer.classList.contains('bg-[#C41E24]')) {
+                checkboxContainer.classList.remove('bg-[#C41E24]', 'border-[#C41E24]');
+                checkboxContainer.classList.add('border-gray-300');
+                checkIcon.classList.replace('opacity-100', 'opacity-0');
+                text.classList.remove('text-[#C41E24]');
+            } else {
+                checkboxContainer.classList.add('bg-[#C41E24]', 'border-[#C41E24]');
+                checkboxContainer.classList.remove('border-gray-300');
+                checkIcon.classList.replace('opacity-0', 'opacity-100');
+                text.classList.add('text-[#C41E24]');
+            }
+        }
+
+        function filterItems() {
+            const input = document.getElementById('modalSearch');
+            const filter = input.value.toUpperCase();
+            const rows = document.querySelectorAll('.item-row');
+
+            rows.forEach(row => {
+                const text = row.querySelector('span').innerText;
+                row.style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            });
+        }
+
+        function addSelectedItems() {
+            const tableBody = document.getElementById('materialItemsList');
+            const selectedItems = document.querySelectorAll('.item-row .checkbox-container.bg-\\[\\#C41E24\\]');
+            
+            selectedItems.forEach(container => {
+                const row = container.closest('.item-row');
+                const checkbox = row.querySelector('.item-checkbox');
+                const comId = checkbox.value;
+                const itemName = checkbox.getAttribute('data-name');
+                const cost = checkbox.getAttribute('data-cost');
+                const uom = checkbox.getAttribute('data-uom');
+                
+                if (!document.querySelector(`tr[data-com-id="${comId}"]`)) {
+                    const index = tableBody.querySelectorAll('tr').length;
+                    const newRow = `
+                        <tr class="material-row" data-com-id="${comId}">
+                            <td>
+                                <input type="hidden" name="Ingredient.IngredientRecipes[${index}].MaterialId" value="${comId}" />
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                        <i class="bi bi-basket text-gray-400"></i>
+                                    </div>
+                                    <span class="font-bold text-gray-800 dark:text-white">${itemName}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="text" name="Ingredient.IngredientRecipes[${index}].QuantityNeeded" value="1" oninput="updateLineCost(this.closest('tr'))" class="qty-input w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            </td>
+                            <td>
+                                <select name="Ingredient.IngredientRecipes[${index}].Uom" onchange="updateLineCost(this.closest('tr'))" class="uom-select w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-center text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] appearance-none cursor-pointer dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                    <option value="Grams" ${uom === 'Grams' ? 'selected' : ''}>Grams</option>
+                                    <option value="Dips" ${uom === 'Dips' ? 'selected' : ''}>Dips</option>
+                                    <option value="mL" ${uom === 'mL' ? 'selected' : ''}>mL</option>
+                                    <option value="Sticks" ${uom === 'Sticks' ? 'selected' : ''}>Sticks</option>
+                                    <option value="pcs" ${uom === 'pcs' ? 'selected' : ''}>pcs</option>
+                                    <option value="pack" ${uom === 'pack' ? 'selected' : ''}>pack</option>
+                                    <option value="bottle" ${uom === 'bottle' ? 'selected' : ''}>bottle</option>
+                                    <option value="cans" ${uom === 'cans' ? 'selected' : ''}>cans</option>
+                                </select>
+                            </td>
+                            <td class="text-right pr-4">
+                                <span class="line-cost font-bold text-gray-800 dark:text-white" data-unit-price="${cost}" data-base-uom="${uom}">₱ ${parseFloat(cost).toFixed(2)}</span>
+                            </td>
+                            <td class="text-right pr-4">
+                                <button type="button" onclick="removeMaterialRow(this)" class="text-gray-400 hover:text-red-500 transition-colors dark:text-gray-500">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', newRow);
+                }
+            });
+            
+            closeIngredientModal();
+            renumberRows();
+        }
+
+        function removeMaterialRow(button) {
+            button.closest('tr').remove();
+            renumberRows();
+        }
+
+        function renumberRows() {
+            const rows = document.querySelectorAll('#materialItemsList tr.material-row');
+            rows.forEach((row, index) => {
+                const comIdInput = row.querySelector('input[name*=".MaterialId"]');
+                const qtyInput = row.querySelector('input[name*=".QuantityNeeded"]');
+                const uomSelect = row.querySelector('select[name*=".Uom"]');
+                
+                if (comIdInput) comIdInput.name = `Ingredient.IngredientRecipes[${index}].MaterialId`;
+                if (qtyInput) qtyInput.name = `Ingredient.IngredientRecipes[${index}].QuantityNeeded`;
+                if (uomSelect) uomSelect.name = `Ingredient.IngredientRecipes[${index}].Uom`;
+            });
+        }
+
+        const subCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SubCategories.Select(s => new { s.SubCategoryId, s.SubCategoryName, s.CategoryId })));
+
+        function filterSubCategories(categoryId, selectedSubCategoryId = null) {
+            const select = document.getElementById('subCategorySelect');
+            select.innerHTML = '<option value="">Select Sub-Category</option>';
+            if (!categoryId) return;
+            const filtered = subCategories.filter(s => s.CategoryId == categoryId);
+            filtered.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.SubCategoryId;
+                option.textContent = s.SubCategoryName;
+                if (selectedSubCategoryId && s.SubCategoryId == selectedSubCategoryId) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        document.getElementById('categorySelect').addEventListener('change', function() { filterSubCategories(this.value); });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialCatId = '@Model.Ingredient?.CategoryId';
+            const initialSubCatId = '@Model.Ingredient?.SubCategoryId';
+            if (initialCatId) filterSubCategories(initialCatId, initialSubCatId);
+        });
+
+        const UNITS = {
+            "g": { category: "weight", factor: 1 }, "gram": { category: "weight", factor: 1 }, "grams": { category: "weight", factor: 1 },
+            "kg": { category: "weight", factor: 1000 }, "kilogram": { category: "weight", factor: 1000 }, "kilograms": { category: "weight", factor: 1000 },
+            "ml": { category: "volume", factor: 1 }, "milliliter": { category: "volume", factor: 1 }, "milliliters": { category: "volume", factor: 1 },
+            "l": { category: "volume", factor: 1000 }, "liter": { category: "volume", factor: 1000 }, "liters": { category: "volume", factor: 1000 },
+            "pcs": { category: "count", factor: 1 }, "pc": { category: "count", factor: 1 }, "per pc": { category: "count", factor: 1 }, "pieces": { category: "count", factor: 1 },
+            "pack": { category: "count", factor: 1 }, "bundle": { category: "count", factor: 1 }, "can": { category: "count", factor: 1 }, "cans": { category: "count", factor: 1 },
+            "stick": { category: "count", factor: 1 }, "sticks": { category: "count", factor: 1 }, "pull": { category: "count", factor: 1 }, "dip": { category: "count", factor: 1 }
+        };
+
+        function convertUom(quantity, fromUom, toUom) {
+            if (!fromUom || !toUom) return quantity;
+            const from = fromUom.toLowerCase().trim();
+            const to = toUom.toLowerCase().trim();
+            if (from === to) return quantity;
+            const fromInfo = UNITS[from];
+            const toInfo = UNITS[to];
+            if (!fromInfo || !toInfo || fromInfo.category !== toInfo.category) return quantity;
+            return (quantity * fromInfo.factor) / toInfo.factor;
+        }
+
+        function updateLineCost(row) {
+            const qtyInput = row.querySelector('.qty-input');
+            const uomSelect = row.querySelector('.uom-select');
+            const costSpan = row.querySelector('.line-cost');
+            if (!qtyInput || !uomSelect || !costSpan) return;
+            const quantity = parseFloat(qtyInput.value) || 0;
+            const fromUom = uomSelect.value;
+            const unitPrice = parseFloat(costSpan.dataset.unitPrice) || 0;
+            const baseUom = costSpan.dataset.baseUom;
+            const convertedQty = convertUom(quantity, fromUom, baseUom);
+            const lineCost = convertedQty * unitPrice;
+            costSpan.textContent = `₱ ${lineCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            updateTotalUnitCost();
+        }
+
+        function updateTotalUnitCost() {
+            let total = 0;
+            document.querySelectorAll('.line-cost').forEach(span => {
+                const text = span.textContent.replace('₱', '').replace(/,/g, '').trim();
+                total += parseFloat(text) || 0;
+            });
+            document.getElementById('Ingredient_CostPrice').value = total.toFixed(2);
+        }
+
+        function handleDatalistFocus(input) {
+            if (input.value) {
+                input.dataset.originalValue = input.value;
+                input.placeholder = input.value;
+                input.value = '';
+            }
+        }
+
+        function handleDatalistBlur(input) {
+            setTimeout(() => {
+                if (input.value === '' && input.dataset.originalValue) input.value = input.dataset.originalValue;
+            }, 200);
+        }
+    </script>
+}

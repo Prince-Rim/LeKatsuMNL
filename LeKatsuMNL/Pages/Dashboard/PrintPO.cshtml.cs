@@ -25,6 +25,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ThenInclude(bm => bm.BranchLocation)
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.SkuHeader)
+                .Include(o => o.OrderLists)
+                    .ThenInclude(ol => ol.CommissaryInventory)
                 .FirstOrDefaultAsync(m => m.OrderId == id);
 
             if (Order == null)

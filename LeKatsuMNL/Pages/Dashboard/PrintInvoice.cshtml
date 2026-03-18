@@ -133,8 +133,10 @@
                     {
                         <tr>
                             <td class="py-4">
-                                <p class="font-bold text-gray-800">@item.SkuHeader?.ItemName</p>
-                                <p class="text-[10px] text-gray-400 uppercase font-medium">SKU CODE: SKU-@item.SkuId.ToString("D4")</p>
+                                <p class="font-bold text-gray-800">@(item.SkuId.HasValue ? item.SkuHeader?.ItemName : item.CommissaryInventory?.ItemName)</p>
+                                <p class="text-[10px] text-gray-400 uppercase font-medium">
+                                    @(item.SkuId.HasValue ? $"SKU CODE: SKU-{item.SkuId:D4}" : $"COM CODE: COM-{item.ComId:D4}")
+                                </p>
                             </td>
                             <td class="py-4 text-center text-gray-600 font-medium">@item.Quantity.ToString("0.##")</td>
                             <td class="py-4 text-right text-gray-600 font-medium">₱ @((item.TotalPrice / item.Quantity).ToString("N2"))</td>

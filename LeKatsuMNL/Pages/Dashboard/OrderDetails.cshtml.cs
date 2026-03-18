@@ -60,6 +60,13 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.SkuHeader)
                         .ThenInclude(s => s.Category)
+                .Include(o => o.OrderLists)
+                    .ThenInclude(ol => ol.CommissaryInventory)
+                        .ThenInclude(ci => ci.IngredientRecipes)
+                            .ThenInclude(r => r.Material)
+                .Include(o => o.OrderLists)
+                    .ThenInclude(ol => ol.CommissaryInventory)
+                        .ThenInclude(ci => ci.Category)
                 .Include(o => o.OrderComments)
                     .ThenInclude(oc => oc.BranchManager)
                         .ThenInclude(bm => bm.BranchLocation)
@@ -79,9 +86,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             var requirements = new Dictionary<int, decimal>();
             foreach (var item in Order.OrderLists)
             {
-                if (item.SkuHeader != null)
+                if (item.SkuId.HasValue && item.SkuHeader != null)
                 {
                     await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, requirements);
+                }
+                else if (item.ComId.HasValue)
+                {
+                    await AggregateIngredientRequirements(item.ComId.Value, item.Quantity, requirements);
                 }
             }
 
@@ -169,7 +180,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.SkuHeader)
                         .ThenInclude(s => s.SkuRecipes)
-                            .ThenInclude(r => r.CommissaryInventory)
+                .Include(o => o.OrderLists)
+                    .ThenInclude(ol => ol.CommissaryInventory)
+                        .ThenInclude(ci => ci.IngredientRecipes)
+                            .ThenInclude(r => r.Material)
                 .FirstOrDefaultAsync(o => o.OrderId == OrderId);
 
             if (order == null) return NotFound();
@@ -181,8 +195,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             var stockRequirements = new Dictionary<int, decimal>();
             foreach (var item in order.OrderLists)
             {
-                if (item.SkuHeader == null) continue;
-                await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, stockRequirements);
+                if (item.SkuId.HasValue && item.SkuHeader != null)
+                {
+                    await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, stockRequirements);
+                }
+                else if (item.ComId.HasValue)
+                {
+                    await AggregateIngredientRequirements(item.ComId.Value, item.Quantity, stockRequirements);
+                }
             }
 
             // Verify aggregated requirements against current inventory
@@ -228,7 +248,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             // 2.5 Deduct the SKU itself if it exists in CommissaryInventory (for SKU Report tracking)
             foreach (var item in order.OrderLists)
             {
-                if (item.SkuHeader != null)
+                if (item.SkuId.HasValue && item.SkuHeader != null)
                 {
                     var skuInventory = await _context.CommissaryInventories
                         .FirstOrDefaultAsync(i => i.SkuId == item.SkuHeader.SkuId);
@@ -263,6 +283,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                         QuantityChange = -item.Quantity,
                         TimeStamp = System.DateTime.Now
                     });
+                }
+                else if (item.ComId.HasValue)
+                {
+                    // Ingredient stock deduction is already handled in the stockRequirements loop above
+                    // This section is for SKU-specific inventory tracking if needed.
                 }
             }
 
@@ -349,6 +374,36 @@ namespace LeKatsuMNL.Pages.Dashboard
                 else if (recipe.TargetSkuId.HasValue)
                 {
                     await AggregateStockRequirements(recipe.TargetSkuId.Value, multiplier * recipe.QuantityNeeded, requirements, new HashSet<int>(visitedSkuIds));
+                }
+            }
+        }
+
+        private async Task AggregateIngredientRequirements(int comId, decimal quantity, Dictionary<int, decimal> requirements, HashSet<int> visitedComIds = null)
+        {
+            if (visitedComIds == null) visitedComIds = new HashSet<int>();
+            if (visitedComIds.Contains(comId)) return;
+            visitedComIds.Add(comId);
+
+            var inventory = await _context.CommissaryInventories
+                .Include(ci => ci.IngredientRecipes)
+                    .ThenInclude(r => r.Material)
+                .FirstOrDefaultAsync(ci => ci.ComId == comId);
+
+            if (inventory == null) return;
+
+            // Add the parent ingredient itself
+            if (requirements.ContainsKey(comId))
+                requirements[comId] += quantity;
+            else
+                requirements[comId] = quantity;
+
+            // Add materials if it's a repack
+            if (inventory.IsRepack && inventory.IngredientRecipes != null)
+            {
+                foreach (var recipe in inventory.IngredientRecipes)
+                {
+                    decimal materialQty = recipe.QuantityNeeded * quantity;
+                    await AggregateIngredientRequirements(recipe.MaterialId, materialQty, requirements, new HashSet<int>(visitedComIds));
                 }
             }
         }

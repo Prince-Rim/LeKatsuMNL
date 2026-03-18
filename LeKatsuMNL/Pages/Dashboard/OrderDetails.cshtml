@@ -142,8 +142,12 @@
                             foreach (var item in Model.Order.OrderLists)
                             {
                                 <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@item.SkuHeader?.ItemName</td>
-                                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@item.SkuHeader?.Category?.CategoryName</td>
+                                    <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">
+                                        @(item.SkuId.HasValue ? item.SkuHeader?.ItemName : item.CommissaryInventory?.ItemName)
+                                    </td>
+                                    <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">
+                                        @(item.SkuId.HasValue ? item.SkuHeader?.Category?.CategoryName : item.CommissaryInventory?.Category?.CategoryName)
+                                    </td>
                                     <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@item.Quantity.ToString("0.##")</td>
                                     <td class="px-8 py-5 text-right text-gray-500 font-medium dark:text-gray-400">₱ @item.TotalPrice.ToString("N2")</td>
                                 </tr>

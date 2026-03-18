@@ -302,83 +302,107 @@ namespace LeKatsuMNL.Pages.Dashboard
                 {
                     foreach (var ol in order.OrderLists)
                     {
-                        if (ol.SkuHeader == null) continue;
-
-                        // 2. Add: Check if the SKU itself needs a transaction logged for the SKU Report
-                        var skuInventory = await _context.CommissaryInventories
-                            .FirstOrDefaultAsync(i => i.SkuId == ol.SkuHeader.SkuId);
-                        
-                        if (skuInventory == null)
+                        if (ol.SkuId.HasValue && ol.SkuHeader != null)
                         {
-                            var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
-                            int defaultVendorId = firstVendor?.VendorId ?? 0;
-
-                            // Create inventory record if missing for backfill
-                            skuInventory = new CommissaryInventory
+                            // 2. Add: Check if the SKU itself needs a transaction logged for the SKU Report
+                            var skuInventory = await _context.CommissaryInventories
+                                .FirstOrDefaultAsync(i => i.SkuId == ol.SkuHeader.SkuId);
+                            
+                            if (skuInventory == null)
                             {
-                                SkuId = ol.SkuHeader.SkuId,
-                                ItemName = ol.SkuHeader.ItemName,
-                                Stock = 0, // We'll let the transaction handle the balance
-                                Uom = ol.SkuHeader.Uom,
-                                CostPrice = ol.SkuHeader.UnitCost ?? 0,
-                                ReorderValue = 0,
-                                CategoryId = ol.SkuHeader.CategoryId,
-                                VendorId = defaultVendorId,
-                                Yield = "100%"
-                            };
-                            _context.CommissaryInventories.Add(skuInventory);
-                            await _context.SaveChangesAsync();
-                        }
+                                var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
+                                int defaultVendorId = firstVendor?.VendorId ?? 0;
 
-                        if (skuInventory != null)
+                                // Create inventory record if missing for backfill
+                                skuInventory = new CommissaryInventory
+                                {
+                                    SkuId = ol.SkuHeader.SkuId,
+                                    ItemName = ol.SkuHeader.ItemName,
+                                    Stock = 0, // We'll let the transaction handle the balance
+                                    Uom = ol.SkuHeader.Uom,
+                                    CostPrice = ol.SkuHeader.UnitCost ?? 0,
+                                    ReorderValue = 0,
+                                    CategoryId = ol.SkuHeader.CategoryId,
+                                    VendorId = defaultVendorId,
+                                    Yield = "100%"
+                                };
+                                _context.CommissaryInventories.Add(skuInventory);
+                                await _context.SaveChangesAsync();
+                            }
+
+                            if (skuInventory != null)
+                            {
+                                var existingSkuTransactions = await _context.InventoryTransactions
+                                    .Where(t => t.ComId == skuInventory.ComId && t.TypeId == transactionType.TypeId)
+                                    .ToListAsync();
+
+                                bool skuExists = existingSkuTransactions.Any(t =>
+                                    Math.Abs(t.QuantityChange) == ol.Quantity &&
+                                    Math.Abs((t.TimeStamp - order.OrderDate).TotalMinutes) < 10);
+
+                                if (!skuExists)
+                                {
+                                    _context.InventoryTransactions.Add(new InventoryTransaction
+                                    {
+                                        ComId = skuInventory.ComId,
+                                        TypeId = transactionType.TypeId,
+                                        QuantityChange = -ol.Quantity,
+                                        TimeStamp = order.OrderDate
+                                    });
+                                    changes = true;
+                                }
+                            }
+
+                            foreach (var recipe in ol.SkuHeader.SkuRecipes)
+                            {
+                                if (recipe.ComId.HasValue)
+                                {
+                                    decimal qty = recipe.QuantityNeeded * ol.Quantity;
+
+                                    // Fetch existing transactions for this item and type today to avoid too many DB calls
+                                    var existingTransactions = await _context.InventoryTransactions
+                                        .Where(t => t.ComId == recipe.ComId && t.TypeId == transactionType.TypeId)
+                                        .ToListAsync();
+
+                                    bool alreadyExists = existingTransactions.Any(t =>
+                                        Math.Abs(t.QuantityChange) == Math.Abs(qty) &&
+                                        Math.Abs((t.TimeStamp - order.OrderDate).TotalMinutes) < 10);
+
+                                    if (!alreadyExists)
+                                    {
+                                        _context.InventoryTransactions.Add(new InventoryTransaction
+                                        {
+                                            ComId = recipe.ComId.Value,
+                                            TypeId = transactionType.TypeId,
+                                            QuantityChange = -qty,
+                                            TimeStamp = order.OrderDate
+                                        });
+                                        changes = true;
+                                    }
+                                }
+                            }
+                        }
+                        else if (ol.ComId.HasValue)
                         {
-                            var existingSkuTransactions = await _context.InventoryTransactions
-                                .Where(t => t.ComId == skuInventory.ComId && t.TypeId == transactionType.TypeId)
+                            // Direct ingredient sale backfill
+                            var existingTransactions = await _context.InventoryTransactions
+                                .Where(t => t.ComId == ol.ComId && t.TypeId == transactionType.TypeId)
                                 .ToListAsync();
 
-                            bool skuExists = existingSkuTransactions.Any(t =>
+                            bool alreadyExists = existingTransactions.Any(t =>
                                 Math.Abs(t.QuantityChange) == ol.Quantity &&
                                 Math.Abs((t.TimeStamp - order.OrderDate).TotalMinutes) < 10);
 
-                            if (!skuExists)
+                            if (!alreadyExists)
                             {
                                 _context.InventoryTransactions.Add(new InventoryTransaction
                                 {
-                                    ComId = skuInventory.ComId,
+                                    ComId = ol.ComId.Value,
                                     TypeId = transactionType.TypeId,
                                     QuantityChange = -ol.Quantity,
                                     TimeStamp = order.OrderDate
                                 });
                                 changes = true;
-                            }
-                        }
-
-                        foreach (var recipe in ol.SkuHeader.SkuRecipes)
-                        {
-                            if (recipe.ComId.HasValue)
-                            {
-                                decimal qty = recipe.QuantityNeeded * ol.Quantity;
-
-                                // Fetch existing transactions for this item and type today to avoid too many DB calls
-                                var existingTransactions = await _context.InventoryTransactions
-                                    .Where(t => t.ComId == recipe.ComId && t.TypeId == transactionType.TypeId)
-                                    .ToListAsync();
-
-                                bool alreadyExists = existingTransactions.Any(t =>
-                                    Math.Abs(t.QuantityChange) == Math.Abs(qty) &&
-                                    Math.Abs((t.TimeStamp - order.OrderDate).TotalMinutes) < 10);
-
-                                if (!alreadyExists)
-                                {
-                                    _context.InventoryTransactions.Add(new InventoryTransaction
-                                    {
-                                        ComId = recipe.ComId.Value,
-                                        TypeId = transactionType.TypeId,
-                                        QuantityChange = -qty,
-                                        TimeStamp = order.OrderDate
-                                    });
-                                    changes = true;
-                                }
                             }
                         }
                     }

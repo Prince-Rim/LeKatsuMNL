@@ -97,6 +97,12 @@
                 <option value="Out of Stock" selected='@(Model.StockStatus == "Out of Stock")'>Out of Stock</option>
             </select>
 
+            <select name="repackStatus" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+                <option value="All" selected='@(Model.RepackStatus == "All")'>All Types</option>
+                <option value="Repack" selected='@(Model.RepackStatus == "Repack")'>Repack</option>
+                <option value="Non-Repack" selected='@(Model.RepackStatus == "Non-Repack")'>Non-Repack</option>
+            </select>
+
             <div class="flex items-center gap-2">
                 <button type="submit" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors dark:bg-slate-700 dark:text-gray-200">
                     Filter
@@ -144,7 +150,16 @@
                                 </div>
                             </td>
                             <td class="px-6 py-5 text-gray-600 font-bold dark:text-gray-400">ING-@item.ComId.ToString("D3")</td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">@item.ItemName</td>
+                            <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">
+                                @if (item.IsRepack)
+                                {
+                                    <a href="/Dashboard/IngredientDetails?id=@item.ComId" class="text-blue-600 hover:underline">@item.ItemName</a>
+                                }
+                                else
+                                {
+                                    @item.ItemName
+                                }
+                            </td>
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Category?.CategoryName ?? "-")</td>
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.SubCategory?.SubCategoryName ?? "-")</td>
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(item.Vendor?.VendorName ?? "-")</td>
@@ -167,7 +182,8 @@
                                         costPrice = item.CostPrice,
                                         sellingPrice = item.SellingPrice,
                                         yield = item.Yield,
-                                        stock = item.Stock
+                                        stock = item.Stock,
+                                        isRepack = item.IsRepack
                                     })))' class="text-blue-500 hover:text-blue-700 transition-colors">
                                         <i class="bi bi-pencil-square text-lg"></i>
                                     </button>
@@ -307,11 +323,18 @@
                     </div>
                 </div>
 
-                <!-- Selling Price Toggle -->
-                <div class="flex items-center space-x-3 pt-2">
-                    <input type="checkbox" id="newSellingPriceCheck" onchange="togglePriceField('new')" 
-                           class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
-                    <label for="newSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
+                <!-- Options Toggle -->
+                <div class="grid grid-cols-2 gap-5 pt-2">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="newSellingPriceCheck" onchange="togglePriceField('new')" 
+                               class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
+                        <label for="newSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" name="IsRepack" value="true" id="newIsRepack" 
+                               class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
+                        <label for="newIsRepack" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Repack</label>
+                    </div>
                 </div>
             </div>
 
@@ -448,11 +471,18 @@
                     </div>
                 </div>
 
-                <!-- Selling Price Toggle -->
-                <div class="flex items-center space-x-3 pt-2">
-                    <input type="checkbox" id="editSellingPriceCheck" onchange="togglePriceField('edit')" 
-                           class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
-                    <label for="editSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
+                <!-- Options Toggle -->
+                <div class="grid grid-cols-2 gap-5 pt-2">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="editSellingPriceCheck" onchange="togglePriceField('edit')" 
+                               class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
+                        <label for="editSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" name="IsRepack" value="true" id="editIsRepack" 
+                               class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
+                        <label for="editIsRepack" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Repack</label>
+                    </div>
                 </div>
             </div>
 
@@ -651,6 +681,7 @@
             document.getElementById('editCostPrice').value = item.costPrice ? parseFloat(item.costPrice).toFixed(2) : '';
             document.getElementById('editSellingPrice').value = (item.sellingPrice && item.sellingPrice > 0) ? parseFloat(item.sellingPrice).toFixed(2) : '';
             document.getElementById('editStock').value = item.stock;
+            document.getElementById('editIsRepack').checked = item.isRepack || false;
             
             // Handle Selling Price Toggle
             const sellingPriceCheck = document.getElementById('editSellingPriceCheck');
