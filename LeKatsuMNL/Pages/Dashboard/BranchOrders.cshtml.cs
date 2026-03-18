@@ -21,7 +21,16 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<OrderInfo> Orders { get; set; } = default!;
         public List<BranchManager> BranchManagers { get; set; } = new();
-        public List<SkuHeader> AvailableSkus { get; set; } = new();
+        
+        public class AvailableItem
+        {
+            public int? SkuId { get; set; }
+            public int? ComId { get; set; }
+            public string ItemName { get; set; }
+            public decimal SellingPrice { get; set; }
+            public string Type { get; set; } // "SKU" or "Ingredient"
+        }
+        public List<AvailableItem> AvailableItems { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
@@ -72,16 +81,35 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(bm => bm.Status == "Active")
                 .ToListAsync();
 
-            AvailableSkus = await _context.SkuHeaders
-                .OrderBy(s => s.ItemName)
+            var skus = await _context.SkuHeaders
+                .Select(s => new AvailableItem
+                {
+                    SkuId = s.SkuId,
+                    ItemName = s.ItemName,
+                    SellingPrice = s.SellingPrice,
+                    Type = "SKU"
+                })
                 .ToListAsync();
+
+            var ingredients = await _context.CommissaryInventories
+                .Where(i => i.SellingPrice > 0)
+                .Select(i => new AvailableItem
+                {
+                    ComId = i.ComId,
+                    ItemName = i.ItemName,
+                    SellingPrice = i.SellingPrice,
+                    Type = "Ingredient"
+                })
+                .ToListAsync();
+
+            AvailableItems = skus.Concat(ingredients).OrderBy(i => i.ItemName).ToList();
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostCreateOrderAsync(int BranchManagerId, List<int> SkuIds, List<decimal> Quantities, List<decimal> Prices)
+        public async Task<IActionResult> OnPostCreateOrderAsync(int BranchManagerId, List<string> ItemIds, List<decimal> Quantities, List<decimal> Prices)
         {
-            if (BranchManagerId <= 0 || SkuIds == null || !SkuIds.Any())
+            if (BranchManagerId <= 0 || ItemIds == null || !ItemIds.Any())
             {
                 return RedirectToPage();
             }
@@ -96,17 +124,32 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.OrderInfos.Add(order);
             await _context.SaveChangesAsync();
 
-            for (int i = 0; i < SkuIds.Count; i++)
+            for (int i = 0; i < ItemIds.Count; i++)
             {
                 if (Quantities[i] <= 0) continue;
+
+                var idParts = ItemIds[i].Split('-');
+                if (idParts.Length != 2) continue;
+
+                var type = idParts[0];
+                int id = int.Parse(idParts[1]);
 
                 var orderList = new OrderList
                 {
                     OrderId = order.OrderId,
-                    SkuId = SkuIds[i],
                     Quantity = Quantities[i],
                     TotalPrice = Prices[i] * Quantities[i]
                 };
+
+                if (type == "SKU")
+                {
+                    orderList.SkuId = id;
+                }
+                else if (type == "COM")
+                {
+                    orderList.ComId = id;
+                }
+
                 _context.OrderLists.Add(orderList);
             }
 

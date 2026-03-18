@@ -39,6 +39,7 @@ namespace LeKatsuMNL.Data
         // SKU & Recipes
         public DbSet<SkuHeader> SkuHeaders { get; set; }
         public DbSet<SkuRecipe> SkuRecipes { get; set; }
+        public DbSet<IngredientRecipe> IngredientRecipes { get; set; }
 
         // Restaurant Inventory & Sales
         public DbSet<RestaurantItem> RestaurantItems { get; set; }
@@ -145,6 +146,13 @@ namespace LeKatsuMNL.Data
                 .HasOne(ol => ol.SkuHeader)
                 .WithMany(s => s.OrderLists)
                 .HasForeignKey(ol => ol.SkuId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CommissaryInventory -> OrderList (1:M)
+            modelBuilder.Entity<OrderList>()
+                .HasOne(ol => ol.CommissaryInventory)
+                .WithMany(ci => ci.OrderLists)
+                .HasForeignKey(ol => ol.ComId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // OrderInfo -> OrderComment (1:M)
@@ -313,8 +321,21 @@ namespace LeKatsuMNL.Data
             // SkuHeader (Nested) -> SkuRecipe (1:M)
             modelBuilder.Entity<SkuRecipe>()
                 .HasOne(sr => sr.TargetSku)
-                .WithMany() // Nested SKU doesn't need a collection of where it's used
+                .WithMany()
                 .HasForeignKey(sr => sr.TargetSkuId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Ingredient Details (Repacking)
+            modelBuilder.Entity<IngredientRecipe>()
+                .HasOne(ir => ir.Parent)
+                .WithMany(ci => ci.IngredientRecipes)
+                .HasForeignKey(ir => ir.ParentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<IngredientRecipe>()
+                .HasOne(ir => ir.Material)
+                .WithMany()
+                .HasForeignKey(ir => ir.MaterialId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

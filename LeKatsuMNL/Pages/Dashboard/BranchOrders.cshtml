@@ -179,10 +179,11 @@
             }, 300);
         }
 
-        const skuData = {
-            @foreach (var sku in Model.AvailableSkus)
+        const itemData = {
+            @foreach (var item in Model.AvailableItems)
             {
-                <text>"@sku.SkuId": { "price": @sku.SellingPrice, "name": "@sku.ItemName" },</text>
+                var key = item.SkuId.HasValue ? $"SKU-{item.SkuId}" : $"COM-{item.ComId}";
+                <text>"@key": { "price": @item.SellingPrice, "name": "@item.ItemName", "type": "@item.Type" },</text>
             }
         };
 
@@ -197,13 +198,13 @@
 
         function updateRow(element) {
             const row = element.closest('.order-item-row');
-            const skuId = row.querySelector('select[name="SkuIds"]').value;
+            const itemId = row.querySelector('select[name="ItemIds"]').value;
             const qty = parseFloat(row.querySelector('input[name="Quantities"]').value) || 0;
             const priceInput = row.querySelector('input[name="Prices"]');
             
-            // Only update price input if it was a SKU selection change
-            if (element.name === "SkuIds" && skuId) {
-                priceInput.value = (skuData[skuId]?.price || 0).toFixed(2);
+            // Only update price input if it was an item selection change
+            if (element.name === "ItemIds" && itemId) {
+                priceInput.value = (itemData[itemId]?.price || 0).toFixed(2);
             }
 
             const price = parseFloat(priceInput.value) || 0;
@@ -221,9 +222,9 @@
             const newRow = `
                 <div class="flex items-center gap-4 mb-3 order-item-row group">
                     <div class="flex-[2] min-w-[200px]">
-                        <select name="SkuIds" required onchange="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
-                            <option value="">Select SKU</option>
-                            ${Array.from(document.querySelectorAll('#skuTemplate option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+                        <select name="ItemIds" required onchange="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            <option value="">Select Item</option>
+                            ${Array.from(document.querySelectorAll('#itemTemplate option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
                         </select>
                     </div>
                     <div class="w-24 text-center">
@@ -284,7 +285,7 @@
                             </div>
                             <div id="orderItemsContainer" class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                 <div class="flex items-center gap-4 mb-2 px-2 border-b border-gray-100 pb-2">
-                                    <div class="flex-[2] min-w-[200px] text-[9px] font-black text-gray-400 uppercase tracking-widest">SKU Product</div>
+                                    <div class="flex-[2] min-w-[200px] text-[9px] font-black text-gray-400 uppercase tracking-widest">Product / Ingredient</div>
                                     <div class="w-24 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Price</div>
                                     <div class="w-24 text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">Qty</div>
                                     <div class="w-28 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Line Total</div>
@@ -292,11 +293,12 @@
                                 </div>
                                 <div class="flex items-center gap-4 mb-3 order-item-row group">
                                     <div class="flex-[2] min-w-[200px]">
-                                        <select name="SkuIds" required onchange="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
-                                            <option value="">Select SKU</option>
-                                            @foreach (var sku in Model.AvailableSkus)
+                                        <select name="ItemIds" required onchange="updateRow(this)" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                                            <option value="">Select Item</option>
+                                            @foreach (var item in Model.AvailableItems)
                                             {
-                                                <option value="@sku.SkuId">@sku.ItemName (@sku.PackSize)</option>
+                                                var key = item.SkuId.HasValue ? $"SKU-{item.SkuId}" : $"COM-{item.ComId}";
+                                                <option value="@key">[@item.Type] @item.ItemName</option>
                                             }
                                         </select>
                                     </div>
@@ -333,10 +335,11 @@
     </div>
 </div>
 
-<!-- Hidden template for SKU options -->
-<select id="skuTemplate" class="hidden">
-    @foreach (var sku in Model.AvailableSkus)
+<!-- Hidden template for Item options -->
+<select id="itemTemplate" class="hidden">
+    @foreach (var item in Model.AvailableItems)
     {
-        <option value="@sku.SkuId">@sku.ItemName (@sku.PackSize)</option>
+        var key = item.SkuId.HasValue ? $"SKU-{item.SkuId}" : $"COM-{item.ComId}";
+        <option value="@key">[@item.Type] @item.ItemName</option>
     }
 </select>

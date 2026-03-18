@@ -4,6 +4,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeKatsuMNL.Migrations
 {
     [DbContext(typeof(LeKatsuDb))]
-    partial class LeKatsuDbModelSnapshot : ModelSnapshot
+    [Migration("20260317170900_AddIngredientRepack")]
+    partial class AddIngredientRepack
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -876,7 +879,7 @@ namespace LeKatsuMNL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ListId"));
 
-                    b.Property<int?>("ComId")
+                    b.Property<int?>("CommissaryInventoryComId")
                         .HasColumnType("int");
 
                     b.Property<int>("OrderId")
@@ -885,7 +888,7 @@ namespace LeKatsuMNL.Migrations
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<int?>("SkuId")
+                    b.Property<int>("SkuId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
@@ -893,7 +896,7 @@ namespace LeKatsuMNL.Migrations
 
                     b.HasKey("ListId");
 
-                    b.HasIndex("ComId");
+                    b.HasIndex("CommissaryInventoryComId");
 
                     b.HasIndex("OrderId");
 
@@ -1966,10 +1969,9 @@ namespace LeKatsuMNL.Migrations
 
             modelBuilder.Entity("LeKatsuMNL.Models.OrderList", b =>
                 {
-                    b.HasOne("LeKatsuMNL.Models.CommissaryInventory", "CommissaryInventory")
+                    b.HasOne("LeKatsuMNL.Models.CommissaryInventory", null)
                         .WithMany("OrderLists")
-                        .HasForeignKey("ComId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("CommissaryInventoryComId");
 
                     b.HasOne("LeKatsuMNL.Models.OrderInfo", "OrderInfo")
                         .WithMany("OrderLists")
@@ -1980,9 +1982,8 @@ namespace LeKatsuMNL.Migrations
                     b.HasOne("LeKatsuMNL.Models.SkuHeader", "SkuHeader")
                         .WithMany("OrderLists")
                         .HasForeignKey("SkuId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("CommissaryInventory");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("OrderInfo");
 
