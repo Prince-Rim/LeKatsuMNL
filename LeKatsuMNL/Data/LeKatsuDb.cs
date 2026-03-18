@@ -71,6 +71,8 @@ namespace LeKatsuMNL.Data
         public DbSet<StaffArchive> StaffArchives { get; set; }
         public DbSet<STimeArchive> STimeArchives { get; set; }
         public DbSet<RejectItem> RejectItems { get; set; }
+        public DbSet<SkuArchive> SkuArchives { get; set; }
+        public DbSet<VendorArchive> VendorArchives { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -118,13 +120,6 @@ namespace LeKatsuMNL.Data
                 .HasOne(ci => ci.SkuHeader)
                 .WithMany() // SkuHeader doesn't have CommissaryInventories collection
                 .HasForeignKey(ci => ci.SkuId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // SkuHeader -> CommissaryArchive (1:M)
-            modelBuilder.Entity<CommissaryArchive>()
-                .HasOne(ca => ca.SkuHeader)
-                .WithMany()
-                .HasForeignKey(ca => ca.SkuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // CommissaryInventory -> InventoryTransaction (1:M)

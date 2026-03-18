@@ -37,6 +37,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             SearchString = searchString;
             IQueryable<VendorInfo> query = _context.VendorInfos
+                .Where(v => !v.IsArchived)
                 .Include(v => v.CommissaryInventories)
                 .OrderByDescending(v => v.CreatedAt);
 
@@ -111,21 +112,37 @@ namespace LeKatsuMNL.Pages.Dashboard
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        public async Task<IActionResult> OnPostArchiveAsync(int id)
         {
             if (!PermissionHelper.HasPermission(User, "Supplier", 'D'))
             {
                 return Forbid();
             }
 
-            var vendorToDelete = await _context.VendorInfos.FindAsync(id);
+            var vendorToArchive = await _context.VendorInfos.FindAsync(id);
 
-            if (vendorToDelete != null)
+            if (vendorToArchive != null)
             {
-                _context.VendorInfos.Remove(vendorToDelete);
+                vendorToArchive.IsArchived = true;
                 await _context.SaveChangesAsync();
             }
 
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync(string ids)
+        {
+            if (!PermissionHelper.HasPermission(User, "Supplier", 'D')) return Forbid();
+            if (string.IsNullOrEmpty(ids)) return RedirectToPage();
+
+            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var vendors = await _context.VendorInfos.Where(v => idList.Contains(v.VendorId)).ToListAsync();
+            foreach (var vendor in vendors)
+            {
+                vendor.IsArchived = true;
+            }
+
+            await _context.SaveChangesAsync();
             return RedirectToPage();
         }
     }

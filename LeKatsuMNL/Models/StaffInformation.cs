@@ -33,6 +33,8 @@ namespace LeKatsuMNL.Models
         [MaxLength(20)]
         public string Status { get; set; }
 
+        public bool IsArchived { get; set; } = false;
+
         // Navigation Properties
         public ICollection<StaffTimeSlot> StaffTimeSlots { get; set; } = new List<StaffTimeSlot>();
         public ICollection<RestaurantTransaction> RestaurantTransactions { get; set; } = new List<RestaurantTransaction>();

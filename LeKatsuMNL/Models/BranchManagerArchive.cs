@@ -30,5 +30,10 @@ namespace LeKatsuMNL.Models
 
         [MaxLength(20)]
         public string Status { get; set; }
+
+        public int BranchId { get; set; }
+
+        [MaxLength(50)]
+        public string Role { get; set; }
     }
 }

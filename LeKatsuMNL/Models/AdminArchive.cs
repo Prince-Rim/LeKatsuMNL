@@ -31,6 +31,12 @@ namespace LeKatsuMNL.Models
         [MaxLength(20)]
         public string Status { get; set; }
 
+        [MaxLength(50)]
+        public string Role { get; set; }
+
+        [MaxLength(20)]
+        public string? ContactNum { get; set; }
+
         public bool IsSuperAdmin { get; set; }
     }
 }

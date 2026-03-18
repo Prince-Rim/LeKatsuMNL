@@ -41,10 +41,11 @@ namespace LeKatsuMNL.Pages.Dashboard
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
             var query = _context.OrderInfos
+                .Where(o => !o.IsArchived)
                 .Include(o => o.BranchManager)
                     .ThenInclude(bm => bm.BranchLocation)
                 .Include(o => o.Invoices)
-                .AsQueryable(); // Add AsQueryable() to allow further filtering
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(SearchTerm))
             {
@@ -154,6 +155,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostArchiveAsync(int id)
+        {
+            var order = await _context.OrderInfos.FindAsync(id);
+            if (order != null)
+            {
+                order.IsArchived = true;
+                await _context.SaveChangesAsync();
+            }
             return RedirectToPage();
         }
     }

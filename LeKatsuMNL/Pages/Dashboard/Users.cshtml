@@ -118,10 +118,10 @@
                                     }
                                     @if (LeKatsuMNL.Helpers.PermissionHelper.HasPermission(User, "Users", 'D'))
                                     {
-                                        <form method="post" asp-page-handler="Delete" class="inline m-0">
+                                        <form method="post" asp-page-handler="Archive" class="inline m-0">
                                             <input type="hidden" name="id" value="@user.Id" />
                                             <input type="hidden" name="type" value="@user.Type" />
-                                            <button type="submit" onclick="return confirm('Delete this user?')" class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-500 transition-all dark:bg-slate-700 dark:text-gray-500">Delete</button>
+                                            <button type="submit" onclick="return confirm('Archive this user?')" class="px-3 py-1.5 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold hover:bg-yellow-100 transition-all dark:bg-slate-700 dark:text-gray-500">Archive</button>
                                         </form>
                                     }
                                 </div>

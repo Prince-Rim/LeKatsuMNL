@@ -26,5 +26,7 @@ namespace LeKatsuMNL.Models
         // Navigation Properties
         public ICollection<SupplyList> SupplyLists { get; set; } = new List<SupplyList>();
         public ICollection<SupplyHistory> SupplyHistories { get; set; } = new List<SupplyHistory>();
+
+        public bool IsArchived { get; set; } = false;
     }
 }

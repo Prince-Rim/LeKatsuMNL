@@ -37,6 +37,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             FilterSubCategoryId = subCategoryId;
 
             var query = _context.SkuHeaders
+                .Where(s => !s.IsArchived)
                 .Include(s => s.Category)
                 .Include(s => s.SubCategory)
                 .AsQueryable();
@@ -266,6 +267,32 @@ namespace LeKatsuMNL.Pages.Dashboard
             await _context.SaveChangesAsync();
 
             return RedirectToPage("/Dashboard/Rejects", new { tab = "sku" });
+        }
+
+        public async Task<IActionResult> OnPostArchiveAsync(int id)
+        {
+            var sku = await _context.SkuHeaders.FindAsync(id);
+            if (sku == null) return NotFound();
+
+            sku.IsArchived = true;
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync(string ids)
+        {
+            if (!PermissionHelper.HasPermission(User, "SKU", 'D')) return Forbid();
+            if (string.IsNullOrEmpty(ids)) return RedirectToPage();
+
+            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var skus = await _context.SkuHeaders.Where(s => idList.Contains(s.SkuId)).ToListAsync();
+            foreach (var sku in skus)
+            {
+                sku.IsArchived = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
         }
     }
 }
