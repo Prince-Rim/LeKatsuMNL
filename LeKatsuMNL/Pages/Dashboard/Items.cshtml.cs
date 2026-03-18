@@ -18,6 +18,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
+        [BindProperty]
+        public CommissaryInventory Item { get; set; }
+
+        [TempData]
+        public string StatusMessage { get; set; }
+
         public PaginatedList<CommissaryInventory> Items { get; set; } = default!;
         public List<Category> Categories { get; set; } = new List<Category>();
         public List<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
@@ -146,7 +152,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             
             Categories = await _context.Categories.ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
-            Vendors = await _context.VendorInfos.ToListAsync();
+            Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).ToListAsync();
 
             return Page();
         }
@@ -198,6 +204,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.CommissaryInventories.Add(item);
             await _context.SaveChangesAsync();
 
+            StatusMessage = "Successfully recorded. Your new item has been added to the inventory.";
             return RedirectToPage();
         }
 
@@ -250,6 +257,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             item.IsRepack = IsRepack;
 
             await _context.SaveChangesAsync();
+
+            StatusMessage = "Successfully recorded. The item details have been updated.";
             return RedirectToPage();
         }
         public async Task<IActionResult> OnPostRejectAsync(int RejectId, string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
@@ -308,6 +317,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.RejectItems.Add(reject);
             await _context.SaveChangesAsync();
 
+            StatusMessage = "Item request has been rejected.";
             return RedirectToPage("/Dashboard/Rejects", new { tab = "recipe" });
         }
 
@@ -318,6 +328,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             item.IsArchived = true;
             await _context.SaveChangesAsync();
+
+            StatusMessage = "Successfully archived. The item has been moved to archives.";
             return RedirectToPage();
         }
 
@@ -334,6 +346,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             await _context.SaveChangesAsync();
+            StatusMessage = "Selected items have been archived.";
             return RedirectToPage();
         }
     }

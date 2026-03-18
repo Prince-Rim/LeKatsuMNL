@@ -31,15 +31,45 @@ namespace LeKatsuMNL.Pages.Dashboard
         public class ArchiveRow
         {
             public int Id { get; set; }
+            public string FormattedId { get; set; } // New property for styled IDs
             public string Name { get; set; }
             public string Type { get; set; }
             public string Details { get; set; }
-            public DateTime ArchivedDate { get; set; }
         }
 
         public async Task OnGetAsync(int? pageIndex)
         {
             int pageSize = 10;
+            string search = SearchTerm?.ToLower();
+
+            if (ActiveTab == "Users")
+            {
+                var admins = await _context.AdminAccounts
+                    .Where(a => a.IsArchived)
+                    .Select(a => new ArchiveRow { Id = a.ManagerId, FormattedId = "ADM-" + a.ManagerId.ToString("D4"), Name = a.FirstName + " " + a.LastName, Type = "Admin", Details = a.Role })
+                    .ToListAsync();
+
+                var managers = await _context.BranchManagers
+                    .Where(m => m.IsArchived)
+                    .Select(m => new ArchiveRow { Id = m.BManagerId, FormattedId = "BRCH-" + m.BManagerId.ToString("D4"), Name = m.FirstName + " " + m.LastName, Type = "Manager", Details = "Branch Manager" })
+                    .ToListAsync();
+
+                var staff = await _context.StaffInformations
+                    .Where(s => s.IsArchived)
+                    .Select(s => new ArchiveRow { Id = s.StaffId, FormattedId = "STF-" + s.StaffId.ToString("D4"), Name = s.FirstName + " " + s.LastName, Type = "Staff", Details = "Staff" })
+                    .ToListAsync();
+
+                var combined = admins.Concat(managers).Concat(staff);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    combined = combined.Where(r => r.Name.ToLower().Contains(search) || r.Type.ToLower().Contains(search) || r.FormattedId.ToLower().Contains(search));
+                }
+
+                ArchivedItems = PaginatedList<ArchiveRow>.Create(combined.OrderBy(r => r.Name), pageIndex ?? 1, pageSize);
+                return;
+            }
+
             IQueryable<ArchiveRow> query = null;
 
             switch (ActiveTab)
@@ -47,52 +77,43 @@ namespace LeKatsuMNL.Pages.Dashboard
                 case "Items":
                     query = _context.CommissaryInventories
                         .Where(i => i.IsArchived)
-                        .Select(i => new ArchiveRow { Id = i.ComId, Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
+                        .Select(i => new ArchiveRow { Id = i.ComId, FormattedId = "ING-" + i.ComId.ToString("D3"), Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
                     break;
                 case "SKU":
                     query = _context.SkuHeaders
                         .Where(s => s.IsArchived)
-                        .Select(s => new ArchiveRow { Id = s.SkuId, Name = s.ItemName, Type = "SKU", Details = s.Uom });
-                    break;
-                case "Users":
-                    var admins = _context.AdminAccounts.Where(a => a.IsArchived)
-                        .Select(a => new ArchiveRow { Id = a.ManagerId, Name = a.FirstName + " " + a.LastName, Type = "Admin", Details = a.Role });
-                    var managers = _context.BranchManagers.Where(m => m.IsArchived)
-                        .Select(m => new ArchiveRow { Id = m.BManagerId, Name = m.FirstName + " " + m.LastName, Type = "Manager", Details = "Branch Manager" });
-                    var staff = _context.StaffInformations.Where(s => s.IsArchived)
-                        .Select(s => new ArchiveRow { Id = s.StaffId, Name = s.FirstName + " " + s.LastName, Type = "Staff", Details = "Staff" });
-                    query = admins.Union(managers).Union(staff);
+                        .Select(s => new ArchiveRow { Id = s.SkuId, FormattedId = "SKU-" + s.SkuId.ToString("D3"), Name = s.ItemName, Type = "SKU", Details = s.Uom });
                     break;
                 case "Suppliers":
                     query = _context.VendorInfos
                         .Where(v => v.IsArchived)
-                        .Select(v => new ArchiveRow { Id = v.VendorId, Name = v.VendorName, Type = "Supplier", Details = v.ContactNum });
+                        .Select(v => new ArchiveRow { Id = v.VendorId, FormattedId = "SUP-" + v.VendorId.ToString("D4"), Name = v.VendorName, Type = "Supplier", Details = v.ContactNum });
                     break;
                 case "Branches":
                     query = _context.BranchLocations
                         .Where(b => b.IsArchived)
-                        .Select(b => new ArchiveRow { Id = b.BranchId, Name = b.BranchName, Type = "Branch", Details = b.CityMunicipality });
+                        .Select(b => new ArchiveRow { Id = b.BranchId, FormattedId = "BRN-" + b.BranchId.ToString("D3"), Name = b.BranchName, Type = "Branch", Details = b.CityMunicipality });
                     break;
                 case "Orders":
                     query = _context.OrderInfos
                         .Where(o => o.IsArchived)
-                        .Select(o => new ArchiveRow { Id = o.OrderId, Name = "Order #" + o.OrderId, Type = "Branch Order", Details = o.Status });
+                        .Select(o => new ArchiveRow { Id = o.OrderId, FormattedId = o.OrderDate.Year + "-" + o.OrderId.ToString("D4"), Name = "Order #" + o.OrderId, Type = "Branch Order", Details = o.Status });
                     break;
                 case "SupplyOrders":
                     query = _context.SupplyOrders
                         .Where(s => s.IsArchived)
-                        .Select(s => new ArchiveRow { Id = s.SoaId, Name = "Supply Order #" + s.SoaId, Type = "Stock Receipt", Details = s.Status });
+                        .Select(s => new ArchiveRow { Id = s.SoaId, FormattedId = s.SupplyDate.Year + "-" + s.SoaId.ToString("D4"), Name = "Supply Order #" + s.SoaId, Type = "Stock Receipt", Details = s.Status });
                     break;
                 default:
                     query = _context.CommissaryInventories
                         .Where(i => i.IsArchived)
-                        .Select(i => new ArchiveRow { Id = i.ComId, Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
+                        .Select(i => new ArchiveRow { Id = i.ComId, FormattedId = "ING-" + i.ComId.ToString("D3"), Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
                     break;
             }
 
             if (!string.IsNullOrEmpty(SearchTerm))
             {
-                query = query.Where(r => r.Name.Contains(SearchTerm) || r.Type.Contains(SearchTerm));
+                query = query.Where(r => r.Name.Contains(SearchTerm) || r.Type.Contains(SearchTerm) || r.FormattedId.Contains(SearchTerm));
             }
 
             ArchivedItems = await PaginatedList<ArchiveRow>.CreateAsync(query.AsNoTracking(), pageIndex ?? 1, pageSize);

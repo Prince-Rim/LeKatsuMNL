@@ -73,7 +73,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             RoleFilter = roleFilter;
             StatusFilter = statusFilter;
 
-            Branches = await _context.BranchLocations.ToListAsync();
+            Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
             int currentStepPageIndex = pageIndex ?? 1;
             await LoadUsersAsync(currentStepPageIndex);
         }

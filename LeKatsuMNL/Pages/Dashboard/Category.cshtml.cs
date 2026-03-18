@@ -27,6 +27,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public Category EditCategory { get; set; } = default!;
 
+        [TempData]
+        public string StatusMessage { get; set; }
+
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
 
@@ -66,6 +69,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             await SyncSubCategories(NewCategory.CategoryId, NewCategory.SubCategoryNames);
 
+            StatusMessage = "Successfully recorded. Your new category has been added.";
             return RedirectToPage();
         }
 
@@ -90,6 +94,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             await SyncSubCategories(categoryToUpdate.CategoryId, categoryToUpdate.SubCategoryNames);
 
+            StatusMessage = "Successfully recorded. The category details have been updated.";
             return RedirectToPage();
         }
 
@@ -106,6 +111,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 _context.Categories.Remove(categoryToDelete);
                 await _context.SaveChangesAsync();
+                StatusMessage = "Successfully archived. The category has been removed.";
             }
 
             return RedirectToPage();

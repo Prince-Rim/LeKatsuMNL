@@ -78,7 +78,7 @@ namespace LeKatsuMNL.Pages.Login
             // 1. Check AdminAccount (If no prefix supplied, or if ADM- supplied)
             if (userType == null || userType == "Admin")
             {
-                var admin = await _context.AdminAccounts.FirstOrDefaultAsync(a => a.ManagerId == numericId);
+                var admin = await _context.AdminAccounts.FirstOrDefaultAsync(a => a.ManagerId == numericId && !a.IsArchived);
                 if (admin != null)
                 {
                     if (BCrypt.Net.BCrypt.Verify(Password, admin.Password))
@@ -99,7 +99,7 @@ namespace LeKatsuMNL.Pages.Login
             // 2. Check BranchManager (If no prefix supplied, or if BRCH-/BM- supplied)
             if (userType == null || userType == "BranchManager")
             {
-                var manager = await _context.BranchManagers.FirstOrDefaultAsync(m => m.BManagerId == numericId);
+                var manager = await _context.BranchManagers.FirstOrDefaultAsync(m => m.BManagerId == numericId && !m.IsArchived);
                 if (manager != null)
                 {
                     if (BCrypt.Net.BCrypt.Verify(Password, manager.Password))
@@ -119,7 +119,7 @@ namespace LeKatsuMNL.Pages.Login
             // 3. Check StaffInformation (If no prefix supplied, or if STF- supplied)
             if (userType == null || userType == "Staff")
             {
-                var staff = await _context.StaffInformations.FirstOrDefaultAsync(s => s.StaffId == numericId);
+                var staff = await _context.StaffInformations.FirstOrDefaultAsync(s => s.StaffId == numericId && !s.IsArchived);
                 if (staff != null)
                 {
                     if (BCrypt.Net.BCrypt.Verify(Password, staff.Password))

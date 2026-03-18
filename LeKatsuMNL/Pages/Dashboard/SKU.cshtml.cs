@@ -19,9 +19,15 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
+        [BindProperty]
+        public SkuHeader Sku { get; set; }
+
+        [TempData]
+        public string StatusMessage { get; set; }
+
         public PaginatedList<SkuHeader> SkuHeaders { get; set; } = default!;
-        public IList<Category> Categories { get; set; } = new List<Category>();
-        public IList<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
+        public List<Category> Categories { get; set; } = [];
+        public IList<SubCategory> SubCategories { get; set; } = [];
         
         public string SearchTerm { get; set; } = "";
         public int? FilterCategoryId { get; set; }
@@ -47,13 +53,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 var search = SearchTerm.ToLower();
                 int? parsedId = null;
-                if (search.StartsWith("sku-") && int.TryParse(search.Substring(4), out int id))
+                if (search.StartsWith("sku-", StringComparison.OrdinalIgnoreCase) && int.TryParse(search.AsSpan(4), out int id))
                     parsedId = id;
                 else if (int.TryParse(search, out int id2))
                     parsedId = id2;
 
                 query = query.Where(s => 
-                    s.ItemName.ToLower().Contains(search) || 
+                    s.ItemName.Contains(search, StringComparison.OrdinalIgnoreCase) || 
                     (parsedId.HasValue && s.SkuId == parsedId.Value));
             }
 
@@ -114,7 +120,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.SkuHeaders.Add(newSku);
             await _context.SaveChangesAsync();
 
-            var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
+            var firstVendor = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorId).FirstOrDefaultAsync();
             int defaultVendorId = firstVendor?.VendorId ?? 0;
 
             // Automatically create inventory entry for tracking
@@ -133,6 +139,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.CommissaryInventories.Add(inventory);
             await _context.SaveChangesAsync();
 
+            StatusMessage = "Successfully recorded. Your new SKU has been added to the inventory.";
             return RedirectToPage();
         }
 
@@ -178,7 +185,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             var inv = await _context.CommissaryInventories.FirstOrDefaultAsync(i => i.SkuId == sku.SkuId);
             if (inv == null)
             {
-                var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
+                var firstVendor = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorId).FirstOrDefaultAsync();
                 int defaultVendorId = firstVendor?.VendorId ?? 0;
 
                 inv = new CommissaryInventory
@@ -204,6 +211,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             await _context.SaveChangesAsync();
+
+            StatusMessage = "Successfully recorded. The SKU details have been updated.";
             return RedirectToPage();
         }
 
@@ -266,6 +275,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context.RejectItems.Add(reject);
             await _context.SaveChangesAsync();
 
+            StatusMessage = "SKU request has been rejected.";
             return RedirectToPage("/Dashboard/Rejects", new { tab = "sku" });
         }
 
@@ -276,6 +286,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             sku.IsArchived = true;
             await _context.SaveChangesAsync();
+
+            StatusMessage = "Successfully archived. The SKU has been moved to archives.";
             return RedirectToPage();
         }
 
@@ -292,6 +304,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             await _context.SaveChangesAsync();
+
+            StatusMessage = "Selected items have been archived.";
             return RedirectToPage();
         }
     }

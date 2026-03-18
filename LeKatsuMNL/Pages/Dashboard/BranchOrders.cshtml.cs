@@ -79,10 +79,11 @@ namespace LeKatsuMNL.Pages.Dashboard
             
             BranchManagers = await _context.BranchManagers
                 .Include(bm => bm.BranchLocation)
-                .Where(bm => bm.Status == "Active")
+                .Where(bm => bm.Status == "Active" && !bm.IsArchived)
                 .ToListAsync();
 
             var skus = await _context.SkuHeaders
+                .Where(s => !s.IsArchived)
                 .Select(s => new AvailableItem
                 {
                     SkuId = s.SkuId,
@@ -93,7 +94,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .ToListAsync();
 
             var ingredients = await _context.CommissaryInventories
-                .Where(i => i.SellingPrice > 0)
+                .Where(i => i.SellingPrice > 0 && !i.IsArchived)
                 .Select(i => new AvailableItem
                 {
                     ComId = i.ComId,
