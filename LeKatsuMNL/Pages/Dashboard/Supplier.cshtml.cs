@@ -71,6 +71,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                 SecondVendorName = NewVendor.SecondVendorName ?? "",
                 SecondVendorCn = NewVendor.SecondVendorCn ?? "",
                 SupplierType = NewVendor.SupplierType ?? "Main",
+                CompanyId = NewVendor.CompanyId,
+                CompanyName = NewVendor.CompanyName,
+                CompanyAddress = NewVendor.CompanyAddress,
+                Tin = NewVendor.Tin,
                 CreatedAt = DateTime.Now
             };
 
@@ -97,6 +101,10 @@ namespace LeKatsuMNL.Pages.Dashboard
             vendorToUpdate.VendorName = EditVendor.VendorName;
             vendorToUpdate.ContactNum = EditVendor.ContactNum ?? "";
             vendorToUpdate.SupplierType = EditVendor.SupplierType ?? "Main";
+            vendorToUpdate.CompanyId = EditVendor.CompanyId;
+            vendorToUpdate.CompanyName = EditVendor.CompanyName;
+            vendorToUpdate.CompanyAddress = EditVendor.CompanyAddress;
+            vendorToUpdate.Tin = EditVendor.Tin;
 
             await _context.SaveChangesAsync();
 

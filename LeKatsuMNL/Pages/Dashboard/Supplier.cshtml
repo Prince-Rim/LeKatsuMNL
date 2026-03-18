@@ -103,7 +103,7 @@
                                 <div class="flex items-center justify-end space-x-2">
                                     @if (PermissionHelper.HasPermission(User, "Supplier", 'U'))
                                     {
-                                        <button onclick="openEditModal('@vendor.VendorId', '@vendor.VendorName', '@vendor.ContactNum', '@vendor.SupplierType')" 
+                                        <button onclick="openEditModal('@vendor.VendorId', '@vendor.VendorName', '@vendor.ContactNum', '@vendor.SupplierType', '@vendor.CompanyId', '@vendor.CompanyName', '@vendor.CompanyAddress', '@vendor.Tin')" 
                                                 class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 transition-all dark:bg-slate-700 dark:text-gray-300">
                                             Edit
                                         </button>
@@ -137,16 +137,16 @@
 </div>
 
 <!-- Create Supplier Modal -->
-<div id="createModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
-        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
+<div id="createModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700 max-h-[90vh] flex flex-col">
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700 shrink-0">
             <h3 class="text-base font-bold text-gray-900 dark:text-white">Create Supplier</h3>
             <button onclick="closeModal('createModal')" class="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400">
                 <i class="bi bi-x-lg text-xl"></i>
             </button>
         </div>
 
-        <form method="post" asp-page-handler="Create" class="p-8 space-y-6">
+        <form method="post" asp-page-handler="Create" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Vendor name*</label>
                 <input asp-for="NewVendor.VendorName" placeholder="Vendor name" required
@@ -155,8 +155,34 @@
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Contact#</label>
                 <input asp-for="NewVendor.ContactNum" placeholder="Contact#" 
-                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
             </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Company ID</label>
+                    <input asp-for="NewVendor.CompanyId" placeholder="Company ID" 
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">TIN</label>
+                    <input asp-for="NewVendor.Tin" placeholder="TIN" 
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Company Name</label>
+                <input asp-for="NewVendor.CompanyName" placeholder="Company Name" 
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Company Address</label>
+                <input asp-for="NewVendor.CompanyAddress" placeholder="Company Address" 
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+            </div>
+
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier Type</label>
                 <select asp-for="NewVendor.SupplierType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:border-gray-700">
@@ -179,16 +205,16 @@
 </div>
 
 <!-- Edit Supplier Modal -->
-<div id="editModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
-        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
+<div id="editModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 duration-300 dark:bg-slate-800 dark:border-gray-700 max-h-[90vh] flex flex-col">
+        <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700 shrink-0">
             <h3 class="text-base font-bold text-gray-900 dark:text-white">Edit Supplier</h3>
             <button onclick="closeModal('editModal')" class="text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400">
                 <i class="bi bi-x-lg text-xl"></i>
             </button>
         </div>
 
-        <form method="post" asp-page-handler="Update" class="p-8 space-y-6">
+        <form method="post" asp-page-handler="Update" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
             <input type="hidden" asp-for="EditVendor.VendorId" id="editVendorId" />
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Vendor name*</label>
@@ -198,8 +224,34 @@
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Contact#</label>
                 <input asp-for="EditVendor.ContactNum" id="editContactNum" placeholder="Contact#" 
-                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
             </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Company ID</label>
+                    <input asp-for="EditVendor.CompanyId" id="editCompanyId" placeholder="Company ID" 
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">TIN</label>
+                    <input asp-for="EditVendor.Tin" id="editTin" placeholder="TIN" 
+                           class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Company Name</label>
+                <input asp-for="EditVendor.CompanyName" id="editCompanyName" placeholder="Company Name" 
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Company Address</label>
+                <input asp-for="EditVendor.CompanyAddress" id="editCompanyAddress" placeholder="Company Address" 
+                       class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600">
+            </div>
+
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier Type</label>
                 <select asp-for="EditVendor.SupplierType" id="editSupplierType" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:border-gray-700">
@@ -222,8 +274,8 @@
 </div>
 
 <!-- View Products Modal -->
-<div id="viewProductsModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700">
+<div id="viewProductsModal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[100] backdrop-blur-[2px] transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-100 transform transition-all opacity-0 scale-95 dark:bg-slate-800 dark:border-gray-700 max-h-[90vh] flex flex-col">
         <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-white dark:bg-slate-800 dark:border-gray-700">
             <div>
                 <h3 class="text-base font-bold text-gray-900 dark:text-white">Connected Products</h3>
@@ -285,11 +337,15 @@
             }, 300);
         }
 
-        function openEditModal(id, name, contact, type) {
+        function openEditModal(id, name, contact, type, companyId, companyName, companyAddress, tin) {
             document.getElementById('editVendorId').value = id;
             document.getElementById('editVendorName').value = name;
             document.getElementById('editContactNum').value = contact;
             document.getElementById('editSupplierType').value = type || "Main";
+            document.getElementById('editCompanyId').value = companyId || "";
+            document.getElementById('editCompanyName').value = companyName || "";
+            document.getElementById('editCompanyAddress').value = companyAddress || "";
+            document.getElementById('editTin').value = tin || "";
             openModal('editModal');
         }
 

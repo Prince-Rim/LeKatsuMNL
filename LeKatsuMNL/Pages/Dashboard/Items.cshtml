@@ -280,7 +280,7 @@
                                onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5" id="newVendorIdContainer">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
                         <div class="relative">
                             <select name="VendorId" id="newVendorId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
@@ -331,7 +331,7 @@
                         <label for="newSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <input type="checkbox" name="IsRepack" value="true" id="newIsRepack" 
+                        <input type="checkbox" name="IsRepack" value="true" id="newIsRepack" onchange="toggleSupplierField('new')" 
                                class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
                         <label for="newIsRepack" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Repack</label>
                     </div>
@@ -428,7 +428,7 @@
                                onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5" id="editVendorIdContainer">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Supplier</label>
                         <div class="relative">
                             <select name="VendorId" id="editVendorId" required class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
@@ -479,7 +479,7 @@
                         <label for="editSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <input type="checkbox" name="IsRepack" value="true" id="editIsRepack" 
+                        <input type="checkbox" name="IsRepack" value="true" id="editIsRepack" onchange="toggleSupplierField('edit')" 
                                class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
                         <label for="editIsRepack" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Repack</label>
                     </div>
@@ -569,11 +569,11 @@
 
 <datalist id="pkgUnitList">
     <option value="Cans"></option>
-    <option value="Grams (g)"></option>
-    <option value="Milliliter (mL)"></option>
-    <option value="Kilogram (kg)"></option>
-    <option value="Pieces (pcs)"></option>
-    <option value="Liter (L)"></option>
+    <option value="Grams"></option>
+    <option value="mL"></option>
+    <option value="Kilogram"></option>
+    <option value="Pieces"></option>
+    <option value="Liter"></option>
     <option value="Pull"></option>
     <option value="Sticks"></option>
     <option value="Bottles"></option>
@@ -585,10 +585,10 @@
     <option value="Dips"></option>
     <option value="mL"></option>
     <option value="Sticks"></option>
-    <option value="pcs"></option>
+    <option value="Pieces"></option>
     <option value="pack"></option>
     <option value="bottle"></option>
-    <option value="cans"></option>
+    <option value="Cans"></option>
 </datalist>
 
 @section Scripts {
@@ -631,6 +631,8 @@
                     // Explicitly reset dynamic UI states
                     if (document.getElementById('newSellingPriceCheck')) togglePriceField('new');
                     if (document.getElementById('editSellingPriceCheck')) togglePriceField('edit');
+                    toggleSupplierField('new');
+                    toggleSupplierField('edit');
                 }
             }, 300);
         }
@@ -672,6 +674,20 @@
             }
         }
 
+        function toggleSupplierField(prefix = 'new') {
+            const checkbox = document.getElementById(prefix + 'IsRepack');
+            const container = document.getElementById(prefix + 'VendorIdContainer');
+            const select = document.getElementById(prefix + 'VendorId');
+            if (checkbox.checked) {
+                container.classList.add('hidden');
+                select.removeAttribute('required');
+                select.value = '';
+            } else {
+                container.classList.remove('hidden');
+                select.setAttribute('required', 'required');
+            }
+        }
+
         function openEditItemModal(item) {
             document.getElementById('editComId').value = item.comId;
             document.getElementById('editItemName').value = item.itemName;
@@ -687,6 +703,7 @@
             const sellingPriceCheck = document.getElementById('editSellingPriceCheck');
             sellingPriceCheck.checked = item.sellingPrice > 0;
             togglePriceField('edit');
+            toggleSupplierField('edit');
 
             // Filter SubCategories and select the current one
             filterSubCategories('edit', item.subCategoryId);

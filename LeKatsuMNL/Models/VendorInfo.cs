@@ -24,6 +24,18 @@ namespace LeKatsuMNL.Models
 
         [MaxLength(20)]
         public string SupplierType { get; set; } = "Main";
+        
+        [MaxLength(50)]
+        public string? CompanyId { get; set; }
+
+        [MaxLength(150)]
+        public string? CompanyName { get; set; }
+
+        [MaxLength(255)]
+        public string? CompanyAddress { get; set; }
+
+        [MaxLength(20)]
+        public string? Tin { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
