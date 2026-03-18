@@ -46,7 +46,7 @@ namespace LeKatsuMNL.Models
 
         public int? PriceId { get; set; }
 
-        public int VendorId { get; set; }
+        public int? VendorId { get; set; }
         public VendorInfo Vendor { get; set; }
         
         // Navigation Properties

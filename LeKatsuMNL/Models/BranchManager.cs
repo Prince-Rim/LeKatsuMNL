@@ -31,7 +31,7 @@ namespace LeKatsuMNL.Models
         public string LastName { get; set; }
 
         [MaxLength(20)]
-        public string ContactNum { get; set; }
+        public string? ContactNum { get; set; }
 
         [Required]
         [MaxLength(20)]

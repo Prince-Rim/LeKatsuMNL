@@ -134,6 +134,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     LastName = a.LastName,
                     UserSystemId = "ADM-" + a.ManagerId.ToString("D4"),
                     Email = a.Email,
+                    ContactNum = a.ContactNum,
                     Role = a.Role,
                     Privileges = a.Privileges,
                     Status = a.Status,
@@ -233,6 +234,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     MiddleName = NewUser.MiddleName ?? "",
                     LastName = NewUser.LastName,
                     Email = NewUser.Email,
+                    ContactNum = NewUser.ContactNum,
                     Password = BCrypt.Net.BCrypt.HashPassword(NewUser.Password),
                     Role = NewUser.Role,
                     Privileges = NewUser.Privileges ?? "N/A",
@@ -259,6 +261,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     admin.MiddleName = EditUser.MiddleName ?? "";
                     admin.LastName = EditUser.LastName;
                     admin.Email = EditUser.Email;
+                    admin.ContactNum = EditUser.ContactNum;
                     admin.Role = EditUser.Role;
                     admin.Privileges = EditUser.Privileges ?? admin.Privileges;
                     admin.Status = EditUser.Status;

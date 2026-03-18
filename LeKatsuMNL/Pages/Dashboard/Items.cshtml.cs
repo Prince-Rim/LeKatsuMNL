@@ -50,7 +50,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string PackagingUnit { get; set; }
             public string PackSize { get; set; }
             public string UOM { get; set; }
-            public int VendorId { get; set; }
+            public int? VendorId { get; set; }
             public decimal? CostPrice { get; set; }
             public decimal? SellingPrice { get; set; }
             public decimal Stock { get; set; }
@@ -154,7 +154,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             string ItemName,
             int CategoryId,
             int? SubCategoryId,
-            int VendorId,
+            int? VendorId,
             string PackagingType,
             string PackagingUnit,
             string PackSize,
@@ -205,7 +205,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             string ItemName,
             int CategoryId,
             int? SubCategoryId,
-            int VendorId,
+            int? VendorId,
             string PackagingType,
             string PackagingUnit,
             string PackSize,
