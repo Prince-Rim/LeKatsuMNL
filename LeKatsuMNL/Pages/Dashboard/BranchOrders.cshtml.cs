@@ -174,7 +174,17 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             if (string.IsNullOrEmpty(ids)) return RedirectToPage();
 
-            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var idList = new List<int>();
+            foreach (var token in ids.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(token.Trim(), out var parsedId))
+                {
+                    idList.Add(parsedId);
+                }
+            }
+
+            if (idList.Count == 0) return RedirectToPage();
+
             var orders = await _context.OrderInfos.Where(o => idList.Contains(o.OrderId)).ToListAsync();
             foreach (var order in orders)
             {
@@ -187,6 +197,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnGetExportAsync()
         {
+            if (!PermissionHelper.HasPermission(User, "Transactions", 'R')) return Forbid();
+
             var orders = await _context.OrderInfos
                 .Where(o => !o.IsArchived)
                 .Include(o => o.BranchManager)
@@ -208,10 +220,27 @@ namespace LeKatsuMNL.Pages.Dashboard
                 string orderDate = order.OrderDate.ToString("yyyy-MM-dd");
                 string expectedDate = order.DeliveryDate?.ToString("yyyy-MM-dd") ?? "";
 
-                csv.AppendLine($"{formattedOrderId},{branch},{manager},{invStatus},{status},{orderDate},{expectedDate}");
+                csv.AppendLine(string.Join(",",
+                    EscapeCsv(formattedOrderId),
+                    EscapeCsv(branch),
+                    EscapeCsv(manager),
+                    EscapeCsv(invStatus),
+                    EscapeCsv(status),
+                    EscapeCsv(orderDate),
+                    EscapeCsv(expectedDate)));
             }
 
             return File(System.Text.Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", $"BranchOrders_{System.DateTime.Now:yyyyMMdd}.csv");
+        }
+
+        private static string EscapeCsv(string? value)
+        {
+            var sanitized = value ?? string.Empty;
+            if (sanitized.Length > 0 && "=+-@".Contains(sanitized[0]))
+            {
+                sanitized = "'" + sanitized;
+            }
+            return $"\"{sanitized.Replace("\"", "\"\"")}\"";
         }
     }
 }

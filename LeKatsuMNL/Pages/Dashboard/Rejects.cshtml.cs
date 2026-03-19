@@ -50,6 +50,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
          public async Task<IActionResult> OnGetExportAsync()
          {
+             if (!PermissionHelper.HasPermission(User, "Rejects", 'R')) return Forbid();
+
              var rejects = await _context.RejectItems
                  .Where(r => r.RejectType == "Recipe")
                  .OrderByDescending(r => r.RejectedAt)
@@ -60,10 +62,25 @@ namespace LeKatsuMNL.Pages.Dashboard
 
              foreach (var reject in rejects)
              {
-                 csv.AppendLine($"{reject.ItemName},{reject.Quantity},{reject.Uom},{reject.Reason ?? "-"},{reject.RejectedAt:yyyy-MM-dd HH:mm:ss}");
+                 csv.AppendLine(string.Join(",",
+                     EscapeCsv(reject.ItemName),
+                     reject.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                     EscapeCsv(reject.Uom),
+                     EscapeCsv(string.IsNullOrWhiteSpace(reject.Reason) ? "-" : reject.Reason),
+                     EscapeCsv(reject.RejectedAt.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture))));
              }
 
              return File(System.Text.Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", $"RejectLogs_{System.DateTime.Now:yyyyMMdd}.csv");
+         }
+
+         private static string EscapeCsv(string? value)
+         {
+             var sanitized = value ?? string.Empty;
+             if (sanitized.Length > 0 && "=+-@".Contains(sanitized[0]))
+             {
+                 sanitized = "'" + sanitized;
+             }
+             return $"\"{sanitized.Replace("\"", "\"\"")}\"";
          }
     }
 }

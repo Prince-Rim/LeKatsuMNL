@@ -51,7 +51,7 @@
             print-color-adjust: exact !important;
         }
 
-        .text-[#C41E24] {
+        .text-\[#C41E24\] {
             color: #bc1b21 !important;
         }
     }
@@ -104,7 +104,7 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
+                    <th class="px-8 py-4"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" aria-label="Select all orders" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
                     <th class="px-8 py-4">Order ID</th>
                     <th class="px-8 py-4">Branch</th>
                     <th class="px-8 py-4">Branch Manager</th>
@@ -122,7 +122,7 @@
                     {
                         string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                            <td class="px-8 py-5"><input type="checkbox" name="selectedOrders" value="@order.OrderId" class="order-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-[#C41E24] focus:ring-[#C41E24]"></td>
+                            <td class="px-8 py-5"><input type="checkbox" name="selectedOrders" value="@order.OrderId" aria-label="Select order @formattedOrderId" class="order-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-[#C41E24] focus:ring-[#C41E24]"></td>
                             <td class="px-8 py-5">
                                 <a href="/Dashboard/OrderDetails?id=@formattedOrderId"
                                    class="text-[#C41E24] font-bold underline hover:text-red-800 transition-colors text-sm">
@@ -174,7 +174,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" class="px-8 py-10 text-center text-gray-400 italic">No orders found.</td>
+                        <td colspan="9" class="px-8 py-10 text-center text-gray-400 italic">No orders found.</td>
                     </tr>
                 }
             </tbody>
