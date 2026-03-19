@@ -169,5 +169,49 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
             return RedirectToPage();
         }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync(string ids)
+        {
+            if (string.IsNullOrEmpty(ids)) return RedirectToPage();
+
+            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var orders = await _context.OrderInfos.Where(o => idList.Contains(o.OrderId)).ToListAsync();
+            foreach (var order in orders)
+            {
+                order.IsArchived = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnGetExportAsync()
+        {
+            var orders = await _context.OrderInfos
+                .Where(o => !o.IsArchived)
+                .Include(o => o.BranchManager)
+                    .ThenInclude(bm => bm.BranchLocation)
+                .Include(o => o.Invoices)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Order ID,Branch,Branch Manager,Invoice Status,Status,Order Date,Expected Date");
+
+            foreach (var order in orders)
+            {
+                string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+                string branch = order.BranchManager?.BranchLocation?.BranchName ?? "N/A";
+                string manager = $"{order.BranchManager?.FirstName} {order.BranchManager?.LastName}";
+                string invStatus = order.Invoices?.Any() == true ? order.Invoices.First().PaymentStatus : "No Invoice";
+                string status = order.Status ?? "Unknown";
+                string orderDate = order.OrderDate.ToString("yyyy-MM-dd");
+                string expectedDate = order.DeliveryDate?.ToString("yyyy-MM-dd") ?? "";
+
+                csv.AppendLine($"{formattedOrderId},{branch},{manager},{invStatus},{status},{orderDate},{expectedDate}");
+            }
+
+            return File(System.Text.Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", $"BranchOrders_{System.DateTime.Now:yyyyMMdd}.csv");
+        }
     }
 }

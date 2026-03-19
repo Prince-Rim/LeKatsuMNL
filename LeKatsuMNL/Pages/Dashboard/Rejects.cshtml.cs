@@ -47,5 +47,23 @@ namespace LeKatsuMNL.Pages.Dashboard
              StatusMessage = "All reject logs have been successfully cleared.";
              return RedirectToPage();
          }
+
+         public async Task<IActionResult> OnGetExportAsync()
+         {
+             var rejects = await _context.RejectItems
+                 .Where(r => r.RejectType == "Recipe")
+                 .OrderByDescending(r => r.RejectedAt)
+                 .ToListAsync();
+
+             var csv = new System.Text.StringBuilder();
+             csv.AppendLine("Item Name,Quantity,UOM,Reason,Rejected At");
+
+             foreach (var reject in rejects)
+             {
+                 csv.AppendLine($"{reject.ItemName},{reject.Quantity},{reject.Uom},{reject.Reason ?? "-"},{reject.RejectedAt:yyyy-MM-dd HH:mm:ss}");
+             }
+
+             return File(System.Text.Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", $"RejectLogs_{System.DateTime.Now:yyyyMMdd}.csv");
+         }
     }
 }

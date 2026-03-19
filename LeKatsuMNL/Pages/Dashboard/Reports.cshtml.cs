@@ -289,7 +289,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.SkuHeader)
                         .ThenInclude(s => s.SkuRecipes)
-                .Where(o => (o.Status == "Approved" || o.Status == "Preparing" || o.Status == "Delivered") && !o.IsArchived)
+                .Where(o => (o.Status == "Approved" || o.Status == "Preparing" || o.Status == "Delivered"))
                 .ToListAsync();
 
             var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Branch Order");
@@ -419,7 +419,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     ola => ola.OrderId,
                     oi => oi.OrderId,
                     (ola, oi) => new { ola, oi })
-                .Where(x => x.oi.OrderDate >= StartDate && x.oi.OrderDate <= EndDate && !x.oi.IsArchived)
+                .Where(x => x.oi.OrderDate >= StartDate && x.oi.OrderDate <= EndDate)
                 .Join(_context.CommissaryInventories,
                     x => x.ola.ComId,
                     s => s.ComId,

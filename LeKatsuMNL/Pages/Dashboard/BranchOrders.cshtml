@@ -4,6 +4,59 @@
     ViewData["Title"] = "Transaction / Branch Orders";
 }
 
+<style>
+    @@media print {
+        /* Hide UI elements */
+        #sidebar, 
+        form, 
+        .relative.inline-block.text-left, /* Actions menu */
+        .px-8.py-4:first-child, /* Checkbox header */
+        .px-8.py-5:first-child, /* Checkbox cell */
+        .px-8.py-4:last-child,  /* Action header */
+        .px-8.py-5:last-child,   /* Action cell */
+        .pagination-container,
+        nav,
+        button {
+            display: none !important;
+        }
+
+        /* Reset layout for print */
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+
+        .bg-white {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: 1px solid #eee !important;
+        }
+
+        th, td {
+            border: 1px solid #eee !important;
+            padding: 12px 8px !important;
+            white-space: normal !important;
+        }
+
+        /* Ensure text is black and crisp */
+        * {
+            color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .text-[#C41E24] {
+            color: #bc1b21 !important;
+        }
+    }
+</style>
+
 
 
     <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
@@ -13,9 +66,10 @@
                     <span>Actions</span>
                     <i class="bi bi-chevron-down text-xs"></i>
                 </button>
-                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
-                    <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export</button>
-                    <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print</button>
+                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
+                    <a asp-page-handler="Export" class="w-full block text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export List</a>
+                    <button type="button" onclick="printOrders()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Print Table</button>
+                    <button type="button" onclick="handleBulkArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 transition-colors">Bulk Archive</button>
                 </div>
             </div>
  
@@ -50,7 +104,7 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
+                    <th class="px-8 py-4"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
                     <th class="px-8 py-4">Order ID</th>
                     <th class="px-8 py-4">Branch</th>
                     <th class="px-8 py-4">Branch Manager</th>
@@ -68,7 +122,7 @@
                     {
                         string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                            <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
+                            <td class="px-8 py-5"><input type="checkbox" name="selectedOrders" value="@order.OrderId" class="order-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-[#C41E24] focus:ring-[#C41E24]"></td>
                             <td class="px-8 py-5">
                                 <a href="/Dashboard/OrderDetails?id=@formattedOrderId"
                                    class="text-[#C41E24] font-bold underline hover:text-red-800 transition-colors text-sm">
@@ -252,7 +306,36 @@
             `;
             container.insertAdjacentHTML('beforeend', newRow);
         }
+
+        function toggleSelectAll(master) {
+            const checkboxes = document.getElementsByName('selectedOrders');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+        }
+
+        function handleBulkArchive() {
+            const selected = Array.from(document.getElementsByName('selectedOrders'))
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            if (selected.length === 0) {
+                alert('Please select at least one order to archive.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to archive ${selected.length} selected orders?`)) {
+                document.getElementById('bulkArchiveIds').value = selected.join(',');
+                document.getElementById('bulkArchiveForm').submit();
+            }
+        }
+
+        function printOrders() {
+            window.print();
+        }
     </script>
+
+    <form id="bulkArchiveForm" method="post" asp-page-handler="BulkArchive" class="hidden">
+        <input type="hidden" name="ids" id="bulkArchiveIds">
+    </form>
 }
 
 <!-- Create Order Modal -->
