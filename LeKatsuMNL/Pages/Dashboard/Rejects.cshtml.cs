@@ -47,5 +47,40 @@ namespace LeKatsuMNL.Pages.Dashboard
              StatusMessage = "All reject logs have been successfully cleared.";
              return RedirectToPage();
          }
+
+         public async Task<IActionResult> OnGetExportAsync()
+         {
+             if (!PermissionHelper.HasPermission(User, "Rejects", 'R')) return Forbid();
+
+             var rejects = await _context.RejectItems
+                 .Where(r => r.RejectType == "Recipe")
+                 .OrderByDescending(r => r.RejectedAt)
+                 .ToListAsync();
+
+             var csv = new System.Text.StringBuilder();
+             csv.AppendLine("Item Name,Quantity,UOM,Reason,Rejected At");
+
+             foreach (var reject in rejects)
+             {
+                 csv.AppendLine(string.Join(",",
+                     EscapeCsv(reject.ItemName),
+                     reject.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                     EscapeCsv(reject.Uom),
+                     EscapeCsv(string.IsNullOrWhiteSpace(reject.Reason) ? "-" : reject.Reason),
+                     EscapeCsv(reject.RejectedAt.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture))));
+             }
+
+             return File(System.Text.Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", $"RejectLogs_{System.DateTime.Now:yyyyMMdd}.csv");
+         }
+
+         private static string EscapeCsv(string? value)
+         {
+             var sanitized = value ?? string.Empty;
+             if (sanitized.Length > 0 && "=+-@".Contains(sanitized[0]))
+             {
+                 sanitized = "'" + sanitized;
+             }
+             return $"\"{sanitized.Replace("\"", "\"\"")}\"";
+         }
     }
 }

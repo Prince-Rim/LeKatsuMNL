@@ -4,6 +4,59 @@
     ViewData["Title"] = "Transaction / Branch Orders";
 }
 
+<style>
+    @@media print {
+        /* Hide UI elements */
+        #sidebar, 
+        form, 
+        .relative.inline-block.text-left, /* Actions menu */
+        .px-8.py-4:first-child, /* Checkbox header */
+        .px-8.py-5:first-child, /* Checkbox cell */
+        .px-8.py-4:last-child,  /* Action header */
+        .px-8.py-5:last-child,   /* Action cell */
+        .pagination-container,
+        nav,
+        button {
+            display: none !important;
+        }
+
+        /* Reset layout for print */
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+
+        .bg-white {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: 1px solid #eee !important;
+        }
+
+        th, td {
+            border: 1px solid #eee !important;
+            padding: 12px 8px !important;
+            white-space: normal !important;
+        }
+
+        /* Ensure text is black and crisp */
+        * {
+            color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .text-\[#C41E24\] {
+            color: #bc1b21 !important;
+        }
+    }
+</style>
+
 
 
     <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
@@ -13,9 +66,10 @@
                     <span>Actions</span>
                     <i class="bi bi-chevron-down text-xs"></i>
                 </button>
-                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
-                    <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export</button>
-                    <button type="button" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print</button>
+                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
+                    <a asp-page-handler="Export" class="w-full block text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export List</a>
+                    <button type="button" onclick="printOrders()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Print Table</button>
+                    <button type="button" onclick="handleBulkArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 transition-colors">Bulk Archive</button>
                 </div>
             </div>
  
@@ -50,7 +104,7 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
+                    <th class="px-8 py-4"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" aria-label="Select all orders" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
                     <th class="px-8 py-4">Order ID</th>
                     <th class="px-8 py-4">Branch</th>
                     <th class="px-8 py-4">Branch Manager</th>
@@ -68,7 +122,7 @@
                     {
                         string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                            <td class="px-8 py-5"><input type="checkbox" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"></td>
+                            <td class="px-8 py-5"><input type="checkbox" name="selectedOrders" value="@order.OrderId" aria-label="Select order @formattedOrderId" class="order-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-[#C41E24] focus:ring-[#C41E24]"></td>
                             <td class="px-8 py-5">
                                 <a href="/Dashboard/OrderDetails?id=@formattedOrderId"
                                    class="text-[#C41E24] font-bold underline hover:text-red-800 transition-colors text-sm">
@@ -120,7 +174,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" class="px-8 py-10 text-center text-gray-400 italic">No orders found.</td>
+                        <td colspan="9" class="px-8 py-10 text-center text-gray-400 italic">No orders found.</td>
                     </tr>
                 }
             </tbody>
@@ -134,7 +188,7 @@
         const actionsMenu = document.getElementById('actionsMenu');
         function toggleActions(e) {
             e.stopPropagation();
-            actionsMenu.classList.toggle('hidden');
+            if (actionsMenu) actionsMenu.classList.toggle('hidden');
         }
         window.onclick = function(event) {
             if (!event.target.closest('.relative')) {
@@ -144,20 +198,26 @@
 
         function openCreateOrderModal() {
             const modal = document.getElementById('createOrderModal');
+            if (!modal) return;
             const content = modal.querySelector('.inline-block');
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-            setTimeout(() => {
-                content.classList.remove('opacity-0', 'scale-95');
-                content.classList.add('opacity-100', 'scale-100');
-            }, 10);
+            if (content) {
+                setTimeout(() => {
+                    content.classList.remove('opacity-0', 'scale-95');
+                    content.classList.add('opacity-100', 'scale-100');
+                }, 10);
+            }
         }
 
         function closeCreateOrderModal() {
             const modal = document.getElementById('createOrderModal');
+            if (!modal) return;
             const content = modal.querySelector('.inline-block');
-            content.classList.add('opacity-0', 'scale-95');
-            content.classList.remove('opacity-100', 'scale-100');
+            if (content) {
+                content.classList.add('opacity-0', 'scale-95');
+                content.classList.remove('opacity-100', 'scale-100');
+            }
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
@@ -166,20 +226,24 @@
                     form.reset();
                     // Reset Invoice Items to initial single empty row
                     const container = document.getElementById('orderItemsContainer');
-                    const rows = container.querySelectorAll('.order-item-row');
-                    rows.forEach((row, index) => {
-                        if (index > 0) {
-                            row.remove();
-                        } else {
-                            // Reset the first row inputs
-                            row.querySelectorAll('input, select').forEach(input => {
-                                input.value = '';
-                            });
-                            const totalSpan = row.querySelector('.row-total');
-                            totalSpan.innerText = '₱ 0.00';
-                            totalSpan.dataset.value = '0';
-                        }
-                    });
+                    if (container) {
+                        const rows = container.querySelectorAll('.order-item-row');
+                        rows.forEach((row, index) => {
+                            if (index > 0) {
+                                row.remove();
+                            } else {
+                                // Reset the first row inputs
+                                row.querySelectorAll('input, select').forEach(input => {
+                                    input.value = '';
+                                });
+                                const totalSpan = row.querySelector('.row-total');
+                                if (totalSpan) {
+                                    totalSpan.innerText = '₱ 0.00';
+                                    totalSpan.dataset.value = '0';
+                                }
+                            }
+                        });
+                    }
                     calculateGrandTotal();
                 }
             }, 300);
@@ -196,29 +260,39 @@
         function calculateGrandTotal() {
             let grandTotal = 0;
             document.querySelectorAll('.order-item-row').forEach(row => {
-                const total = parseFloat(row.querySelector('.row-total').dataset.value) || 0;
+                const totalSpan = row.querySelector('.row-total');
+                const total = totalSpan ? (parseFloat(totalSpan.dataset.value) || 0) : 0;
                 grandTotal += total;
             });
-            document.getElementById('grandTotalDisplay').innerText = `₱ ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const display = document.getElementById('grandTotalDisplay');
+            if (display) {
+                display.innerText = `₱ ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
         }
 
         function updateRow(element) {
             const row = element.closest('.order-item-row');
-            const itemId = row.querySelector('select[name="ItemIds"]').value;
-            const qty = parseFloat(row.querySelector('input[name="Quantities"]').value) || 0;
+            if (!row) return;
+            const itemSelect = row.querySelector('select[name="ItemIds"]');
+            const itemId = itemSelect ? itemSelect.value : '';
+            const qtyInput = row.querySelector('input[name="Quantities"]');
+            const qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : 0;
             const priceInput = row.querySelector('input[name="Prices"]');
             
             // Only update price input if it was an item selection change
-            if (element.name === "ItemIds" && itemId) {
+            if (element.name === "ItemIds" && itemId && priceInput) {
                 priceInput.value = (itemData[itemId]?.price || 0).toFixed(2);
             }
 
-            const price = parseFloat(priceInput.value) || 0;
+            const price = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
             const total = price * qty;
-            row.querySelector('input[name="Prices"]').value = price.toFixed(2);
+            if (priceInput) priceInput.value = price.toFixed(2);
+            
             const totalField = row.querySelector('.row-total');
-            totalField.innerText = `₱ ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-            totalField.dataset.value = total;
+            if (totalField) {
+                totalField.innerText = `₱ ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+                totalField.dataset.value = total;
+            }
             
             calculateGrandTotal();
         }
@@ -252,7 +326,41 @@
             `;
             container.insertAdjacentHTML('beforeend', newRow);
         }
+
+        function toggleSelectAll(master) {
+            const checkboxes = document.getElementsByName('selectedOrders');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+        }
+
+        function handleBulkArchive() {
+            const selected = Array.from(document.getElementsByName('selectedOrders'))
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            if (selected.length === 0) {
+                alert('Please select at least one order to archive.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to archive ${selected.length} selected orders?`)) {
+                const idInput = document.getElementById('bulkArchiveIds');
+                const form = document.getElementById('bulkArchiveForm');
+                
+                if (idInput && form) {
+                    idInput.value = selected.join(',');
+                    form.submit();
+                }
+            }
+        }
+
+        function printOrders() {
+            window.print();
+        }
     </script>
+
+    <form id="bulkArchiveForm" method="post" asp-page-handler="BulkArchive" class="hidden">
+        <input type="hidden" name="ids" id="bulkArchiveIds">
+    </form>
 }
 
 <!-- Create Order Modal -->
