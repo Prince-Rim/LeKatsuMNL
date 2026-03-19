@@ -1,0 +1,102 @@
+@page
+@model LeKatsuMNL.Pages.BranchDashboard.OrderHistoryModel
+@{
+    ViewData["Title"] = "Order History";
+    Layout = "_BranchLayout";
+}
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+
+    @* Table *@
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700 dark:text-gray-500">
+                    <th class="px-6 py-4 font-bold text-left">Order ID</th>
+                    <th class="px-4 py-4 font-bold text-left">Status</th>
+                    <th class="px-4 py-4 font-bold text-left">Payment Status</th>
+                    <th class="px-4 py-4 font-bold text-left">Created at</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                @if (Model.Orders != null && Model.Orders.Any())
+                {
+                    @foreach (var order in Model.Orders)
+                    {
+                        string formattedId = $"FO-{order.OrderDate.Year.ToString().Substring(2)}{order.OrderId:D4}";
+                        string payStatus = order.Invoices?.FirstOrDefault()?.PaymentStatus ?? "—";
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                            <td class="px-6 py-4">
+                                <a href="/BranchDashboard/OrderHistoryDetails?id=@order.OrderId"
+                                   class="font-bold text-[#C41E24] hover:underline">@formattedId</a>
+                            </td>
+                            <td class="px-4 py-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold
+                                    @(order.Status == "Completed" ? "bg-green-100 text-green-700" :
+                                      order.Status == "Cancelled" ? "bg-red-100 text-red-700" :
+                                      order.Status == "Approved" || order.Status == "Delivered" ? "bg-blue-100 text-blue-700" :
+                                      "bg-orange-100 text-orange-700")">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@payStatus</td>
+                            <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@order.OrderDate.ToString("MMMM dd, yyyy")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center gap-2 text-gray-300">
+                                <i class="bi bi-clock-history text-3xl"></i>
+                                <p class="text-xs font-bold uppercase tracking-widest">No order history found</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* Pagination *@
+    <div class="flex flex-wrap items-center justify-between px-6 py-3 border-t border-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        @if (Model.Orders != null)
+        {
+            <span>
+                Showing @((Model.Orders.PageIndex - 1) * Model.Orders.PageSize + 1) – @(Math.Min(Model.Orders.PageIndex * Model.Orders.PageSize, Model.Orders.TotalItems)) of @Model.Orders.TotalItems
+            </span>
+            <div class="flex items-center gap-2">
+                <span>Records per page</span>
+                <form method="get" class="inline">
+                    <input type="number" name="PageSize" value="@Model.PageSize" min="5" max="100"
+                           class="w-14 text-center border border-gray-200 rounded px-2 py-1 text-xs dark:bg-slate-700 dark:border-gray-600 dark:text-white"
+                           onchange="this.closest('form').submit()" />
+                </form>
+                @if (Model.Orders.HasPreviousPage)
+                {
+                    <a href="?pageIndex=@(Model.Orders.PageIndex - 1)&PageSize=@Model.PageSize"
+                       class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-slate-700 transition-colors">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="w-7 h-7 flex items-center justify-center border border-gray-100 rounded text-gray-300 dark:border-gray-700 cursor-not-allowed"><i class="bi bi-chevron-left"></i></span>
+                }
+                <span class="w-7 h-7 flex items-center justify-center bg-[#C41E24] text-white rounded text-xs font-bold">@Model.Orders.PageIndex</span>
+                @if (Model.Orders.HasNextPage)
+                {
+                    <a href="?pageIndex=@(Model.Orders.PageIndex + 1)&PageSize=@Model.PageSize"
+                       class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-slate-700 transition-colors">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="w-7 h-7 flex items-center justify-center border border-gray-100 rounded text-gray-300 dark:border-gray-700 cursor-not-allowed"><i class="bi bi-chevron-right"></i></span>
+                }
+            </div>
+        }
+    </div>
+</div>

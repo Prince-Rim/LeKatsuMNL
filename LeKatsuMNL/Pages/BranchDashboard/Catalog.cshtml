@@ -1,0 +1,376 @@
+@page
+@model LeKatsuMNL.Pages.BranchDashboard.CatalogModel
+@{
+    ViewData["Title"] = "Catalog";
+    Layout = "_BranchLayout";
+}
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+
+    @* Filters *@
+    <div class="flex flex-wrap gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <form method="get" class="flex flex-wrap gap-3 w-full" id="filterForm">
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+            <div class="relative flex-1 min-w-48">
+                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm"
+                       placeholder="Search items..."
+                       class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C41E24]/30 dark:bg-slate-700 dark:border-gray-600 dark:text-white"
+                       onchange="document.getElementById('filterForm').submit()" />
+            </div>
+            <select name="Classification" onchange="document.getElementById('filterForm').submit()"
+                    class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C41E24]/30 dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+                <option value="All" selected="@(string.IsNullOrEmpty(Model.Classification) || Model.Classification == "All")">Classification</option>
+                @foreach (var cls in Model.Classifications)
+                {
+                    <option value="@cls" selected="@(Model.Classification == cls)">@cls</option>
+                }
+            </select>
+        </form>
+    </div>
+
+    @* Success Banner *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mx-6 mt-4 px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @* Table *@
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700 dark:text-gray-500">
+                    <th class="px-6 py-4 font-bold text-left w-16">Image</th>
+                    <th class="px-4 py-4 font-bold text-left">Item Description</th>
+                    <th class="px-4 py-4 font-bold text-left">Classification</th>
+                    <th class="px-4 py-4 font-bold text-left">Yield</th>
+                    <th class="px-4 py-4 font-bold text-left">Price</th>
+                    <th class="px-4 py-4 font-bold text-center">Quantity</th>
+                    <th class="px-4 py-4 font-bold text-right">Line Total</th>
+                </tr>
+            </thead>
+            <tbody id="catalogBody" class="divide-y divide-gray-50 dark:divide-gray-700">
+                @foreach (var item in Model.Items)
+                {
+                    <tr class="catalog-row hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors" data-item-id="@item.ItemId" data-name="@item.ItemName" data-classification="@item.Classification" data-yield="@item.Yield" data-price="@item.SellingPrice">
+                        <td class="px-6 py-4">
+                            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center dark:bg-slate-700">
+                                <i class="bi bi-box text-gray-300 text-lg dark:text-gray-500"></i>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 font-medium text-gray-800 dark:text-white">@item.ItemName</td>
+                        <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@item.Classification</td>
+                        <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@item.Yield</td>
+                        <td class="px-4 py-4 text-gray-700 font-medium dark:text-gray-200">₱@item.SellingPrice.ToString("N2")</td>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center justify-center gap-1">
+                                <div class="qty-controls hidden items-center gap-1">
+                                    <button type="button" onclick="changeQty(this, -1)" class="w-7 h-7 rounded border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-600 transition-colors">
+                                        <i class="bi bi-dash text-xs"></i>
+                                    </button>
+                                    <input type="number" value="1" min="1"
+                                           class="qty-input w-12 text-center text-sm border border-gray-200 rounded py-1 dark:bg-slate-700 dark:border-gray-600 dark:text-white"
+                                           onchange="updateLineTotal(this.closest('tr'))" />
+                                    <button type="button" onclick="changeQty(this, 1)" class="w-7 h-7 rounded border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-600 transition-colors">
+                                        <i class="bi bi-plus text-xs"></i>
+                                    </button>
+                                </div>
+                                <button type="button" onclick="addItem(this)" class="add-btn text-xs px-3 py-1.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-slate-600 transition-colors">
+                                    Add
+                                </button>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-right font-medium line-total text-gray-400 dark:text-gray-500">—</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* Footer: Summary + Pagination *@
+    <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 bg-gray-50/50 dark:bg-slate-700/20 dark:border-gray-700">
+        <div class="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <span id="summaryClassifications"><span class="font-bold text-gray-800 dark:text-white" id="classCount">0</span> Classification</span>
+            <span id="summaryItems"><span class="font-bold text-gray-800 dark:text-white" id="itemCount">0</span> Items Selected</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Total Amount:</span>
+                <span class="text-[#C41E24] font-bold text-lg ml-2" id="grandTotal">₱0.00</span>
+            </div>
+            <button type="button" onclick="openConfirmModal()"
+                    id="submitBtn"
+                    class="px-5 py-2.5 bg-[#C41E24] text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                Submit Purchase Order
+            </button>
+        </div>
+    </div>
+
+    @* Pagination *@
+    <div class="flex flex-wrap items-center justify-between px-6 py-3 border-t border-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <span>
+            Showing @((Model.Items.PageIndex - 1) * Model.Items.PageSize + 1) – @(Math.Min(Model.Items.PageIndex * Model.Items.PageSize, Model.Items.TotalItems)) of @Model.Items.TotalItems
+        </span>
+        <div class="flex items-center gap-2">
+            <span>Records per page</span>
+            <form method="get" id="pageSizeForm" class="inline">
+                <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                <input type="hidden" name="Classification" value="@Model.Classification" />
+                <input type="number" name="PageSize" value="@Model.PageSize" min="5" max="100"
+                       class="w-14 text-center border border-gray-200 rounded px-2 py-1 text-xs dark:bg-slate-700 dark:border-gray-600 dark:text-white"
+                       onchange="document.getElementById('pageSizeForm').submit()" />
+            </form>
+            @if (Model.Items.HasPreviousPage)
+            {
+                <a href="?pageIndex=@(Model.Items.PageIndex - 1)&PageSize=@Model.PageSize&SearchTerm=@Model.SearchTerm&Classification=@Model.Classification"
+                   class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-slate-700 transition-colors">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            }
+            else
+            {
+                <span class="w-7 h-7 flex items-center justify-center border border-gray-100 rounded text-gray-300 dark:border-gray-700 cursor-not-allowed">
+                    <i class="bi bi-chevron-left"></i>
+                </span>
+            }
+            <span class="w-7 h-7 flex items-center justify-center bg-[#C41E24] text-white rounded text-xs font-bold">@Model.Items.PageIndex</span>
+            @if (Model.Items.HasNextPage)
+            {
+                <a href="?pageIndex=@(Model.Items.PageIndex + 1)&PageSize=@Model.PageSize&SearchTerm=@Model.SearchTerm&Classification=@Model.Classification"
+                   class="w-7 h-7 flex items-center justify-center border border-gray-200 rounded hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-slate-700 transition-colors">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            }
+            else
+            {
+                <span class="w-7 h-7 flex items-center justify-center border border-gray-100 rounded text-gray-300 dark:border-gray-700 cursor-not-allowed">
+                    <i class="bi bi-chevron-right"></i>
+                </span>
+            }
+        </div>
+    </div>
+</div>
+
+@* Confirm Order Modal *@
+<div id="confirmModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="font-bold text-gray-800 dark:text-white text-lg">Confirm Order List</h3>
+        </div>
+
+        <div class="overflow-auto max-h-72">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700">
+                        <th class="px-6 py-3 text-left font-bold">Item Description</th>
+                        <th class="px-4 py-3 text-left font-bold">Classification</th>
+                        <th class="px-4 py-3 text-left font-bold">Yield</th>
+                        <th class="px-4 py-3 text-center font-bold">Quantity</th>
+                        <th class="px-4 py-3 text-right font-bold">Price</th>
+                        <th class="px-4 py-3 text-right font-bold">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody id="confirmBody" class="divide-y divide-gray-50 dark:divide-gray-700">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-6 py-5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <div class="text-sm">
+                <span class="text-gray-500">Total Amount:</span>
+                <span class="font-bold text-[#C41E24] text-lg ml-2" id="modalTotal">₱0.00</span>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeConfirmModal()"
+                        class="px-4 py-2.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" onclick="submitOrder()"
+                        class="px-5 py-2.5 text-sm bg-[#C41E24] text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
+                    Confirm &amp; Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Hidden form for order submission *@
+<form id="orderForm" method="post" asp-page-handler="SubmitOrder" class="hidden"></form>
+
+@section Scripts {
+<script>
+    const CART_KEY = 'catalogCart';
+    let selectedItems = JSON.parse(localStorage.getItem(CART_KEY) || '{}');
+
+    // On page load: restore any items that exist on the current page
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.catalog-row').forEach(row => {
+            const itemId = row.dataset.itemId;
+            if (selectedItems[itemId]) {
+                const addBtn = row.querySelector('.add-btn');
+                const controls = row.querySelector('.qty-controls');
+                const input = row.querySelector('.qty-input');
+                addBtn.classList.add('hidden');
+                controls.classList.remove('hidden');
+                controls.classList.add('flex');
+                input.value = selectedItems[itemId].qty;
+                updateLineTotal(row);
+            }
+        });
+        refreshSummary();
+    });
+
+    function saveCart() {
+        localStorage.setItem(CART_KEY, JSON.stringify(selectedItems));
+    }
+
+    function addItem(btn) {
+        const row = btn.closest('tr');
+        const addBtn = row.querySelector('.add-btn');
+        const controls = row.querySelector('.qty-controls');
+        addBtn.classList.add('hidden');
+        controls.classList.remove('hidden');
+        controls.classList.add('flex');
+
+        const itemId = row.dataset.itemId;
+        selectedItems[itemId] = {
+            name: row.dataset.name,
+            classification: row.dataset.classification,
+            yield: row.dataset.yield,
+            price: parseFloat(row.dataset.price),
+            qty: 1
+        };
+        saveCart();
+        updateLineTotal(row);
+        refreshSummary();
+    }
+
+    function removeItem(row) {
+        const itemId = row.dataset.itemId;
+        delete selectedItems[itemId];
+        saveCart();
+
+        const addBtn = row.querySelector('.add-btn');
+        const controls = row.querySelector('.qty-controls');
+        const input = row.querySelector('.qty-input');
+        controls.classList.add('hidden');
+        controls.classList.remove('flex');
+        addBtn.classList.remove('hidden');
+        input.value = 1;
+
+        const lineTotal = row.querySelector('.line-total');
+        lineTotal.textContent = '—';
+        lineTotal.classList.remove('text-gray-800', 'dark:text-white', 'font-bold');
+        lineTotal.classList.add('text-gray-400', 'dark:text-gray-500');
+
+        refreshSummary();
+    }
+
+    function changeQty(btn, delta) {
+        const row = btn.closest('tr');
+        const input = row.querySelector('.qty-input');
+        let val = parseInt(input.value) + delta;
+        if (val <= 0) {
+            removeItem(row);
+            return;
+        }
+        input.value = val;
+        updateLineTotal(row);
+    }
+
+    function updateLineTotal(row) {
+        const itemId = row.dataset.itemId;
+        const input = row.querySelector('.qty-input');
+        if (!input) return;
+
+        const qty = parseInt(input.value) || 1;
+        const price = parseFloat(row.dataset.price);
+        const total = qty * price;
+        row.querySelector('.line-total').textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        row.querySelector('.line-total').classList.remove('text-gray-400', 'dark:text-gray-500');
+        row.querySelector('.line-total').classList.add('text-gray-800', 'dark:text-white', 'font-bold');
+
+        if (selectedItems[itemId]) {
+            selectedItems[itemId].qty = qty;
+            saveCart();
+        }
+        refreshSummary();
+    }
+
+    function refreshSummary() {
+        const items = Object.values(selectedItems);
+        const itemCount = items.length;
+        const classifications = new Set(items.map(i => i.classification)).size;
+        const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+        document.getElementById('itemCount').textContent = itemCount;
+        document.getElementById('classCount').textContent = classifications;
+        document.getElementById('grandTotal').textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('modalTotal').textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('submitBtn').disabled = itemCount === 0;
+    }
+
+    function openConfirmModal() {
+        const items = Object.entries(selectedItems);
+        if (!items.length) return;
+
+        const tbody = document.getElementById('confirmBody');
+        tbody.innerHTML = '';
+        items.forEach(([id, item]) => {
+            const lineTotal = item.price * item.qty;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-6 py-3 font-medium text-gray-800 dark:text-white">${item.name}</td>
+                <td class="px-4 py-3 text-gray-500">${item.classification}</td>
+                <td class="px-4 py-3 text-gray-500">${item.yield}</td>
+                <td class="px-4 py-3 text-center">${item.qty}</td>
+                <td class="px-4 py-3 text-right">₱${item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                <td class="px-4 py-3 text-right font-bold">₱${lineTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>`;
+            tbody.appendChild(tr);
+        });
+
+        const total = items.reduce((s, [, i]) => s + i.price * i.qty, 0);
+        document.getElementById('modalTotal').textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function submitOrder() {
+        const form = document.getElementById('orderForm');
+        form.innerHTML = '';
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            const t = document.createElement('input');
+            t.type = 'hidden'; t.name = '__RequestVerificationToken'; t.value = token.value;
+            form.appendChild(t);
+        }
+
+        Object.entries(selectedItems).forEach(([id, item]) => {
+            const addField = (name, value) => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = name; inp.value = value;
+                form.appendChild(inp);
+            };
+            addField('ItemIds', id);
+            addField('Quantities', item.qty);
+            addField('Prices', item.price);
+        });
+
+        // Clear cart after submit
+        localStorage.removeItem(CART_KEY);
+        form.submit();
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('confirmModal').addEventListener('click', function (e) {
+        if (e.target === this) closeConfirmModal();
+    });
+</script>
+}

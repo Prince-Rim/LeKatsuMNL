@@ -1,0 +1,281 @@
+@page
+@model LeKatsuMNL.Pages.BranchDashboard.OrderDetailsModel
+@{
+    ViewData["Title"] = "Order Details";
+    Layout = "_BranchLayout";
+
+    var order = Model.Order;
+    var invoice = Model.Invoice;
+    string formattedId = order != null ? $"FO-{order.OrderDate.Year.ToString().Substring(2)}{order.OrderId:D4}" : "—";
+    string statusPath = order?.Status == "Approved" ? "Approved Order" :
+                        order?.Status == "Completed" ? "Completed Order" :
+                        order?.Status == "Cancelled" ? "Cancelled Order" : "Purchase Order";
+    decimal grandTotal = order?.OrderLists?.Sum(ol => ol.TotalPrice) ?? 0;
+    string branchName = User.FindFirst("BranchName")?.Value ?? "Branch";
+}
+
+@section TitleActions {
+    <div class="flex items-center gap-2">
+        @if (Model.Invoice != null)
+        {
+            <a href="/BranchDashboard/InvoicePDF/@Model.Order.OrderId" target="_blank"
+               class="px-3 py-1.5 text-xs font-bold border border-[#C41E24] text-[#C41E24] rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-1.5"
+               title="View Invoice">
+                <i class="bi bi-receipt"></i> Invoice
+            </a>
+        }
+        <a href="/BranchDashboard/PrintPO/@Model.Order.OrderId" target="_blank"
+           class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-slate-700 transition-colors"
+           title="Print PO">
+            <i class="bi bi-printer"></i>
+        </a>
+    </div>
+}
+
+@section Styles {
+<style>
+    /* Hide print-only element on screen */
+    #po-printable { display: none; }
+
+    @@media print {
+        /* Show PO, hide everything else */
+        header, aside, .breadcrumb-bar, .action-buttons { display: none !important; }
+        main { padding: 0 !important; }
+        .screen-only { display: none !important; }
+        #po-printable { display: block; }
+        @@page { margin: 1.5cm 2cm; }
+    }
+</style>
+}
+
+@* Print-only PO document (hidden on screen, visible on print) *@
+<div id="po-printable" style="font-family:sans-serif; font-size:14px; color:#1a1a1a; padding:0 8px;">
+    @* PO Header *@
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #C41E24; padding-bottom:14px; margin-bottom:20px;">
+        <div>
+            <h1 style="font-size:22px; font-weight:900; color:#C41E24; margin:0;">Le Katsu MNL</h1>
+            <p style="margin:2px 0; font-size:12px; color:#555;">@branchName</p>
+            <p style="margin:2px 0; font-size:11px; color:#777;">Purchase Order</p>
+        </div>
+        <div style="text-align:right; font-size:12px; color:#555;">
+            <p style="margin:2px 0;"><strong>Statement No:</strong> @formattedId</p>
+            <p style="margin:2px 0;"><strong>Date Issued:</strong> @(order?.OrderDate.ToString("MMMM dd, yyyy") ?? "—")</p>
+            <p style="margin:2px 0;"><strong>Status:</strong> @(order?.Status ?? "—")</p>
+        </div>
+    </div>
+
+    @* Order meta *@
+    <table style="width:100%; margin-bottom:20px; font-size:12px; border-collapse:collapse;">
+        <tr>
+            <td style="width:50%; padding:4px 0;">
+                <span style="color:#888;">Reference PO:</span>
+                <strong style="margin-left:8px;">@(invoice?.ReferenceNumber ?? "—")</strong>
+            </td>
+            <td style="width:50%; padding:4px 0;">
+                <span style="color:#888;">Approved Date:</span>
+                <strong style="margin-left:8px;">@(invoice?.InvoiceDate.ToString("MMMM dd, yyyy") ?? "—")</strong>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:4px 0;">
+                <span style="color:#888;">Payment Terms:</span>
+                <strong style="margin-left:8px;">@(invoice?.PaymentMethod ?? "—")</strong>
+            </td>
+        </tr>
+    </table>
+
+    @* Items table *@
+    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:20px;">
+        <thead>
+            <tr style="background:#C41E24; color:white;">
+                <th style="padding:8px 10px; text-align:left;">Item Code</th>
+                <th style="padding:8px 10px; text-align:left;">Description</th>
+                <th style="padding:8px 10px; text-align:left;">Classification</th>
+                <th style="padding:8px 10px; text-align:right;">Qty</th>
+                <th style="padding:8px 10px; text-align:right;">Unit Price</th>
+                <th style="padding:8px 10px; text-align:right;">Line Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (order?.OrderLists != null)
+            {
+                int rowIndex = 0;
+                @foreach (var item in order.OrderLists)
+                {
+                    string itemCode = item.SkuId.HasValue ? $"SKU-{item.SkuId:D3}" : $"RM-{item.ComId:D3}";
+                    string itemName = item.SkuHeader?.ItemName ?? item.CommissaryInventory?.ItemName ?? "—";
+                    string category = item.SkuHeader?.Category?.CategoryName ?? item.CommissaryInventory?.Category?.CategoryName ?? "—";
+                    decimal unitPrice = item.Quantity > 0 ? item.TotalPrice / item.Quantity : 0;
+                    string rowBg = rowIndex % 2 == 0 ? "#f9f9f9" : "#ffffff";
+                    rowIndex++;
+                    <tr style="background:@rowBg;">
+                        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-family:monospace;">@itemCode</td>
+                        <td style="padding:7px 10px; border-bottom:1px solid #eee;">@itemName</td>
+                        <td style="padding:7px 10px; border-bottom:1px solid #eee; color:#666;">@category</td>
+                        <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:right;">@item.Quantity.ToString("G")</td>
+                        <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:right;">₱@unitPrice.ToString("N2")</td>
+                        <td style="padding:7px 10px; border-bottom:1px solid #eee; text-align:right; font-weight:bold;">₱@item.TotalPrice.ToString("N2")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" style="padding:10px; text-align:right; font-weight:bold; font-size:13px;">Grand Total:</td>
+                <td style="padding:10px; text-align:right; font-weight:900; font-size:15px; color:#C41E24;">₱@grandTotal.ToString("N2")</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    @* Signature area *@
+    <div style="display:flex; justify-content:space-between; margin-top:40px; font-size:11px; color:#555;">
+        <div style="text-align:center;">
+            <div style="border-top:1px solid #333; width:180px; margin-bottom:4px;"></div>
+            <p style="margin:0;">Prepared by</p>
+        </div>
+        <div style="text-align:center;">
+            <div style="border-top:1px solid #333; width:180px; margin-bottom:4px;"></div>
+            <p style="margin:0;">Approved by</p>
+        </div>
+        <div style="text-align:center;">
+            <div style="border-top:1px solid #333; width:180px; margin-bottom:4px;"></div>
+            <p style="margin:0;">Received by</p>
+        </div>
+    </div>
+</div>
+
+
+
+@* Main content *@
+<div class="screen-only grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+    @* Order Details Panel *@
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
+        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-5 dark:text-gray-500">Order Details</p>
+        <dl class="space-y-4 text-sm">
+            <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Statement No</dt>
+                <dd class="font-bold text-gray-800 dark:text-white">@formattedId</dd>
+            </div>
+            <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Reference PO</dt>
+                <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.ReferenceNumber ?? "—")</dd>
+            </div>
+            <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Date Issued</dt>
+                <dd class="font-medium text-gray-600 dark:text-gray-300">@(order?.OrderDate.ToString("MMMM dd, yyyy") ?? "—")</dd>
+            </div>
+            <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Approved date</dt>
+                <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.InvoiceDate.ToString("MMMM dd, yyyy") ?? "—")</dd>
+            </div>
+            <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Payment Terms</dt>
+                <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.PaymentMethod ?? "—")</dd>
+            </div>
+            <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Status</dt>
+                <dd>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold
+                        @(order?.Status == "Completed" ? "bg-green-100 text-green-700" :
+                          order?.Status == "Cancelled" ? "bg-red-100 text-red-700" :
+                          order?.Status == "Approved" ? "bg-blue-100 text-blue-700" :
+                          "bg-orange-100 text-orange-700")">
+                        @(order?.Status ?? "—")
+                    </span>
+                </dd>
+            </div>
+        </dl>
+    </div>
+
+    @* Order Items Panel *@
+    <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700 dark:text-gray-500">
+                        <th class="px-5 py-4 font-bold text-left">Item Code</th>
+                        <th class="px-4 py-4 font-bold text-left">Item Description</th>
+                        <th class="px-4 py-4 font-bold text-left">Classification</th>
+                        <th class="px-4 py-4 font-bold text-right">Quantity</th>
+                        <th class="px-4 py-4 font-bold text-right">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                    @if (order?.OrderLists != null && order.OrderLists.Any())
+                    {
+                        @foreach (var item in order.OrderLists)
+                        {
+                            string itemCode = item.SkuId.HasValue
+                                ? $"SKU-{item.SkuId:D3}"
+                                : $"RM-{item.ComId:D3}";
+                            string itemName = item.SkuHeader?.ItemName ?? item.CommissaryInventory?.ItemName ?? "—";
+                            string category = item.SkuHeader?.Category?.CategoryName
+                                ?? item.CommissaryInventory?.Category?.CategoryName ?? "—";
+
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">@itemCode</td>
+                                <td class="px-4 py-4 font-medium text-gray-800 dark:text-white">@itemName</td>
+                                <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@category</td>
+                                <td class="px-4 py-4 text-right font-medium text-gray-700 dark:text-gray-200">@item.Quantity.ToString("G")</td>
+                                <td class="px-4 py-4 text-right font-bold text-gray-800 dark:text-white">₱@item.TotalPrice.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-10 text-center text-gray-300 text-xs uppercase tracking-wider">No items found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Bottom section: Payment Instructions + Financial Summary *@
+<div class="screen-only grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
+        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 dark:text-gray-500">Payment Instructions</p>
+        <div class="flex flex-wrap gap-4 items-center">
+            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-green-600 dark:border-gray-700">🅿 Paymongo</span>
+            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-blue-800 dark:border-gray-700">BDO</span>
+            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-red-600 dark:border-gray-700">AUB</span>
+            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-blue-500 dark:border-gray-700">GCash</span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
+        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 dark:text-gray-500">Financial Summary</p>
+        <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600 dark:text-gray-300 font-medium">Total Amount:</span>
+            <span class="font-bold text-2xl text-gray-800 dark:text-white">₱@grandTotal.ToString("N2")</span>
+        </div>
+        @if (invoice != null)
+        {
+            <div class="mt-2 flex items-center justify-between text-sm">
+                <span class="text-gray-500 dark:text-gray-400">Payment Status:</span>
+                <span class="font-bold text-[#C41E24]">@invoice.PaymentStatus</span>
+            </div>
+        }
+    </div>
+</div>
+
+@* Action buttons *@
+@if (order?.Status == "Pending")
+{
+    <div class="screen-only flex justify-end gap-3">
+        <form method="post" asp-page-handler="Cancel">
+            <input type="hidden" name="id" value="@order.OrderId" />
+            <button type="submit"
+                    onclick="return confirm('Are you sure you want to cancel this order?')"
+                    class="px-5 py-2.5 text-sm border border-gray-200 rounded-lg text-gray-600 font-medium hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700 transition-colors">
+                Cancel Order
+            </button>
+        </form>
+        <button type="button"
+                class="px-5 py-2.5 text-sm bg-[#C41E24] text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
+            Confirm &amp; Upload Payment
+        </button>
+    </div>
+}

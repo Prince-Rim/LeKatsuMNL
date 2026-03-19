@@ -7,6 +7,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System;
 
 namespace LeKatsuMNL.Pages.Login
 {
@@ -42,10 +43,9 @@ namespace LeKatsuMNL.Pages.Login
                 return Page();
             }
 
-            // Attempt to parse out prefixes like "ADM-", "BM-", "BRCH-", "STF-"
             string rawId = UserId.Trim().ToUpper();
             int numericId;
-            string userType = null; // Used to optimize which table we check
+            string userType = null;
 
             if (rawId.StartsWith("ADM-"))
             {
@@ -60,7 +60,7 @@ namespace LeKatsuMNL.Pages.Login
             else if (rawId.StartsWith("BM-"))
             {
                 userType = "BranchManager";
-                rawId = rawId.Substring(3); // Support legacy BM- prefix
+                rawId = rawId.Substring(3);
             }
             else if (rawId.StartsWith("STF-"))
             {
@@ -68,14 +68,13 @@ namespace LeKatsuMNL.Pages.Login
                 rawId = rawId.Substring(4);
             }
 
-            // Remove any leading zeroes: "0007" becomes "7" before parsing
             if (!int.TryParse(rawId, out numericId))
             {
                 ErrorMessage = "Invalid User ID format.";
                 return Page();
             }
 
-            // 1. Check AdminAccount (If no prefix supplied, or if ADM- supplied)
+            // 1. Check AdminAccount
             if (userType == null || userType == "Admin")
             {
                 var admin = await _context.AdminAccounts.FirstOrDefaultAsync(a => a.ManagerId == numericId && !a.IsArchived);
@@ -96,10 +95,13 @@ namespace LeKatsuMNL.Pages.Login
                 }
             }
 
-            // 2. Check BranchManager (If no prefix supplied, or if BRCH-/BM- supplied)
+            // 2. Check BranchManager
             if (userType == null || userType == "BranchManager")
             {
-                var manager = await _context.BranchManagers.FirstOrDefaultAsync(m => m.BManagerId == numericId && !m.IsArchived);
+                var manager = await _context.BranchManagers
+                    .Include(m => m.BranchLocation)
+                    .FirstOrDefaultAsync(m => m.BManagerId == numericId && !m.IsArchived);
+                    
                 if (manager != null)
                 {
                     if (BCrypt.Net.BCrypt.Verify(Password, manager.Password))
@@ -110,13 +112,13 @@ namespace LeKatsuMNL.Pages.Login
                             return Page();
                         }
 
-                        await SignInUserAsync(manager.BManagerId.ToString(), "BranchManager", manager.FirstName + " " + manager.LastName, "All");
-                        return RedirectToPage("/Dashboard/Index");
+                        await SignInUserAsync(manager.BManagerId.ToString(), "BranchManager", manager.FirstName + " " + manager.LastName, "All", manager.BranchId.ToString(), manager.BranchLocation?.BranchName);
+                        return RedirectToPage("/BranchDashboard/Index");
                     }
                 }
             }
 
-            // 3. Check StaffInformation (If no prefix supplied, or if STF- supplied)
+            // 3. Check StaffInformation
             if (userType == null || userType == "Staff")
             {
                 var staff = await _context.StaffInformations.FirstOrDefaultAsync(s => s.StaffId == numericId && !s.IsArchived);
@@ -131,7 +133,7 @@ namespace LeKatsuMNL.Pages.Login
                         }
 
                         await SignInUserAsync(staff.StaffId.ToString(), "Staff", staff.FirstName + " " + staff.LastName, "All");
-                        return RedirectToPage("/Dashboard/Index");
+                        return RedirectToPage("/BranchDashboard/Index");
                     }
                 }
             }
@@ -140,14 +142,16 @@ namespace LeKatsuMNL.Pages.Login
             return Page();
         }
 
-        private async Task SignInUserAsync(string id, string role, string name, string privileges)
+        private async Task SignInUserAsync(string id, string role, string name, string privileges, string branchId = null, string branchName = null)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, id),
                 new Claim(ClaimTypes.Name, name),
                 new Claim(ClaimTypes.Role, role),
-                new Claim("Permissions", privileges ?? "")
+                new Claim("Permissions", privileges ?? ""),
+                new Claim("BranchId", branchId ?? ""),
+                new Claim("BranchName", branchName ?? "")
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
