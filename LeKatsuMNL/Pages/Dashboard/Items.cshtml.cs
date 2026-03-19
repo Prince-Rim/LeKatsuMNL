@@ -150,7 +150,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             int pageSize = PageSize > 0 ? PageSize : 10;
             Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, pageSize);
             
-            Categories = await _context.Categories.ToListAsync();
+            Categories = await _context.Categories.Where(c => !c.IsArchived).ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
             Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).ToListAsync();
 

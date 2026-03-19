@@ -49,7 +49,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return NotFound();
             }
 
-            Categories = await _context.Categories.ToListAsync();
+            Categories = await _context.Categories.Where(c => !c.IsArchived).ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
             
             // Available items: exclude self to prevent circular reference, and only those that are not repacks themselves (optional, but keep it simple for now as per user request to be like SKU)

@@ -59,7 +59,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     parsedId = id2;
 
                 query = query.Where(s => 
-                    s.ItemName.Contains(search, StringComparison.OrdinalIgnoreCase) || 
+                    s.ItemName.ToLower().Contains(search) || 
                     (parsedId.HasValue && s.SkuId == parsedId.Value));
             }
 
@@ -79,7 +79,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             int pageSize = PageSize > 0 ? PageSize : 10;
             SkuHeaders = await PaginatedList<SkuHeader>.CreateAsync(query, pageIndex ?? 1, pageSize);
 
-            Categories = await _context.Categories.ToListAsync();
+            Categories = await _context.Categories.Where(c => !c.IsArchived).ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
         }
 

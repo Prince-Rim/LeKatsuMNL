@@ -67,7 +67,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
-            Categories = await _context.Categories.ToListAsync();
+            Categories = await _context.Categories.Where(c => !c.IsArchived).ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
             AvailableItems = await _context.CommissaryInventories
                 .Where(i => !i.IsArchived && i.SkuId == null)

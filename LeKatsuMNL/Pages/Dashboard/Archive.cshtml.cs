@@ -104,6 +104,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                         .Where(s => s.IsArchived)
                         .Select(s => new ArchiveRow { Id = s.SoaId, FormattedId = s.SupplyDate.Year + "-" + s.SoaId.ToString("D4"), Name = "Supply Order #" + s.SoaId, Type = "Stock Receipt", Details = s.Status });
                     break;
+                case "Categories":
+                    query = _context.Categories
+                        .Where(c => c.IsArchived)
+                        .Select(c => new ArchiveRow { Id = c.CategoryId, FormattedId = "CAT-" + c.CategoryId.ToString("D3"), Name = c.CategoryName, Type = "Category", Details = c.SubCategoryNames ?? "-" });
+                    break;
                 default:
                     query = _context.CommissaryInventories
                         .Where(i => i.IsArchived)
@@ -164,6 +169,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                     var sOrder = await _context.SupplyOrders.FindAsync(id);
                     if (sOrder != null) sOrder.IsArchived = false;
                     break;
+                case "Categories":
+                    var cat = await _context.Categories.FindAsync(id);
+                    if (cat != null) cat.IsArchived = false;
+                    break;
             }
 
             await _context.SaveChangesAsync();
@@ -209,6 +218,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                 case "SupplyOrders":
                     var sOrders = await _context.SupplyOrders.Where(s => idList.Contains(s.SoaId)).ToListAsync();
                     sOrders.ForEach(s => s.IsArchived = false);
+                    break;
+                case "Categories":
+                    var cats = await _context.Categories.Where(c => idList.Contains(c.CategoryId)).ToListAsync();
+                    cats.ForEach(c => c.IsArchived = false);
                     break;
             }
 
