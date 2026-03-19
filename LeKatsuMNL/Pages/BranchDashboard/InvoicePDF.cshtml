@@ -185,8 +185,12 @@
 
     <script>
         function goBackOrClose(fallbackUrl) {
-            if (window.opener || window.history.length === 1) { window.close(); }
-            setTimeout(function() { window.location.href = fallbackUrl; }, 100);
+            // If we have history, go back. Otherwise redirect to fallback.
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = fallbackUrl;
+            }
         }
     </script>
 </body>

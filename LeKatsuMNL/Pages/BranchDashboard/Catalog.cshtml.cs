@@ -108,8 +108,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
         public async Task<IActionResult> OnPostSubmitOrderAsync(
             List<string> ItemIds,
-            List<decimal> Quantities,
-            List<decimal> Prices)
+            List<decimal> Quantities)
         {
             if (!User.Identity.IsAuthenticated)
                 return RedirectToPage("/Login/login");
@@ -121,44 +120,91 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             if (ItemIds == null || !ItemIds.Any())
                 return RedirectToPage();
 
-            var order = new OrderInfo
-            {
-                BranchManagerId = branchManagerId,
-                OrderDate = DateTime.Now,
-                Status = "Pending"
-            };
-
-            _context.OrderInfos.Add(order);
-            await _context.SaveChangesAsync();
-
+            // 1. Validate that we have at least one valid item with qty > 0
+            bool hasValidItems = false;
             for (int i = 0; i < ItemIds.Count; i++)
             {
-                if (Quantities[i] <= 0) continue;
-
-                var parts = ItemIds[i].Split('-');
-                if (parts.Length != 2) continue;
-
-                var type = parts[0];
-                if (!int.TryParse(parts[1], out int id)) continue;
-
-                var orderList = new OrderList
+                if (Quantities.Count > i && Quantities[i] > 0)
                 {
-                    OrderId = order.OrderId,
-                    Quantity = Quantities[i],
-                    TotalPrice = Prices[i] * Quantities[i]
-                };
-
-                if (type == "SKU")
-                    orderList.SkuId = id;
-                else if (type == "COM")
-                    orderList.ComId = id;
-
-                _context.OrderLists.Add(orderList);
+                    hasValidItems = true;
+                    break;
+                }
             }
 
-            await _context.SaveChangesAsync();
+            if (!hasValidItems)
+            {
+                TempData["ErrorMessage"] = "Please select at least one item with a valid quantity.";
+                return RedirectToPage();
+            }
 
-            TempData["SuccessMessage"] = "Purchase order submitted successfully!";
+            // 2. Use a transaction to ensure atomic save
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var order = new OrderInfo
+                {
+                    BranchManagerId = branchManagerId,
+                    OrderDate = DateTime.Now,
+                    Status = "Pending"
+                };
+
+                _context.OrderInfos.Add(order);
+                await _context.SaveChangesAsync();
+
+                for (int i = 0; i < ItemIds.Count; i++)
+                {
+                    if (Quantities.Count <= i || Quantities[i] <= 0) continue;
+
+                    var parts = ItemIds[i].Split('-');
+                    if (parts.Length != 2) continue;
+
+                    var type = parts[0];
+                    if (!int.TryParse(parts[1], out int id)) continue;
+
+                    decimal actualPrice = 0;
+                    int? skuId = null;
+                    int? comId = null;
+
+                    if (type == "SKU")
+                    {
+                        var sku = await _context.SkuHeaders.FindAsync(id);
+                        if (sku == null) continue;
+                        actualPrice = sku.SellingPrice;
+                        skuId = id;
+                    }
+                    else if (type == "COM")
+                    {
+                        var com = await _context.CommissaryInventories.FindAsync(id);
+                        if (com == null) continue;
+                        actualPrice = com.SellingPrice;
+                        comId = id;
+                    }
+                    else continue;
+
+                    var orderList = new OrderList
+                    {
+                        OrderId = order.OrderId,
+                        SkuId = skuId,
+                        ComId = comId,
+                        Quantity = Quantities[i],
+                        TotalPrice = actualPrice * Quantities[i]
+                    };
+
+                    _context.OrderLists.Add(orderList);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["SuccessMessage"] = "Purchase order submitted successfully!";
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = "An error occurred while submitting your order. Please try again.";
+                // Log exception here if logging is available
+            }
+
             return RedirectToPage();
         }
     }

@@ -6,6 +6,8 @@ using LeKatsuMNL.Models;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace LeKatsuMNL.Pages.BranchDashboard
 {
@@ -105,7 +107,8 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             await _context.SaveChangesAsync();
 
             // Sign out
-            return RedirectToPage("/Login/login", new { handler = "Logout" });
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToPage("/Login/login");
         }
     }
 }

@@ -62,9 +62,16 @@
     <div class="flex flex-wrap items-center justify-between px-6 py-3 border-t border-gray-100 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
         @if (Model.Orders != null)
         {
-            <span>
-                Showing @((Model.Orders.PageIndex - 1) * Model.Orders.PageSize + 1) – @(Math.Min(Model.Orders.PageIndex * Model.Orders.PageSize, Model.Orders.TotalItems)) of @Model.Orders.TotalItems
-            </span>
+            @if (Model.Orders.TotalItems > 0)
+            {
+                <span>
+                    Showing @((Model.Orders.PageIndex - 1) * Model.Orders.PageSize + 1) – @(Math.Min(Model.Orders.PageIndex * Model.Orders.PageSize, Model.Orders.TotalItems)) of @Model.Orders.TotalItems
+                </span>
+            }
+            else
+            {
+                <span>Showing 0 of 0</span>
+            }
             <div class="flex items-center gap-2">
                 <span>Records per page</span>
                 <form method="get" id="pageSizeForm" class="inline">
