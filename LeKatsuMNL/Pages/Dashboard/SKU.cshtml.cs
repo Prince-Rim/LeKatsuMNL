@@ -102,6 +102,14 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return await InitializeAndReturnPage();
             }
 
+            var isActiveCategory = await _context.Categories
+                .AnyAsync(c => c.CategoryId == CategoryId && !c.IsArchived);
+            if (!isActiveCategory)
+            {
+                StatusMessage = "Selected category is archived. Please choose an active category.";
+                return RedirectToPage();
+            }
+
             var newSku = new SkuHeader
             {
                 ItemName = ProductName.Trim(),
@@ -167,6 +175,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 ModelState.AddModelError("", "Product Name is required.");
                 return await InitializeAndReturnPage();
+            }
+
+            var isActiveCategory = await _context.Categories
+                .AnyAsync(c => c.CategoryId == CategoryId && !c.IsArchived);
+            if (!isActiveCategory)
+            {
+                StatusMessage = "Selected category is archived. Please choose an active category.";
+                return RedirectToPage();
             }
 
             sku.ItemName = ProductName.Trim();

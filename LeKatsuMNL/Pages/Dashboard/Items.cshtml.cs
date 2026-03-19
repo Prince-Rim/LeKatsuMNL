@@ -178,6 +178,14 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage();
             }
 
+            var isActiveCategory = await _context.Categories
+                .AnyAsync(c => c.CategoryId == CategoryId && !c.IsArchived);
+            if (!isActiveCategory)
+            {
+                StatusMessage = "Selected category is archived. Please choose an active category.";
+                return RedirectToPage();
+            }
+
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
             if (!string.IsNullOrEmpty(PackagingType) && 
@@ -224,6 +232,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             bool IsRepack)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
+
+            var isActiveCategory = await _context.Categories
+                .AnyAsync(c => c.CategoryId == CategoryId && !c.IsArchived);
+            if (!isActiveCategory)
+            {
+                StatusMessage = "Selected category is archived. Please choose an active category.";
+                return RedirectToPage();
+            }
 
             var item = await _context.CommissaryInventories.FindAsync(ComId);
             if (item == null)

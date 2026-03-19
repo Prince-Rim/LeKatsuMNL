@@ -59,7 +59,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (string.IsNullOrEmpty(NewCategory.CategoryName))
             {
-                var query = _context.Categories.OrderBy(c => c.CategoryName);
+                var query = _context.Categories.Where(c => !c.IsArchived).OrderBy(c => c.CategoryName);
                 Categories = await PaginatedList<Category>.CreateAsync(query, 1, 10);
                 return Page();
             }

@@ -403,6 +403,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 foreach (var recipe in inventory.IngredientRecipes)
                 {
+                    if (recipe.Material == null) continue;
+
                     decimal convertedQty = Helpers.UomConverter.Convert(
                         recipe.QuantityNeeded, recipe.Uom, recipe.Material.Uom);
                     decimal materialQty = convertedQty * quantity;

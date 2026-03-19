@@ -22,22 +22,22 @@
 <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm dark:bg-slate-800 dark:border-gray-700 mb-6">
     <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Search Item</label>
-            <input type="text" asp-for="SearchQuery" placeholder="Search item name..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+            <label for="searchQuery" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Search Item</label>
+            <input id="searchQuery" type="text" asp-for="SearchQuery" placeholder="Search item name..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
         </div>
         <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
-            <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+            <label for="startDate" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
+            <input id="startDate" type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
         </div>
         <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
-            <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+            <label for="endDate" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
+            <input id="endDate" type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
         </div>
         <div class="flex space-x-2">
             <button type="submit" class="flex-1 bg-[#C41E24] text-white rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-[#A0181D] transition-all">
                 <i class="bi bi-filter mr-2"></i>Apply Filters
             </button>
-            <a asp-page="./Rejects" class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+            <a asp-page="./Rejects" aria-label="Reset filters" title="Reset filters" class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
                 <i class="bi bi-arrow-clockwise"></i>
             </a>
         </div>
@@ -112,7 +112,11 @@
     <partial name="_Pagination" model="Model.RejectLogs" />
 
 @section Scripts {
-    <form id="clearLogsForm" method="post" asp-page-handler="ClearLogs" class="hidden"></form>
+    <form id="clearLogsForm" method="post" asp-page-handler="ClearLogs" class="hidden">
+        <input type="hidden" name="StartDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="EndDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+    </form>
 
     <script>
         const actionsMenu = document.getElementById('actionsMenu');
@@ -123,7 +127,7 @@
         }
 
         function confirmClearLogs() {
-            if (confirm('Are you sure you want to permanently clear all reject logs? This action cannot be undone.')) {
+            if (confirm('Are you sure you want to permanently clear the FILTERED reject logs? This action cannot be undone.')) {
                 document.getElementById('clearLogsForm').submit();
             }
         }
