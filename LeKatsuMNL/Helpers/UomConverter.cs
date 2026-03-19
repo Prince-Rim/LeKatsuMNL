@@ -30,6 +30,9 @@ namespace LeKatsuMNL.Helpers
             { "lbs",      ("weight", 453.592m) },
             { "pound",    ("weight", 453.592m) },
             { "pounds",   ("weight", 453.592m) },
+            { "mg",       ("weight", 0.001m) },
+            { "milligram",("weight", 0.001m) },
+            { "milligrams",("weight", 0.001m) },
 
             // ── Volume (base = ml) ──
             { "ml",         ("volume", 1m) },
@@ -45,6 +48,15 @@ namespace LeKatsuMNL.Helpers
             { "tsp",        ("volume", 4.929m) },
             { "teaspoon",   ("volume", 4.929m) },
             { "fl oz",      ("volume", 29.5735m) },
+            { "gal",        ("volume", 3785.41m) },
+            { "gallon",     ("volume", 3785.41m) },
+            { "gallons",    ("volume", 3785.41m) },
+            { "qt",         ("volume", 946.353m) },
+            { "quart",      ("volume", 946.353m) },
+            { "quarts",     ("volume", 946.353m) },
+            { "pt",         ("volume", 473.176m) },
+            { "pint",       ("volume", 473.176m) },
+            { "pints",      ("volume", 473.176m) },
 
             // ── Count (base = pcs) ──
             { "pcs",    ("count", 1m) },

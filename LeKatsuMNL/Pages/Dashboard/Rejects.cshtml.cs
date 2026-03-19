@@ -19,6 +19,15 @@ namespace LeKatsuMNL.Pages.Dashboard
             _context = context;
         }
 
+        [BindProperty(SupportsGet = true)]
+        public DateTime? StartDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public DateTime? EndDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchQuery { get; set; }
+
         public PaginatedList<RejectItem> RejectLogs { get; set; } = default!;
 
         public int PageSize { get; set; } = 10;
@@ -28,32 +37,68 @@ namespace LeKatsuMNL.Pages.Dashboard
 
          public async Task OnGetAsync(int? pageIndex)
          {
-             var query = _context.RejectItems.Where(r => r.RejectType == "Recipe");
- 
+             // Set default dates if not provided (default to current month)
+             StartDate ??= new DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, 1);
+             EndDate ??= System.DateTime.Now;
+
+             // Normalize dates
+             var filterStart = StartDate.Value.Date;
+             var filterEnd = EndDate.Value.Date.AddDays(1).AddTicks(-1);
+
+             var query = _context.RejectItems.Where(r => r.RejectType == "Recipe" && r.RejectedAt >= filterStart && r.RejectedAt <= filterEnd);
+
+             if (!string.IsNullOrEmpty(SearchQuery))
+             {
+                 query = query.Where(r => r.ItemName.Contains(SearchQuery));
+             }
+
              int pageSize = PageSize > 0 ? PageSize : 10;
              RejectLogs = await PaginatedList<RejectItem>.CreateAsync(
                  query.OrderByDescending(r => r.RejectedAt), 
                  pageIndex ?? 1, pageSize);
          }
 
-         public async Task<IActionResult> OnPostClearLogsAsync()
-         {
-             if (!PermissionHelper.HasPermission(User, "Rejects", 'D')) return Forbid();
+        public async Task<IActionResult> OnPostClearLogsAsync(DateTime? StartDate, DateTime? EndDate, string? SearchQuery)
+        {
+            if (!PermissionHelper.HasPermission(User, "Rejects", 'D')) return Forbid();
 
-             var rejects = await _context.RejectItems.ToListAsync();
-             _context.RejectItems.RemoveRange(rejects);
-             await _context.SaveChangesAsync();
+            // Apply the same filter logic as OnGet
+            var filterStart = (StartDate ?? new DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, 1)).Date;
+            var filterEnd = (EndDate ?? System.DateTime.Now).Date.AddDays(1).AddTicks(-1);
 
-             StatusMessage = "All reject logs have been successfully cleared.";
-             return RedirectToPage();
-         }
+            var query = _context.RejectItems
+                .Where(r => r.RejectType == "Recipe" && r.RejectedAt >= filterStart && r.RejectedAt <= filterEnd);
+
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(r => r.ItemName.Contains(SearchQuery));
+            }
+
+            var rejects = await query.ToListAsync();
+            _context.RejectItems.RemoveRange(rejects);
+            await _context.SaveChangesAsync();
+
+            StatusMessage = "Filtered reject logs have been successfully cleared.";
+            return RedirectToPage(new { StartDate, EndDate, SearchQuery });
+        }
 
          public async Task<IActionResult> OnGetExportAsync()
          {
              if (!PermissionHelper.HasPermission(User, "Rejects", 'R')) return Forbid();
 
-             var rejects = await _context.RejectItems
-                 .Where(r => r.RejectType == "Recipe")
+             // Use the same filter logic for export
+             var filterStart = (StartDate ?? new DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, 1)).Date;
+             var filterEnd = (EndDate ?? System.DateTime.Now).Date.AddDays(1).AddTicks(-1);
+
+             var query = _context.RejectItems
+                 .Where(r => r.RejectType == "Recipe" && r.RejectedAt >= filterStart && r.RejectedAt <= filterEnd);
+
+             if (!string.IsNullOrEmpty(SearchQuery))
+             {
+                 query = query.Where(r => r.ItemName.Contains(SearchQuery));
+             }
+
+             var rejects = await query
                  .OrderByDescending(r => r.RejectedAt)
                  .ToListAsync();
 

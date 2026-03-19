@@ -150,7 +150,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             int pageSize = PageSize > 0 ? PageSize : 10;
             Items = await PaginatedList<CommissaryInventory>.CreateAsync(query, pageIndex ?? 1, pageSize);
             
-            Categories = await _context.Categories.ToListAsync();
+            Categories = await _context.Categories.Where(c => !c.IsArchived).ToListAsync();
             SubCategories = await _context.SubCategories.ToListAsync();
             Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).ToListAsync();
 
@@ -175,6 +175,14 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (string.IsNullOrWhiteSpace(ItemName))
             {
+                return RedirectToPage();
+            }
+
+            var isActiveCategory = await _context.Categories
+                .AnyAsync(c => c.CategoryId == CategoryId && !c.IsArchived);
+            if (!isActiveCategory)
+            {
+                StatusMessage = "Selected category is archived. Please choose an active category.";
                 return RedirectToPage();
             }
 
@@ -224,6 +232,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             bool IsRepack)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
+
+            var isActiveCategory = await _context.Categories
+                .AnyAsync(c => c.CategoryId == CategoryId && !c.IsArchived);
+            if (!isActiveCategory)
+            {
+                StatusMessage = "Selected category is archived. Please choose an active category.";
+                return RedirectToPage();
+            }
 
             var item = await _context.CommissaryInventories.FindAsync(ComId);
             if (item == null)

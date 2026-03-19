@@ -100,19 +100,19 @@
         </div>
     </form>
 
-    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
+    <div class="bg-white border-x border-b border-gray-200 shadow-sm overflow-x-auto dark:bg-slate-800 dark:border-gray-700">
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" aria-label="Select all orders" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
-                    <th class="px-8 py-4">Order ID</th>
-                    <th class="px-8 py-4">Branch</th>
-                    <th class="px-8 py-4">Branch Manager</th>
-                    <th class="px-8 py-4">Invoice Status</th>
-                    <th class="px-8 py-4">Status</th>
-                    <th class="px-8 py-4">Order Date</th>
-                    <th class="px-8 py-4">Expected Date</th>
-                    <th class="px-8 py-4 text-right">Action</th>
+                    <th class="px-4 py-4"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" aria-label="Select all orders" class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600"></th>
+                    <th class="px-4 py-4">Order ID</th>
+                    <th class="px-4 py-4">Branch</th>
+                    <th class="px-4 py-4">Branch Manager</th>
+                    <th class="px-4 py-4">Invoice Status</th>
+                    <th class="px-4 py-4">Status</th>
+                    <th class="px-4 py-4">Order Date</th>
+                    <th class="px-4 py-4">Expected Date</th>
+                    <th class="px-4 py-4 text-right">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -122,16 +122,16 @@
                     {
                         string formattedOrderId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
                         <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
-                            <td class="px-8 py-5"><input type="checkbox" name="selectedOrders" value="@order.OrderId" aria-label="Select order @formattedOrderId" class="order-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-[#C41E24] focus:ring-[#C41E24]"></td>
-                            <td class="px-8 py-5">
+                            <td class="px-4 py-5"><input type="checkbox" name="selectedOrders" value="@order.OrderId" aria-label="Select order @formattedOrderId" class="order-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-[#C41E24] focus:ring-[#C41E24]"></td>
+                            <td class="px-4 py-5">
                                 <a href="/Dashboard/OrderDetails?id=@formattedOrderId"
                                    class="text-[#C41E24] font-bold underline hover:text-red-800 transition-colors text-sm">
                                     @formattedOrderId
                                 </a>
                             </td>
-                            <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@order.BranchManager?.BranchLocation?.BranchName</td>
-                            <td class="px-8 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@(order.BranchManager?.FirstName) @(order.BranchManager?.LastName)</td>
-                            <td class="px-8 py-5">
+                            <td class="px-4 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@order.BranchManager?.BranchLocation?.BranchName</td>
+                            <td class="px-4 py-5 text-gray-600 font-medium text-sm dark:text-gray-300">@(order.BranchManager?.FirstName) @(order.BranchManager?.LastName)</td>
+                            <td class="px-4 py-5">
                                 @if (order.Invoices != null && order.Invoices.Any())
                                 {
                                     var paymentStatus = order.Invoices.First().PaymentStatus;
@@ -145,7 +145,7 @@
                                     <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No Invoice</span>
                                 }
                             </td>
-                            <td class="px-8 py-5">
+                            <td class="px-4 py-5">
                                 @{
                                     var statusClass = order.Status?.ToLower() switch
                                     {
@@ -161,9 +161,9 @@
                                     @(order.Status ?? "Unknown")
                                 </span>
                             </td>
-                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@order.OrderDate.ToString("MMMM dd, yyyy")</td>
-                            <td class="px-8 py-5 text-gray-500 text-sm dark:text-gray-400">@(order.DeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</td>
-                            <td class="px-8 py-5 text-right">
+                            <td class="px-4 py-5 text-gray-500 text-sm dark:text-gray-400">@order.OrderDate.ToString("MMMM dd, yyyy")</td>
+                            <td class="px-4 py-5 text-gray-500 text-sm dark:text-gray-400">@(order.DeliveryDate?.ToString("MMM dd, yyyy") ?? "-")</td>
+                            <td class="px-4 py-5 text-right">
                                 <form method="post" asp-page-handler="Archive" asp-route-id="@order.OrderId" class="inline m-0">
                                     <button type="submit" onclick="return confirm('Archive this order?')" class="px-3 py-1.5 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold hover:bg-yellow-100 transition-all dark:bg-slate-700 dark:text-gray-500">Archive</button>
                                 </form>
@@ -174,7 +174,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="9" class="px-8 py-10 text-center text-gray-400 italic">No orders found.</td>
+                        <td colspan="9" class="px-4 py-10 text-center text-gray-400 italic">No orders found.</td>
                     </tr>
                 }
             </tbody>

@@ -98,9 +98,9 @@
                                     }
                                     @if (PermissionHelper.HasPermission(User, "Category", 'D'))
                                     {
-                                        <form method="post" asp-page-handler="Delete" asp-route-id="@category.CategoryId" class="inline m-0" onsubmit="return confirm('Note: Deleting a category will also affect items under its subcategories. Continue?')">
-                                            <button type="submit" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-all dark:bg-slate-700 dark:text-gray-300">
-                                                Delete
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@category.CategoryId" class="inline m-0" onsubmit="return confirm('Are you sure you want to archive this category? It will be hidden from the active list.')">
+                                            <button type="submit" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-amber-50 hover:text-amber-600 transition-all dark:bg-slate-700 dark:text-gray-300">
+                                                Archive
                                             </button>
                                         </form>
                                     }

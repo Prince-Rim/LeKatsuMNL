@@ -18,6 +18,8 @@ namespace LeKatsuMNL.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        public bool IsArchived { get; set; } = false;
+
         // Navigation property for One-to-Many
         public ICollection<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
         public ICollection<CommissaryInventory> CommissaryInventories { get; set; } = new List<CommissaryInventory>();

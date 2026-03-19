@@ -38,7 +38,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task OnGetAsync(int? pageIndex)
         {
-            var query = _context.Categories.AsQueryable();
+            var query = _context.Categories.Where(c => !c.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(SearchTerm))
             {
@@ -59,7 +59,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (string.IsNullOrEmpty(NewCategory.CategoryName))
             {
-                var query = _context.Categories.OrderBy(c => c.CategoryName);
+                var query = _context.Categories.Where(c => !c.IsArchived).OrderBy(c => c.CategoryName);
                 Categories = await PaginatedList<Category>.CreateAsync(query, 1, 10);
                 return Page();
             }
@@ -105,11 +105,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return Forbid();
             }
 
-            var categoryToDelete = await _context.Categories.FindAsync(id);
+            var categoryToArchive = await _context.Categories.FindAsync(id);
 
-            if (categoryToDelete != null)
+            if (categoryToArchive != null)
             {
-                _context.Categories.Remove(categoryToDelete);
+                categoryToArchive.IsArchived = true;
                 await _context.SaveChangesAsync();
                 StatusMessage = "Successfully archived. The category has been removed.";
             }
