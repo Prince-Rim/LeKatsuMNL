@@ -314,11 +314,22 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostPrepareAsync(int OrderId)
         {
-            var order = await _context.OrderInfos.FindAsync(OrderId);
+            var order = await _context.OrderInfos
+                .Include(o => o.Invoices)
+                .FirstOrDefaultAsync(o => o.OrderId == OrderId);
+            
             if (order == null) return NotFound();
             
             if (order.Status == "Approved")
             {
+                var invoice = order.Invoices.FirstOrDefault();
+                if (invoice == null || invoice.PaymentStatus != "Paid")
+                {
+                    ErrorMessage = "Cannot start preparing: Invoice is not yet paid.";
+                    string fId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
+                    return RedirectToPage(new { id = fId });
+                }
+                
                 order.Status = "Preparing";
                 await _context.SaveChangesAsync();
             }

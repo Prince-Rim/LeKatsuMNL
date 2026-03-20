@@ -51,6 +51,8 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
 
+        public string OpenModal { get; set; }
+
         public class UserInputModel
         {
             public int Id { get; set; }
@@ -200,7 +202,10 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (NewUser.Password != NewUser.ConfirmPassword)
             {
                 TempData["ErrorMessage"] = "Passwords do not match.";
-                return RedirectToPage();
+                OpenModal = "create";
+                Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
+                await LoadUsersAsync(1);
+                return Page();
             }
 
             if (NewUser.Role == "Branch Manager")
@@ -276,7 +281,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                 if (EditUser.Password != EditUser.ConfirmPassword)
                 {
                     TempData["ErrorMessage"] = "Passwords do not match.";
-                    return RedirectToPage();
+                    OpenModal = "edit";
+                    Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
+                    await LoadUsersAsync(1);
+                    return Page();
                 }
             }
 

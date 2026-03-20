@@ -27,6 +27,7 @@
                 <tr>
                     <th class="px-8 py-4">Date</th>
                     <th class="px-8 py-4">Order ID</th>
+                    <th class="px-8 py-4">Reference</th>
                     <th class="px-8 py-4 text-right">Total Amount</th>
                     <th class="px-8 py-4 text-center">Payment Status</th>
                     <th class="px-8 py-4 text-center">Order Status</th>
@@ -45,6 +46,7 @@
                                     @(invoice.OrderInfo?.OrderDate.Year)-@invoice.OrderId.ToString("D4")
                                 </a>
                             </td>
+                            <td class="px-8 py-5 text-gray-500 dark:text-gray-400 font-mono text-[10px]">@(invoice.ReferenceNumber ?? "—")</td>
                             <td class="px-8 py-5 text-right font-bold text-gray-900 text-sm dark:text-white">₱ @invoice.TotalPrice.ToString("N2")</td>
                             <td class="px-8 py-5 text-center">
                                 <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider @(invoice.PaymentStatus.ToLower() == "paid" ? "bg-green-50 text-green-600" : "bg-orange-50 text-orange-600")">

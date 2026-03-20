@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace LeKatsuMNL.Helpers
 {
@@ -89,8 +90,8 @@ namespace LeKatsuMNL.Helpers
             if (string.IsNullOrWhiteSpace(fromUom) || string.IsNullOrWhiteSpace(toUom))
                 return quantity;
 
-            string from = fromUom.Trim();
-            string to = toUom.Trim();
+            string from = NormalizeUnit(fromUom);
+            string to = NormalizeUnit(toUom);
 
             // Same unit — no conversion needed
             if (string.Equals(from, to, StringComparison.OrdinalIgnoreCase))
@@ -127,8 +128,8 @@ namespace LeKatsuMNL.Helpers
             if (string.IsNullOrWhiteSpace(uom1) || string.IsNullOrWhiteSpace(uom2))
                 return true; // Assume compatible if one is missing (handled by required validation elsewhere)
 
-            string u1 = uom1.Trim();
-            string u2 = uom2.Trim();
+            string u1 = NormalizeUnit(uom1);
+            string u2 = NormalizeUnit(uom2);
 
             if (string.Equals(u1, u2, StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -139,6 +140,17 @@ namespace LeKatsuMNL.Helpers
             }
 
             return true; // Fallback to true if one is unknown to avoid blocking the user
+        }
+
+        private static string NormalizeUnit(string unit)
+        {
+            if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
+
+            // Strip parentheses and their content: "Kilogram (kg)" -> "Kilogram"
+            // Also handle cases like "Gram (g)" or "Liter (ml)"
+            string normalized = Regex.Replace(unit, @"\(.*?\)", "").Trim();
+            
+            return normalized;
         }
     }
 }

@@ -43,6 +43,7 @@ builder.Services.AddDbContext<LeKatsuMNL.Data.LeKatsuDb>(options =>
 
 builder.Services.AddScoped<ISsaForecastingService, SsaForecastingService>();
 builder.Services.AddScoped<ILstmForecastingService, LstmForecastingService>();
+builder.Services.AddHttpClient<IPayMongoService, PayMongoService>();
 
 var app = builder.Build();
 

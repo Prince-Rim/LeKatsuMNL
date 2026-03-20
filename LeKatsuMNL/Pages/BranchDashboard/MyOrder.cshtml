@@ -14,6 +14,7 @@
                 <tr class="text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700 dark:text-gray-500">
                     <th class="px-6 py-4 font-bold text-left">Order ID</th>
                     <th class="px-4 py-4 font-bold text-left">Status</th>
+                    <th class="px-4 py-4 font-bold text-left">Payment Status</th>
                     <th class="px-4 py-4 font-bold text-left">Created at</th>
                 </tr>
             </thead>
@@ -42,6 +43,24 @@
                                     @order.Status
                                 </span>
                             </td>
+                            <td class="px-4 py-4">
+                                @{
+                                    var invoice = order.Invoices.FirstOrDefault();
+                                    if (invoice != null)
+                                    {
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
+                                            @(invoice.PaymentStatus == "Paid" ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+                                              invoice.PaymentStatus == "Pending" ? "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
+                                              "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600")">
+                                            @invoice.PaymentStatus
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400 text-[10px] font-black uppercase tracking-widest italic">No Invoice</span>
+                                    }
+                                }
+                            </td>
                             <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@order.OrderDate.ToString("MMMM dd, yyyy")</td>
                         </tr>
                     }
@@ -49,7 +68,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="3" class="px-6 py-16 text-center">
+                        <td colspan="4" class="px-6 py-16 text-center">
                             <div class="flex flex-col items-center gap-2 text-gray-300">
                                 <i class="bi bi-clipboard-x text-3xl"></i>
                                 <p class="text-xs font-bold uppercase tracking-widest">No orders found</p>
