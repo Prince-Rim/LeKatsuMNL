@@ -191,6 +191,12 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             if (!PermissionHelper.HasPermission(User, "Users", 'C')) return Forbid();
 
+            if (string.IsNullOrWhiteSpace(NewUser.Password))
+            {
+                TempData["ErrorMessage"] = "Password cannot be empty.";
+                return RedirectToPage();
+            }
+
             if (NewUser.Password != NewUser.ConfirmPassword)
             {
                 TempData["ErrorMessage"] = "Passwords do not match.";
@@ -259,10 +265,19 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             if (!PermissionHelper.HasPermission(User, "Users", 'U')) return Forbid();
 
-            if (!string.IsNullOrEmpty(EditUser.Password) && EditUser.Password != EditUser.ConfirmPassword)
+            if (!string.IsNullOrEmpty(EditUser.Password))
             {
-                TempData["ErrorMessage"] = "Passwords do not match.";
-                return RedirectToPage();
+                if (string.IsNullOrWhiteSpace(EditUser.Password))
+                {
+                    TempData["ErrorMessage"] = "Password cannot be whitespace.";
+                    return RedirectToPage();
+                }
+
+                if (EditUser.Password != EditUser.ConfirmPassword)
+                {
+                    TempData["ErrorMessage"] = "Passwords do not match.";
+                    return RedirectToPage();
+                }
             }
 
             if (EditUser.Type == "Admin")

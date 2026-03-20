@@ -248,9 +248,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 else if (order.Status == "Approved")
                 {
                     var invoice = order.Invoices.FirstOrDefault();
-                    if (invoice != null && invoice.PaymentStatus != "Paid")
+                    if (invoice == null || invoice.PaymentStatus != "Paid")
                     {
-                        errorMessages.Add($"Order {fId}: Invoice not yet paid.");
+                        errorMessages.Add($"Order {fId}: Invoice missing or not yet paid.");
                         continue;
                     }
                     order.Status = "Preparing";
@@ -335,21 +335,36 @@ namespace LeKatsuMNL.Pages.Dashboard
                     if (skuInventory == null)
                     {
                         var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
-                        int defaultVendorId = firstVendor?.VendorId ?? 0;
+                        if (firstVendor == null)
+                        {
+                            return (false, "Cannot create inventory record for SKU: no vendors configured.");
+                        }
+
                         skuInventory = new CommissaryInventory
                         {
                             SkuId = item.SkuHeader.SkuId,
                             ItemName = item.SkuHeader.ItemName,
-                            Stock = 0,
+                            Stock = item.Quantity, // Initialize with the required quantity to avoid negative stock
                             Uom = item.SkuHeader.Uom,
                             CostPrice = item.SkuHeader.UnitCost ?? 0,
                             ReorderValue = 0,
                             CategoryId = item.SkuHeader.CategoryId,
-                            VendorId = defaultVendorId,
+                            VendorId = firstVendor.VendorId,
                             Yield = "100%"
                         };
                         _context.CommissaryInventories.Add(skuInventory);
-                        await _context.SaveChangesAsync(); 
+                        await _context.SaveChangesAsync();
+
+                        // Add transaction for the initial stock (net change is effectively 0 after this, 
+                        // but we record the 'out' transaction for consistency)
+                        _context.InventoryTransactions.Add(new InventoryTransaction
+                        {
+                            ComId = skuInventory.ComId,
+                            TypeId = transactionType.TypeId,
+                            QuantityChange = -item.Quantity,
+                            TimeStamp = System.DateTime.Now
+                        });
+                        continue;
                     }
 
                     skuInventory.Stock -= item.Quantity;
@@ -427,10 +442,13 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (inventory == null) return;
 
-            if (requirements.ContainsKey(comId))
-                requirements[comId] += quantity;
-            else
-                requirements[comId] = quantity;
+            if (!inventory.IsRepack)
+            {
+                if (requirements.ContainsKey(comId))
+                    requirements[comId] += quantity;
+                else
+                    requirements[comId] = quantity;
+            }
 
             if (inventory.IsRepack && inventory.IngredientRecipes != null)
             {

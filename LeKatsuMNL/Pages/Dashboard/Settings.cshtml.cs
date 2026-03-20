@@ -196,6 +196,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (!int.TryParse(userIdString, out int userId)) return RedirectToPage("/Login/login");
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                TempData["ErrorMessage"] = "New password cannot be empty.";
+                return RedirectToPage();
+            }
+
             if (NewPassword != ConfirmNewPassword)
             {
                 TempData["ErrorMessage"] = "New passwords do not match.";

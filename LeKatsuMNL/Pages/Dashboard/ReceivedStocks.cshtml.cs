@@ -117,9 +117,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                             var match = Regex.Match(sizeAndUnit, @"^([\d\.]+)\s*(.+)$");
                             if (match.Success)
                             {
-                                decimal yieldSize = decimal.Parse(match.Groups[1].Value);
-                                string yieldUom = match.Groups[2].Value.Trim();
-                                actualQuantityAdded = item.Quantity * UomConverter.Convert(yieldSize, yieldUom, inventoryItem.Uom);
+                                if (decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal yieldSize))
+                                {
+                                    string yieldUom = match.Groups[2].Value.Trim();
+                                    actualQuantityAdded = item.Quantity * UomConverter.Convert(yieldSize, yieldUom, inventoryItem.Uom);
+                                }
                             }
                         }
                         catch { } // fallback to original item.Quantity if parsing fails

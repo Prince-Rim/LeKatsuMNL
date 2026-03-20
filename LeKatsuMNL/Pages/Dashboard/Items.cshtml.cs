@@ -186,6 +186,12 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage();
             }
 
+            if (!string.IsNullOrEmpty(PackagingUnit) && !UomConverter.AreUnitsCompatible(PackagingUnit, UOM))
+            {
+                StatusMessage = $"Incompatible units: Packaging Unit ({PackagingUnit}) and UOM ({UOM}) must be from the same category (Weight/Volume/Count).";
+                return RedirectToPage();
+            }
+
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
             if (!string.IsNullOrEmpty(PackagingUnit))
@@ -243,6 +249,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (!isActiveCategory)
             {
                 StatusMessage = "Selected category is archived. Please choose an active category.";
+                return RedirectToPage();
+            }
+
+            if (!string.IsNullOrEmpty(PackagingUnit) && !UomConverter.AreUnitsCompatible(PackagingUnit, UOM))
+            {
+                StatusMessage = $"Incompatible units: Packaging Unit ({PackagingUnit}) and UOM ({UOM}) must be from the same category.";
                 return RedirectToPage();
             }
 

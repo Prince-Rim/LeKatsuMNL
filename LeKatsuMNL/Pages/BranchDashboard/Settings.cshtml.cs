@@ -94,6 +94,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
             if (!ModelState.IsValid)
             {
+                UserSystemId = "BRCH-" + Manager.BManagerId.ToString("D4");
                 ErrorMessage = "Please correct the errors below.";
                 return Page();
             }
@@ -113,6 +114,15 @@ namespace LeKatsuMNL.Pages.BranchDashboard
         {
             Manager = await GetManagerAsync();
             if (Manager == null) return RedirectToPage("/Login/login");
+
+            // Repopulate user info for Page() return
+            UserSystemId = "BRCH-" + Manager.BManagerId.ToString("D4");
+
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                ErrorMessage = "New password cannot be empty.";
+                return Page();
+            }
 
             if (NewPassword != ConfirmNewPassword)
             {

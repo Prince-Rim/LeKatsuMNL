@@ -27,6 +27,12 @@
 }
 
 <div class="h-[calc(100vh-12rem)] flex flex-col">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium animate-pulse">
+            <i class="bi bi-exclamation-triangle-fill mr-2"></i> @TempData["ErrorMessage"]
+        </div>
+    }
     <!-- Top toolbar -->
     <form id="userFilterForm" method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 space-x-4">
         <div class="flex-1 flex items-center space-x-4 max-w-4xl">
