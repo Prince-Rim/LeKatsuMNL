@@ -10,12 +10,35 @@
     <!-- Tabs -->
     <div class="flex border-b border-gray-100 dark:border-gray-700 px-6">
         <button id="tab-account" onclick="switchTab('account')" class="px-6 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">Account</button>
+        <button id="tab-security" onclick="switchTab('security')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Security</button>
         <button id="tab-appearance" onclick="switchTab('appearance')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Appearance</button>
     </div>
 
     <!-- Account Tab Content -->
     <div id="content-account" class="p-8">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center shadow-sm animate-fade-in">
+                <i class="bi bi-check-circle-fill mr-3 text-lg"></i>
+                <span class="text-sm font-bold">@TempData["SuccessMessage"]</span>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center shadow-sm animate-fade-in">
+                <i class="bi bi-exclamation-triangle-fill mr-3 text-lg"></i>
+                <span class="text-sm font-bold">@TempData["ErrorMessage"]</span>
+            </div>
+        }
         <form method="post" asp-page-handler="EditAccount" id="edit-account-form" class="space-y-8 max-w-4xl">
+            <!-- User ID (Uneditable) -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">User System ID</label>
+                <div class="w-full">
+                    <input type="text" value="@Model.UserSystemId" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold text-[#C41E24] focus:outline-none pointer-events-none transition-colors duration-200 dark:bg-slate-700/50 dark:border-gray-700" readonly>
+                </div>
+            </div>
+
             <!-- Full Name -->
             <div class="grid grid-cols-[200px_1fr_1fr_1fr] gap-6 items-center">
                 <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Account Full Name</label>
@@ -82,6 +105,50 @@
     </div>
 
 
+    <!-- Security Tab Content -->
+    <div id="content-security" class="p-8 hidden">
+        <div class="max-w-4xl">
+            <h4 class="text-sm font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                <i class="bi bi-shield-lock-fill mr-2 text-[#C41E24]"></i>
+                Change Account Password
+            </h4>
+            
+            <form method="post" asp-page-handler="ChangePassword" id="change-password-form" class="space-y-6">
+                <!-- Current Password -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Current Password</label>
+                    <div class="max-w-md">
+                        <input type="password" asp-for="CurrentPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" required placeholder="Enter current password">
+                    </div>
+                </div>
+
+                <!-- New Password -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">New Password</label>
+                    <div class="max-w-md">
+                        <input type="password" asp-for="NewPassword" id="settingsNewPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" required placeholder="Enter new password">
+                    </div>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Confirm New Password</label>
+                    <div class="max-w-md">
+                        <input type="password" asp-for="ConfirmNewPassword" id="settingsConfirmPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" required placeholder="Confirm new password">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-6 border-t border-gray-50 dark:border-gray-700">
+                    <button type="submit" class="px-6 py-2.5 bg-[#C41E24] text-white rounded font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all flex items-center">
+                        <i class="bi bi-key-fill mr-2"></i>
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <!-- Appearance Tab Content -->
     <div id="content-appearance" class="p-8 hidden">
         <div class="space-y-8 max-w-4xl">
@@ -143,7 +210,7 @@
         }
 
         function switchTab(tab) {
-            const tabs = ['account', 'appearance'];
+            const tabs = ['account', 'security', 'appearance'];
             
             tabs.forEach(t => {
                 const tabEl = document.getElementById(`tab-${t}`);
@@ -167,12 +234,12 @@
 
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
+                localStorage.setItem('admin_theme', 'dark');
                 darkBtn.className = activeClass;
                 lightBtn.className = inactiveClass;
             } else {
                 document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
+                localStorage.setItem('admin_theme', 'light');
                 lightBtn.className = activeClass;
                 darkBtn.className = inactiveClass;
             }
@@ -185,13 +252,13 @@
             const inactiveClass = "w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
 
             if (state === 'collapsed') {
-                document.body.classList.add('sidebar-collapsed');
-                localStorage.setItem('sidebar', 'collapsed');
+                document.documentElement.classList.add('sidebar-collapsed');
+                localStorage.setItem('admin_sidebar', 'collapsed');
                 colBtn.className = activeClass;
                 expBtn.className = inactiveClass;
             } else {
-                document.body.classList.remove('sidebar-collapsed');
-                localStorage.setItem('sidebar', 'expanded');
+                document.documentElement.classList.remove('sidebar-collapsed');
+                localStorage.setItem('admin_sidebar', 'expanded');
                 expBtn.className = activeClass;
                 colBtn.className = inactiveClass;
             }
@@ -199,13 +266,13 @@
 
         // Initialize button states on load
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            if (localStorage.getItem('admin_theme') === 'dark' || (!('admin_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 setTheme('dark');
             } else {
                 setTheme('light');
             }
 
-            if (localStorage.getItem('sidebar') === 'collapsed') {
+            if (localStorage.getItem('admin_sidebar') === 'collapsed') {
                 setSidebar('collapsed');
             } else {
                 setSidebar('expanded');

@@ -68,14 +68,20 @@ namespace LeKatsuMNL.Pages.Login
                 rawId = rawId.Substring(4);
             }
 
+            if (userType == null)
+            {
+                ErrorMessage = "Invalid User ID or Password.";
+                return Page();
+            }
+
             if (!int.TryParse(rawId, out numericId))
             {
-                ErrorMessage = "Invalid User ID format.";
+                ErrorMessage = "Invalid User ID or Password.";
                 return Page();
             }
 
             // 1. Check AdminAccount
-            if (userType == null || userType == "Admin")
+            if (userType == "Admin")
             {
                 var admin = await _context.AdminAccounts.FirstOrDefaultAsync(a => a.ManagerId == numericId && !a.IsArchived);
                 if (admin != null)
@@ -84,7 +90,7 @@ namespace LeKatsuMNL.Pages.Login
                     {
                         if (admin.Status?.ToLower() != "active")
                         {
-                            ErrorMessage = "Account is deactivated.";
+                            ErrorMessage = "Invalid User ID or Password.";
                             return Page();
                         }
                         
@@ -96,7 +102,7 @@ namespace LeKatsuMNL.Pages.Login
             }
 
             // 2. Check BranchManager
-            if (userType == null || userType == "BranchManager")
+            if (userType == "BranchManager")
             {
                 var manager = await _context.BranchManagers
                     .Include(m => m.BranchLocation)
@@ -108,7 +114,7 @@ namespace LeKatsuMNL.Pages.Login
                     {
                         if (manager.Status?.ToLower() != "active")
                         {
-                            ErrorMessage = "Account is deactivated.";
+                            ErrorMessage = "Invalid User ID or Password.";
                             return Page();
                         }
 
@@ -119,7 +125,7 @@ namespace LeKatsuMNL.Pages.Login
             }
 
             // 3. Check StaffInformation
-            if (userType == null || userType == "Staff")
+            if (userType == "Staff")
             {
                 var staff = await _context.StaffInformations.FirstOrDefaultAsync(s => s.StaffId == numericId && !s.IsArchived);
                 if (staff != null)
@@ -128,7 +134,7 @@ namespace LeKatsuMNL.Pages.Login
                     {
                         if (staff.Status?.ToLower() != "active")
                         {
-                            ErrorMessage = "Account is deactivated.";
+                            ErrorMessage = "Invalid User ID or Password.";
                             return Page();
                         }
 

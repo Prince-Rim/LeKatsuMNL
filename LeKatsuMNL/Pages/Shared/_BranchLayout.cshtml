@@ -10,12 +10,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - LeKatsuMNL</title>
     <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (localStorage.getItem('branch_theme') === 'dark' || (!('branch_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-        if (localStorage.getItem('sidebar') === 'collapsed') {
+        if (localStorage.getItem('branch_sidebar') === 'collapsed') {
             document.documentElement.classList.add('sidebar-collapsed');
         }
     </script>
@@ -85,8 +85,8 @@
             <a href="/BranchDashboard/OrderHistory" class="@(currentPage.Contains("/OrderHistory") ? "active-nav" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Order History">
                 <i class="bi bi-clock-history mr-4 text-lg"></i> <span class="sidebar-text">Order History</span>
             </a>
-            <a href="/BranchDashboard/Account" class="@(currentPage.Contains("/Account") ? "active-nav" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Account">
-                <i class="bi bi-person-fill mr-4 text-lg"></i> <span class="sidebar-text">Account</span>
+            <a href="/BranchDashboard/Settings" class="@(currentPage.Contains("/Settings") ? "active-nav" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Settings">
+                <i class="bi bi-gear-fill mr-4 text-lg"></i> <span class="sidebar-text">Settings</span>
             </a>
         </nav>
         <div class="px-3 pb-4 border-t border-gray-100 dark:border-gray-700 pt-3">

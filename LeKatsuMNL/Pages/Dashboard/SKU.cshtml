@@ -149,8 +149,12 @@
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.Category?.CategoryName ?? "-")</td>
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.SubCategory?.SubCategoryName ?? "-")</td>
                             <td class="px-6 py-5 text-gray-600 font-semibold uppercase dark:text-gray-300">
-                                @if(!string.IsNullOrEmpty(sku.PackagingType)) {
-                                    @($"{sku.PackagingType} / {sku.PackSize}{sku.PackagingUnit}")
+                                @if(!string.IsNullOrEmpty(sku.PackagingUnit)) {
+                                    @if(!string.IsNullOrEmpty(sku.PackagingType)) {
+                                        @($"{sku.PackagingType}/{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{sku.PackagingUnit}")
+                                    } else {
+                                        @($"{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{sku.PackagingUnit}")
+                                    }
                                 } else {
                                     @("-")
                                 }
@@ -215,8 +219,13 @@
             </button>
         </div>
 
-        <form method="post" asp-page-handler="Create">
+        <form method="post" asp-page-handler="Create" id="newSkuForm">
             <div class="px-8 py-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <!-- UOM Compatibility Error Message -->
+                <div id="newUomError" class="hidden p-3 bg-red-50 border border-red-100 rounded-xl flex items-center space-x-2 text-red-600 text-[11px] font-bold uppercase tracking-wider dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span id="newUomErrorText">Incompatible units detected.</span>
+                </div>
                 <div class="space-y-6">
                     <!-- Name -->
                     <div class="space-y-1.5">
@@ -262,8 +271,8 @@
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
-                            <input type="text" name="PackagingUnit" list="pkgUnitList" placeholder="Unit"
-                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                            <input type="text" name="PackagingUnit" id="newPackagingUnit" list="pkgUnitList" placeholder="Unit" required
+                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('new')"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                         <div class="space-y-1.5">
@@ -277,8 +286,8 @@
                     <div class="grid grid-cols-1 gap-5">
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
-                            <input type="text" name="UOM" list="uomList" placeholder="UOM" required
-                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                            <input type="text" name="UOM" id="newUOM" list="uomList" placeholder="UOM" required
+                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('new')"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                     </div>
@@ -312,7 +321,7 @@
                         class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
                     Cancel
                 </button>
-                <button type="submit" 
+                <button type="submit" id="newSubmitBtn" 
                         class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
                     Save Item
                 </button>
@@ -332,9 +341,14 @@
             </button>
         </div>
 
-        <form method="post" asp-page-handler="Update">
+        <form method="post" asp-page-handler="Update" id="editSkuForm">
             <input type="hidden" name="SkuId" id="editSkuId">
             <div class="px-8 py-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <!-- UOM Compatibility Error Message -->
+                <div id="editUomError" class="hidden p-3 bg-red-50 border border-red-100 rounded-xl flex items-center space-x-2 text-red-600 text-[11px] font-bold uppercase tracking-wider dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span id="editUomErrorText">Incompatible units detected.</span>
+                </div>
                 <div class="space-y-6">
                     <!-- Name -->
                     <div class="space-y-1.5">
@@ -380,8 +394,8 @@
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
-                            <input type="text" name="PackagingUnit" id="editPackagingUnit" list="pkgUnitList" placeholder="Unit"
-                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                            <input type="text" name="PackagingUnit" id="editPackagingUnit" list="pkgUnitList" placeholder="Unit" required
+                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('edit')"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                         <div class="space-y-1.5">
@@ -396,7 +410,7 @@
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
                             <input type="text" name="UOM" id="editUOM" list="uomList" placeholder="UOM"
-                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
+                                   onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('edit')"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                     </div>
@@ -430,7 +444,7 @@
                         class="px-8 py-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all dark:hover:bg-slate-700 dark:text-gray-400">
                     Cancel
                 </button>
-                <button type="submit" 
+                <button type="submit" id="editSubmitBtn" 
                         class="px-12 py-3 bg-[#C41E24] text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a51a1f] shadow-lg hover:shadow-red-200 transition-all transform active:scale-95">
                     Update Item
                 </button>
@@ -529,6 +543,65 @@
 
 @section Scripts {
     <script>
+        // UOM categories for client-side validation
+        const unitMap = {
+            'g': 'weight', 'gram': 'weight', 'grams': 'weight', 'kg': 'weight', 'kilogram': 'weight', 'kilograms': 'weight',
+            'oz': 'weight', 'ounce': 'weight', 'ounces': 'weight', 'lb': 'weight', 'lbs': 'weight', 'pound': 'weight', 'pounds': 'weight', 'mg': 'weight',
+            'ml': 'volume', 'milliliter': 'volume', 'milliliters': 'volume', 'l': 'volume', 'liter': 'volume', 'liters': 'volume',
+            'cup': 'volume', 'cups': 'volume', 'tbsp': 'volume', 'tablespoon': 'volume', 'tsp': 'volume', 'teaspoon': 'volume', 'fl oz': 'volume',
+            'gal': 'volume', 'gallon': 'volume', 'gallons': 'volume', 'qt': 'volume', 'quart': 'volume', 'quarts': 'volume', 'pt': 'volume', 'pint': 'volume', 'pints': 'volume',
+            'pcs': 'count', 'pc': 'count', 'per pc': 'count', 'pieces': 'count', 'piece': 'count', 'ea': 'count', 'dozen': 'count', 'pack': 'count', 'bundle': 'count',
+            'roll': 'count', 'can': 'count', 'cans': 'count', 'stick': 'count', 'sticks': 'count', 'pull': 'count', 'pulls': 'count', 'dip': 'count', 'dips': 'count'
+        };
+
+        function validateUomCompatibility(prefix) {
+            const pkgUnit = document.getElementById(prefix + 'PackagingUnit').value.trim().toLowerCase();
+            const uom = document.getElementById(prefix + 'UOM').value.trim().toLowerCase();
+            const errorDiv = document.getElementById(prefix + 'UomError');
+            const errorText = document.getElementById(prefix + 'UomErrorText');
+            const submitBtn = document.getElementById(prefix + 'SubmitBtn');
+
+            if (!pkgUnit || !uom) {
+                if (errorDiv) errorDiv.classList.add('hidden');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                return true;
+            }
+
+            // Simple cleaning for common parentatical units in datalists (e.g. "Grams (g)" -> "g")
+            const cleanUnit = (u) => {
+                const match = u.match(/\(([^)]+)\)/);
+                return match ? match[1].toLowerCase() : u.toLowerCase();
+            };
+
+            const u1 = cleanUnit(pkgUnit);
+            const u2 = cleanUnit(uom);
+
+            const cat1 = unitMap[u1] || unitMap[pkgUnit];
+            const cat2 = unitMap[u2] || unitMap[uom];
+
+            if (cat1 && cat2 && cat1 !== cat2) {
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${cat1.toUpperCase()}, while [${uom}] is ${cat2.toUpperCase()}. Please match the unit categories.`;
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                return false;
+            }
+
+            if (errorDiv) errorDiv.classList.add('hidden');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            return true;
+        }
+
         function toggleActions(event) {
             event.stopPropagation();
             const menu = document.getElementById('actionsMenu');

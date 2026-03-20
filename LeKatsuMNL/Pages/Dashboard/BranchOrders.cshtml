@@ -58,6 +58,21 @@
 </style>
 
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="mb-4 bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 px-4 py-3 rounded-xl text-sm font-bold flex items-center shadow-sm">
+        <i class="bi bi-check-circle-fill mr-2"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="mb-4 bg-rose-50 text-rose-600 border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 px-4 py-3 rounded-xl text-sm font-bold flex items-center shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill mr-2"></i>
+        @TempData["ErrorMessage"]
+    </div>
+}
+
 
     <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
         <div class="flex items-center space-x-4 flex-1 max-w-4xl">
@@ -69,6 +84,7 @@
                 <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
                     <a asp-page-handler="Export" class="w-full block text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export List</a>
                     <button type="button" onclick="printOrders()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Print Table</button>
+                    <button type="button" onclick="handleBulkUpdateStatus()" class="w-full text-left px-5 py-3 text-xs font-bold text-cyan-500 uppercase tracking-widest hover:bg-cyan-50 border-b border-gray-50 dark:hover:bg-cyan-500/10 dark:border-gray-700 transition-colors">Bulk Update Status</button>
                     <button type="button" onclick="handleBulkArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 transition-colors">Bulk Archive</button>
                 </div>
             </div>
@@ -151,9 +167,11 @@
                                     {
                                         "approved" => "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
                                         "preparing" => "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20",
-                                        "delivered" => "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600",
+                                        "delivering" => "bg-cyan-50 text-cyan-600 border-cyan-100 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/20",
+                                        "completed" => "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
                                         "pending" => "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
-                                        "cancelled" => "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+                                        "rejected" => "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+                                        "cancelled" => "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600",
                                         _ => "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600"
                                     };
                                 }
@@ -353,6 +371,27 @@
             }
         }
 
+        function handleBulkUpdateStatus() {
+            const selected = Array.from(document.getElementsByName('selectedOrders'))
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            if (selected.length === 0) {
+                alert('Please select at least one order to update.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to advance the status of ${selected.length} selected order(s)?`)) {
+                const idInput = document.getElementById('bulkUpdateIds');
+                const form = document.getElementById('bulkUpdateForm');
+                
+                if (idInput && form) {
+                    idInput.value = selected.join(',');
+                    form.submit();
+                }
+            }
+        }
+
         function printOrders() {
             window.print();
         }
@@ -360,6 +399,10 @@
 
     <form id="bulkArchiveForm" method="post" asp-page-handler="BulkArchive" class="hidden">
         <input type="hidden" name="ids" id="bulkArchiveIds">
+    </form>
+    
+    <form id="bulkUpdateForm" method="post" asp-page-handler="BulkUpdateStatus" class="hidden">
+        <input type="hidden" name="ids" id="bulkUpdateIds">
     </form>
 }
 

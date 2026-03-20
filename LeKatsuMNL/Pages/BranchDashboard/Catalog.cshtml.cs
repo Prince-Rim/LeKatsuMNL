@@ -57,7 +57,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                     ItemId = "SKU-" + s.SkuId,
                     ItemName = s.ItemName,
                     Classification = s.Category != null ? s.Category.CategoryName : "—",
-                    Yield = (s.PackagingType != null && s.PackSize != null) ? s.PackagingType + "/" + s.PackSize : s.Uom,
+                    Yield = !string.IsNullOrEmpty(s.PackagingUnit) ? (!string.IsNullOrEmpty(s.PackagingType) ? $"{s.PackagingType}/{(string.IsNullOrEmpty(s.PackSize) ? "1" : s.PackSize)}{s.PackagingUnit}" : $"{(string.IsNullOrEmpty(s.PackSize) ? "1" : s.PackSize)}{s.PackagingUnit}") : s.Uom,
                     SellingPrice = s.SellingPrice,
                     Stock = 0
                 })
@@ -141,10 +141,23 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // Calculate Expected Delivery Date
+                DateTime now = DateTime.Now;
+                DateTime expectedDelivery;
+                if (now.Hour >= 17) // 5 PM or later
+                {
+                    expectedDelivery = now.Date.AddDays(3);
+                }
+                else
+                {
+                    expectedDelivery = now.Date.AddDays(2);
+                }
+
                 var order = new OrderInfo
                 {
                     BranchManagerId = branchManagerId,
-                    OrderDate = DateTime.Now,
+                    OrderDate = now,
+                    DeliveryDate = expectedDelivery,
                     Status = "Pending"
                 };
 

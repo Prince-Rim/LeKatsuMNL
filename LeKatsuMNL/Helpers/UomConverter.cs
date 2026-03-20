@@ -119,5 +119,26 @@ namespace LeKatsuMNL.Helpers
             decimal baseValue = quantity * fromInfo.ToBase;
             return baseValue / toInfo.ToBase;
         }
+        /// <summary>
+        /// Checks if two UOMs belong to the same category (e.g. both are weight, both are volume).
+        /// </summary>
+        public static bool AreUnitsCompatible(string uom1, string uom2)
+        {
+            if (string.IsNullOrWhiteSpace(uom1) || string.IsNullOrWhiteSpace(uom2))
+                return true; // Assume compatible if one is missing (handled by required validation elsewhere)
+
+            string u1 = uom1.Trim();
+            string u2 = uom2.Trim();
+
+            if (string.Equals(u1, u2, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (Units.TryGetValue(u1, out var info1) && Units.TryGetValue(u2, out var info2))
+            {
+                return info1.Category == info2.Category;
+            }
+
+            return true; // Fallback to true if one is unknown to avoid blocking the user
+        }
     }
 }

@@ -36,7 +36,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
             var query = _context.OrderInfos
                 .Where(o => o.BranchManagerId == branchManagerId && !o.IsArchived
-                         && o.Status != "Completed" && o.Status != "Delivered" && o.Status != "Cancelled")
+                         && o.Status != "Completed" && o.Status != "Rejected" && o.Status != "Cancelled")
                 .Include(o => o.Invoices)
                 .OrderByDescending(o => o.OrderDate)
                 .AsQueryable();

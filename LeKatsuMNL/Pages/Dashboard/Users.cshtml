@@ -27,6 +27,12 @@
 }
 
 <div class="h-[calc(100vh-12rem)] flex flex-col">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium animate-pulse">
+            <i class="bi bi-exclamation-triangle-fill mr-2"></i> @TempData["ErrorMessage"]
+        </div>
+    }
     <!-- Top toolbar -->
     <form id="userFilterForm" method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 space-x-4">
         <div class="flex-1 flex items-center space-x-4 max-w-4xl">
@@ -180,9 +186,15 @@
                 </div>
             </div>
 
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Password*</label>
-                <input id="newPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
+            <div class="grid grid-cols-2 gap-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Password*</label>
+                    <input id="newPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Confirm Password*</label>
+                    <input id="newConfirmPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Confirm password" required>
+                </div>
             </div>
 
             <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
@@ -210,6 +222,7 @@
             <input type="hidden" asp-for="NewUser.Email" id="hiddenEmail" />
             <input type="hidden" asp-for="NewUser.ContactNum" id="hiddenContactNum" />
             <input type="hidden" asp-for="NewUser.Password" id="hiddenPassword" />
+            <input type="hidden" asp-for="NewUser.ConfirmPassword" id="hiddenConfirmPassword" />
             <input type="hidden" asp-for="NewUser.Privileges" id="hiddenPrivileges" />
 
             <div class="grid grid-cols-2 gap-5">
@@ -344,9 +357,15 @@
                 </div>
             </div>
 
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500">New Password (leave blank to keep current)</label>
-                <input asp-for="EditUser.Password" type="password" class="w-full px-4 py-3 bg-green-50/30 border border-green-100 rounded-xl text-sm focus:ring-2 focus:ring-green-100 focus:border-green-400 transition-all">
+            <div class="grid grid-cols-2 gap-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500">New Password (leave blank if not changing)</label>
+                    <input asp-for="EditUser.Password" id="editPassword" type="password" class="w-full px-4 py-3 bg-green-50/30 border border-green-100 rounded-xl text-sm focus:ring-2 focus:ring-green-100 focus:border-green-400 transition-all font-medium">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500">Confirm New Password</label>
+                    <input asp-for="EditUser.ConfirmPassword" id="editConfirmPassword" type="password" class="w-full px-4 py-3 bg-green-50/30 border border-green-100 rounded-xl text-sm focus:ring-2 focus:ring-green-100 focus:border-green-400 transition-all font-medium">
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-5">
@@ -610,13 +629,14 @@
                 document.getElementById('newEmail').value = '';
                 document.getElementById('newContactNum').value = '';
                 document.getElementById('newPassword').value = '';
+                document.getElementById('newConfirmPassword').value = '';
             }, 300);
         }
 
         function openCreateStep2() {
             // Validate Step 1
-            if (!document.getElementById('newFirstName').value || !document.getElementById('newLastName').value || !document.getElementById('newEmail').value || !document.getElementById('newPassword').value) {
-                alert("Please fill in all required fields.");
+            if (document.getElementById('newPassword').value !== document.getElementById('newConfirmPassword').value) {
+                alert("Passwords do not match.");
                 return;
             }
 
@@ -627,6 +647,7 @@
             document.getElementById('hiddenEmail').value = document.getElementById('newEmail').value;
             document.getElementById('hiddenContactNum').value = document.getElementById('newContactNum').value;
             document.getElementById('hiddenPassword').value = document.getElementById('newPassword').value;
+            document.getElementById('hiddenConfirmPassword').value = document.getElementById('newConfirmPassword').value;
 
             // Close Step 1, Open Step 2
             closeCreateModal();

@@ -186,13 +186,24 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage();
             }
 
+            if (!string.IsNullOrEmpty(PackagingUnit) && !UomConverter.AreUnitsCompatible(PackagingUnit, UOM))
+            {
+                StatusMessage = $"Incompatible units: Packaging Unit ({PackagingUnit}) and UOM ({UOM}) must be from the same category (Weight/Volume/Count).";
+                return RedirectToPage();
+            }
+
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
-            if (!string.IsNullOrEmpty(PackagingType) && 
-                !string.IsNullOrEmpty(PackSize) && 
-                !string.IsNullOrEmpty(PackagingUnit))
+            if (!string.IsNullOrEmpty(PackagingUnit))
             {
-                calculatedYield = $"{PackagingType}/{PackSize}{PackagingUnit}";
+                if (!string.IsNullOrEmpty(PackagingType))
+                {
+                    calculatedYield = $"{PackagingType}/{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
+                else
+                {
+                    calculatedYield = $"{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
             }
 
             var item = new CommissaryInventory
@@ -241,6 +252,12 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage();
             }
 
+            if (!string.IsNullOrEmpty(PackagingUnit) && !UomConverter.AreUnitsCompatible(PackagingUnit, UOM))
+            {
+                StatusMessage = $"Incompatible units: Packaging Unit ({PackagingUnit}) and UOM ({UOM}) must be from the same category.";
+                return RedirectToPage();
+            }
+
             var item = await _context.CommissaryInventories.FindAsync(ComId);
             if (item == null)
             {
@@ -254,11 +271,16 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
-            if (!string.IsNullOrEmpty(PackagingType) && 
-                !string.IsNullOrEmpty(PackSize) && 
-                !string.IsNullOrEmpty(PackagingUnit))
+            if (!string.IsNullOrEmpty(PackagingUnit))
             {
-                calculatedYield = $"{PackagingType}/{PackSize}{PackagingUnit}";
+                if (!string.IsNullOrEmpty(PackagingType))
+                {
+                    calculatedYield = $"{PackagingType}/{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
+                else
+                {
+                    calculatedYield = $"{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
             }
 
             item.ItemName = ItemName;

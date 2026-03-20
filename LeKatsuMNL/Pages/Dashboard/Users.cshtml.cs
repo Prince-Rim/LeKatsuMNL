@@ -60,6 +60,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public string Email { get; set; }
             public string ContactNum { get; set; }
             public string Password { get; set; }
+            public string ConfirmPassword { get; set; }
             public string Role { get; set; } // "Admin", "Branch Manager", "Staff", etc.
             public int? BranchId { get; set; }
             public string Privileges { get; set; }
@@ -190,6 +191,18 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             if (!PermissionHelper.HasPermission(User, "Users", 'C')) return Forbid();
 
+            if (string.IsNullOrWhiteSpace(NewUser.Password))
+            {
+                TempData["ErrorMessage"] = "Password cannot be empty.";
+                return RedirectToPage();
+            }
+
+            if (NewUser.Password != NewUser.ConfirmPassword)
+            {
+                TempData["ErrorMessage"] = "Passwords do not match.";
+                return RedirectToPage();
+            }
+
             if (NewUser.Role == "Branch Manager")
             {
                 if (!NewUser.BranchId.HasValue || NewUser.BranchId <= 0)
@@ -251,6 +264,21 @@ namespace LeKatsuMNL.Pages.Dashboard
         public async Task<IActionResult> OnPostUpdateAsync()
         {
             if (!PermissionHelper.HasPermission(User, "Users", 'U')) return Forbid();
+
+            if (!string.IsNullOrEmpty(EditUser.Password))
+            {
+                if (string.IsNullOrWhiteSpace(EditUser.Password))
+                {
+                    TempData["ErrorMessage"] = "Password cannot be whitespace.";
+                    return RedirectToPage();
+                }
+
+                if (EditUser.Password != EditUser.ConfirmPassword)
+                {
+                    TempData["ErrorMessage"] = "Passwords do not match.";
+                    return RedirectToPage();
+                }
+            }
 
             if (EditUser.Type == "Admin")
             {

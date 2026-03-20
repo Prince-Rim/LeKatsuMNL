@@ -1,0 +1,295 @@
+@page
+@model LeKatsuMNL.Pages.BranchDashboard.SettingsModel
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "_BranchLayout";
+}
+
+@* Alerts *@
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-5 py-3 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
+        <i class="bi bi-check-circle-fill text-base flex-shrink-0"></i>
+        <span>@Model.SuccessMessage</span>
+    </div>
+}
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-5 py-3 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+        <i class="bi bi-exclamation-triangle-fill text-base flex-shrink-0"></i>
+        <span>@Model.ErrorMessage</span>
+    </div>
+}
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm dark:bg-slate-800 dark:border-gray-700 overflow-hidden">
+    <!-- Tabs Header -->
+    <div class="flex border-b border-gray-50 dark:border-gray-700 bg-gray-50/50 dark:bg-slate-800/50">
+        <button onclick="switchTab('account')" id="tab-account" class="px-6 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all">
+            <i class="bi bi-person-circle mr-2"></i>Account Settings
+        </button>
+        <button onclick="switchTab('security')" id="tab-security" class="px-6 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-all dark:text-gray-400 dark:hover:text-gray-200">
+            <i class="bi bi-shield-lock-fill mr-2"></i>Security
+        </button>
+        <button onclick="switchTab('appearance')" id="tab-appearance" class="px-6 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-all dark:text-gray-400 dark:hover:text-gray-200">
+            <i class="bi bi-palette-fill mr-2"></i>Appearance
+        </button>
+    </div>
+
+    <!-- Account Tab Content -->
+    <div id="content-account" class="p-8">
+        <form method="post" asp-page-handler="UpdateAccount" id="account-form" class="space-y-8">
+            <div class="max-w-4xl space-y-6">
+                <!-- System ID (Read Only) -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest dark:text-gray-400">User System ID</label>
+                    <div class="max-w-md">
+                        <input type="text" value="@Model.UserSystemId" readonly class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-lg text-sm font-mono text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-gray-400">
+                    </div>
+                </div>
+
+                <!-- Full Name -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-start">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest dark:text-gray-400 mt-3">Full Name</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <input asp-for="FirstName" readonly class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700 pointer-events-none" placeholder="First Name">
+                            <span asp-validation-for="FirstName" class="text-[10px] text-red-500 font-medium"></span>
+                        </div>
+                        <div class="space-y-1">
+                            <input asp-for="MiddleName" readonly class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700 pointer-events-none" placeholder="Middle Name">
+                        </div>
+                        <div class="space-y-1">
+                            <input asp-for="LastName" readonly class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700 pointer-events-none" placeholder="Last Name">
+                            <span asp-validation-for="LastName" class="text-[10px] text-red-500 font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Info -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest dark:text-gray-400">Assigned Branch</label>
+                    <div class="max-w-md">
+                        <input type="text" value="@Model.Manager.BranchLocation?.BranchName" readonly class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-lg text-sm text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-gray-400">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest dark:text-gray-400">Email Address</label>
+                    <div class="max-w-md">
+                        <input asp-for="Email" type="email" readonly class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700 pointer-events-none" placeholder="email@example.com">
+                    </div>
+                </div>
+
+                <!-- Contact -->
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest dark:text-gray-400">Contact Number</label>
+                    <div class="max-w-md">
+                        <input asp-for="ContactNum" readonly class="account-input w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700 pointer-events-none" placeholder="+63 900 000 0000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-8 border-t border-gray-50 dark:border-gray-700">
+                <button type="button" onclick="confirmDelete()" class="text-xs font-bold text-red-500 hover:text-red-700 transition-colors uppercase tracking-wider">
+                    <i class="bi bi-trash3-fill mr-1"></i> Delete Account
+                </button>
+
+                <div id="start-edit-actions">
+                    <button type="button" onclick="enableEdit()" class="px-6 py-2.5 bg-[#C41E24] text-white rounded font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">
+                        <i class="bi bi-pencil-square mr-2"></i> Edit Profile
+                    </button>
+                </div>
+
+                <div id="save-edit-actions" class="hidden flex space-x-3">
+                    <button type="button" onclick="cancelEdit()" class="px-6 py-2.5 border border-gray-200 text-gray-600 rounded font-bold text-sm hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-slate-700 transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-[#C41E24] text-white rounded font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <form method="post" asp-page-handler="DeleteAccount" id="delete-form" class="hidden"></form>
+    </div>
+
+    <!-- Security Tab Content -->
+    <div id="content-security" class="p-8 hidden">
+        <div class="max-w-4xl">
+            <h4 class="text-sm font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                <i class="bi bi-shield-lock-fill mr-2 text-[#C41E24]"></i>
+                Change Account Password
+            </h4>
+            
+            <form method="post" asp-page-handler="ChangePassword" id="change-password-form" class="space-y-6">
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Current Password</label>
+                    <div class="max-w-md">
+                        <input type="password" asp-for="CurrentPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" required placeholder="Enter current password">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">New Password</label>
+                    <div class="max-w-md">
+                        <input type="password" asp-for="NewPassword" id="settingsNewPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" required placeholder="Enter new password">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                    <label class="text-xs font-bold text-gray-700 tracking-wide dark:text-gray-200">Confirm New Password</label>
+                    <div class="max-w-md">
+                        <input type="password" asp-for="ConfirmNewPassword" id="settingsConfirmPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-[#C41E24] transition-colors duration-200 dark:bg-slate-700/50 dark:text-gray-200 dark:border-gray-700" required placeholder="Confirm new password">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-6 border-t border-gray-50 dark:border-gray-700">
+                    <button type="submit" class="px-6 py-2.5 bg-[#C41E24] text-white rounded font-bold text-sm shadow-lg hover:bg-[#a51a1f] active:scale-95 transition-all flex items-center">
+                        <i class="bi bi-key-fill mr-2"></i>
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Appearance Tab Content -->
+    <div id="content-appearance" class="p-8 hidden">
+        <div class="space-y-8 max-w-4xl">
+            <!-- Theme Toggle -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold text-gray-700 dark:text-gray-300 tracking-wide">Interface Theme</label>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Select your color scheme preference</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="theme-light" onclick="setTheme('light')" class="w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-sun-fill text-xl"></i>
+                        <span>Light</span>
+                    </button>
+                    <button id="theme-dark" onclick="setTheme('dark')" class="w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-moon-fill text-xl"></i>
+                        <span>Dark</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Toggle -->
+            <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold text-gray-700 dark:text-gray-300 tracking-wide">Navigation Sidebar</label>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Choose layout density</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="sidebar-expanded" onclick="setSidebar('expanded')" class="w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-layout-sidebar text-xl"></i>
+                        <span>Expanded</span>
+                    </button>
+                    <button id="sidebar-collapsed" onclick="setSidebar('collapsed')" class="w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 rounded-xl font-bold text-sm transition-all flex flex-col items-center justify-center space-y-2">
+                        <i class="bi bi-layout-sidebar-inset text-xl"></i>
+                        <span>Collapsed</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function enableEdit() {
+            document.getElementById('start-edit-actions').classList.add('hidden');
+            document.getElementById('save-edit-actions').classList.remove('hidden');
+            
+            const inputs = document.querySelectorAll('.account-input');
+            inputs.forEach(input => {
+                input.classList.remove('pointer-events-none', 'bg-gray-50');
+                input.removeAttribute('readonly');
+                input.classList.add('bg-white', 'border-gray-200');
+            });
+        }
+
+        function cancelEdit() {
+            window.location.reload();
+        }
+
+        function confirmDelete() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                document.getElementById('delete-form').submit();
+            }
+        }
+
+        function switchTab(tab) {
+            const tabs = ['account', 'security', 'appearance'];
+            
+            tabs.forEach(t => {
+                const tabEl = document.getElementById(`tab-${t}`);
+                const contentEl = document.getElementById(`content-${t}`);
+                
+                if (t === tab) {
+                    tabEl.className = "px-6 py-4 text-sm font-bold text-[#C41E24] border-b-2 border-[#C41E24] transition-all";
+                    contentEl.classList.remove('hidden');
+                } else {
+                    tabEl.className = "px-6 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-all dark:text-gray-400 dark:hover:text-gray-200";
+                    contentEl.classList.add('hidden');
+                }
+            });
+        }
+
+        function setTheme(theme) {
+            const lightBtn = document.getElementById('theme-light');
+            const darkBtn = document.getElementById('theme-dark');
+            const activeClass = "w-32 py-3 border-2 border-[#C41E24] bg-red-50 dark:bg-red-900/20 text-[#C41E24] rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+            const inactiveClass = "w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('branch_theme', 'dark');
+                darkBtn.className = activeClass;
+                lightBtn.className = inactiveClass;
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('branch_theme', 'light');
+                lightBtn.className = activeClass;
+                darkBtn.className = inactiveClass;
+            }
+        }
+
+        function setSidebar(state) {
+            const expBtn = document.getElementById('sidebar-expanded');
+            const colBtn = document.getElementById('sidebar-collapsed');
+            const activeClass = "w-32 py-3 border-2 border-[#C41E24] bg-red-50 dark:bg-red-900/20 text-[#C41E24] rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+            const inactiveClass = "w-32 py-3 border-2 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 rounded-xl font-bold text-sm transition-all focus:outline-none flex flex-col items-center justify-center space-y-2";
+
+            if (state === 'collapsed') {
+                document.documentElement.classList.add('sidebar-collapsed');
+                localStorage.setItem('branch_sidebar', 'collapsed');
+                colBtn.className = activeClass;
+                expBtn.className = inactiveClass;
+            } else {
+                document.documentElement.classList.remove('sidebar-collapsed');
+                localStorage.setItem('branch_sidebar', 'expanded');
+                expBtn.className = activeClass;
+                colBtn.className = inactiveClass;
+            }
+        }
+
+        // Initialize button states on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('branch_theme') === 'dark' || (!('branch_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+
+            if (localStorage.getItem('branch_sidebar') === 'collapsed') {
+                setSidebar('collapsed');
+            } else {
+                setSidebar('expanded');
+            }
+        });
+    </script>
+}
