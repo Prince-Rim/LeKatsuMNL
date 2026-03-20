@@ -142,15 +142,26 @@ namespace LeKatsuMNL.Helpers
             return true; // Fallback to true if one is unknown to avoid blocking the user
         }
 
-        private static string NormalizeUnit(string unit)
+        public static string NormalizeUnit(string unit)
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
 
-            // Strip parentheses and their content: "Kilogram (kg)" -> "Kilogram"
-            // Also handle cases like "Gram (g)" or "Liter (ml)"
-            string normalized = Regex.Replace(unit, @"\(.*?\)", "").Trim();
+            string trimmed = unit.Trim();
+
+            // Check if there's a token inside parentheses first, e.g. "Fluid Ounce (fl oz)" -> "fl oz"
+            var match = Regex.Match(trimmed, @"\(([^)]+)\)");
+            if (match.Success)
+            {
+                string inner = match.Groups[1].Value.Trim();
+                if (Units.ContainsKey(inner))
+                    return inner;
+            }
+
+            // Fallback: strip parentheses and use the outer label: "Kilogram (kg)" -> "Kilogram"
+            string primary = Regex.Replace(trimmed, @"\s*\(.*?\)\s*", " ").Trim();
+            primary = Regex.Replace(primary, @"\s+", " ");
             
-            return normalized;
+            return primary;
         }
     }
 }

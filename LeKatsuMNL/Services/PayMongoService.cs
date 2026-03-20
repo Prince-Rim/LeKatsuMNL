@@ -51,7 +51,7 @@ namespace LeKatsuMNL.Services
                                 quantity = 1
                             }
                         },
-                        payment_method_types = new[] { "card", "gcash", "paymaya" },
+                        payment_method_types = new[] { "card", "gcash", "paymaya", "dob", "dob_ubp" },
                         reference_number = orderId.ToString(),
                         success_url = successUrl
                     }
@@ -75,7 +75,7 @@ namespace LeKatsuMNL.Services
                 };
             }
 
-            return new CheckoutSessionResult { Error = "ERROR: " + responseBody };
+            return new CheckoutSessionResult { Error = "Payment gateway error. Please try again." };
         }
 
         public async Task<bool> IsPaymentSuccessfulAsync(string sessionId)
@@ -140,7 +140,7 @@ namespace LeKatsuMNL.Services
             }
             catch { }
 
-            return ("PayMongo", "Confirmed-" + sessionId.Substring(Math.Max(0, sessionId.Length - 8)));
+            return ("PayMongo", sessionId); // Use sessionId itself if no specific payment found
         }
 
         public async Task<string> GetCheckoutSessionStatusAsync(string sessionId)
@@ -174,11 +174,30 @@ namespace LeKatsuMNL.Services
                     return status;
                 }
             }
-            catch (Exception ex) 
-            {
-                return $"error: {ex.Message}";
-            }
+            catch { }
             return "error";
+        }
+
+        public async Task<CheckoutSessionResult> GetCheckoutSessionAsync(string sessionId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"checkout_sessions/{sessionId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(responseBody);
+                    var data = doc.RootElement.GetProperty("data");
+                    return new CheckoutSessionResult
+                    {
+                        SessionId = data.GetProperty("id").GetString(),
+                        Status = data.GetProperty("attributes").GetProperty("status").GetString(),
+                        CheckoutUrl = data.GetProperty("attributes").GetProperty("checkout_url").GetString()
+                    };
+                }
+            }
+            catch { }
+            return new CheckoutSessionResult { Error = "Failed to retrieve existing session." };
         }
     }
 }

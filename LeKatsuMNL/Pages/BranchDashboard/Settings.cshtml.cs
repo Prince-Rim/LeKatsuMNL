@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using LeKatsuMNL.Data;
 using LeKatsuMNL.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
 
 namespace LeKatsuMNL.Pages.BranchDashboard
@@ -87,7 +88,22 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             ContactNum = Manager.ContactNum;
             UserSystemId = "BRCH-" + Manager.BManagerId.ToString("D4");
 
+            NormalizeActiveTab();
+
             return Page();
+        }
+
+        private void NormalizeActiveTab()
+        {
+            string[] allowedTabs = { "account", "security" };
+            if (string.IsNullOrEmpty(ActiveTab) || !allowedTabs.Contains(ActiveTab.ToLower()))
+            {
+                ActiveTab = "account";
+            }
+            else
+            {
+                ActiveTab = ActiveTab.ToLower();
+            }
         }
 
         public async Task<IActionResult> OnPostUpdateAccountAsync()
@@ -99,6 +115,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             {
                 UserSystemId = "BRCH-" + Manager.BManagerId.ToString("D4");
                 ErrorMessage = "Please correct the errors below.";
+                NormalizeActiveTab();
                 return Page();
             }
 
@@ -110,7 +127,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
             await _context.SaveChangesAsync();
             SuccessMessage = "Account updated successfully.";
-            return RedirectToPage();
+            return RedirectToPage(new { ActiveTab = "account" });
         }
 
         public async Task<IActionResult> OnPostChangePasswordAsync()

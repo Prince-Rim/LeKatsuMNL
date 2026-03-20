@@ -153,6 +153,17 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
             try
             {
+                // Re-use active session if available
+                if (invoice.ReferenceNumber != null && invoice.ReferenceNumber.StartsWith("SESSION:"))
+                {
+                    var existingSessionId = invoice.ReferenceNumber.Substring(8);
+                    var existingSession = await _payMongoService.GetCheckoutSessionAsync(existingSessionId);
+                    if (existingSession != null && existingSession.Status == "active")
+                    {
+                        return Redirect(existingSession.CheckoutUrl);
+                    }
+                }
+
                 var result = await _payMongoService.CreateCheckoutSessionAsync(
                     order.OrderId,
                     invoice.TotalPrice,

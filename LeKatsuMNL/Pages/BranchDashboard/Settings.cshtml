@@ -226,6 +226,7 @@
 
         function switchTab(tab, hideAlerts = true) {
             const tabs = ['account', 'security', 'appearance'];
+            if (!tabs.includes(tab)) tab = 'account';
             
             // Hide alerts when switching tabs
             const alerts = document.getElementById('settings-alerts');

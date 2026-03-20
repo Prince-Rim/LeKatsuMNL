@@ -136,7 +136,7 @@
                     foreach (var sku in Model.SkuHeaders)
                     {
                         <tr class="hover:bg-gray-50/50 transition-colors group">
-                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-id="@sku.SkuId" data-item-name="@sku.ItemName" data-uom="@sku.Uom" onchange="updateSelectAll()"></td>
+                            <td class="px-8 py-5"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-[#C41E24] dark:border-gray-600" data-id="@sku.SkuId" data-item-name="@sku.ItemName" data-uom="@UomConverter.NormalizeUnit(sku.Uom)" onchange="updateSelectAll()"></td>
                             <td class="px-6 py-5">
                                 <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-gray-300 transition-colors dark:text-gray-500">
                                     <i class="bi bi-image text-2xl"></i>
@@ -151,9 +151,9 @@
                             <td class="px-6 py-5 text-gray-600 font-semibold uppercase dark:text-gray-300">
                                 @if(!string.IsNullOrEmpty(sku.PackagingUnit)) {
                                     @if(!string.IsNullOrEmpty(sku.PackagingType)) {
-                                        @($"{sku.PackagingType}/{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{sku.PackagingUnit}")
+                                        @($"{sku.PackagingType}/{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{UomConverter.NormalizeUnit(sku.PackagingUnit)}")
                                     } else {
-                                        @($"{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{sku.PackagingUnit}")
+                                        @($"{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{UomConverter.NormalizeUnit(sku.PackagingUnit)}")
                                     }
                                 } else {
                                     @("-")

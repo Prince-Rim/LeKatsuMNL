@@ -6,6 +6,7 @@ namespace LeKatsuMNL.Services
     {
         public string CheckoutUrl { get; set; }
         public string SessionId { get; set; }
+        public string Status { get; set; }
         public string Error { get; set; }
     }
 
@@ -31,5 +32,10 @@ namespace LeKatsuMNL.Services
         /// Retrieves the overall checkout session status (e.g. "paid", "expired").
         /// </summary>
         Task<string> GetCheckoutSessionStatusAsync(string sessionId);
+
+        /// <summary>
+        /// Retrieves the full checkout session details.
+        /// </summary>
+        Task<CheckoutSessionResult> GetCheckoutSessionAsync(string sessionId);
     }
 }
