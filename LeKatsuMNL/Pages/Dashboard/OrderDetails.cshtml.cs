@@ -166,7 +166,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (order.Status == "Pending")
             {
-                order.Status = "Cancelled";
+                order.Status = "Rejected";
                 await _context.SaveChangesAsync();
             }
 
@@ -334,8 +334,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (order.Status == "Preparing")
             {
-                order.Status = "Delivered";
-                order.DeliveryDate = System.DateTime.Now;
+                order.Status = "Delivering";
                 await _context.SaveChangesAsync();
             }
 

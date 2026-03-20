@@ -1,21 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using LeKatsuMNL.Data;
-using LeKatsuMNL.Models;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using LeKatsuMNL.Data;
+using LeKatsuMNL.Models;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace LeKatsuMNL.Pages.BranchDashboard
 {
-    public class AccountModel : PageModel
+    public class SettingsModel : PageModel
     {
         private readonly LeKatsuDb _context;
 
-        public AccountModel(LeKatsuDb context)
+        public SettingsModel(LeKatsuDb context)
         {
             _context = context;
         }
@@ -42,6 +42,17 @@ namespace LeKatsuMNL.Pages.BranchDashboard
         [MaxLength(20)]
         public string ContactNum { get; set; }
 
+        public string UserSystemId { get; set; }
+
+        [BindProperty]
+        public string CurrentPassword { get; set; }
+
+        [BindProperty]
+        public string NewPassword { get; set; }
+
+        [BindProperty]
+        public string ConfirmNewPassword { get; set; }
+
         [TempData]
         public string SuccessMessage { get; set; }
 
@@ -66,17 +77,17 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             Manager = await GetManagerAsync();
             if (Manager == null) return RedirectToPage("/Login/login");
 
-            // Pre-fill bound properties
-            FirstName  = Manager.FirstName;
+            FirstName = Manager.FirstName;
             MiddleName = Manager.MiddleName;
-            LastName   = Manager.LastName;
-            Email      = Manager.Email;
+            LastName = Manager.LastName;
+            Email = Manager.Email;
             ContactNum = Manager.ContactNum;
+            UserSystemId = "BRCH-" + Manager.BManagerId.ToString("D4");
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostSaveAsync()
+        public async Task<IActionResult> OnPostUpdateAccountAsync()
         {
             Manager = await GetManagerAsync();
             if (Manager == null) return RedirectToPage("/Login/login");
@@ -87,10 +98,10 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                 return Page();
             }
 
-            Manager.FirstName  = FirstName?.Trim();
+            Manager.FirstName = FirstName?.Trim();
             Manager.MiddleName = MiddleName?.Trim();
-            Manager.LastName   = LastName?.Trim();
-            Manager.Email      = Email?.Trim();
+            Manager.LastName = LastName?.Trim();
+            Manager.Email = Email?.Trim();
             Manager.ContactNum = ContactNum?.Trim();
 
             await _context.SaveChangesAsync();
@@ -98,7 +109,32 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync()
+        public async Task<IActionResult> OnPostChangePasswordAsync()
+        {
+            Manager = await GetManagerAsync();
+            if (Manager == null) return RedirectToPage("/Login/login");
+
+            if (NewPassword != ConfirmNewPassword)
+            {
+                ErrorMessage = "New passwords do not match.";
+                return Page();
+            }
+
+            if (string.IsNullOrEmpty(CurrentPassword) || !BCrypt.Net.BCrypt.Verify(CurrentPassword, Manager.Password))
+            {
+                ErrorMessage = "Incorrect current password.";
+                return Page();
+            }
+
+            // Update password
+            Manager.Password = BCrypt.Net.BCrypt.HashPassword(NewPassword);
+            await _context.SaveChangesAsync();
+            
+            SuccessMessage = "Password updated successfully.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostDeleteAccountAsync()
         {
             Manager = await GetManagerAsync();
             if (Manager == null) return RedirectToPage("/Login/login");
@@ -106,7 +142,6 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             Manager.IsArchived = true;
             await _context.SaveChangesAsync();
 
-            // Sign out
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToPage("/Login/login");
         }

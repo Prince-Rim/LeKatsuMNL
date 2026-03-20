@@ -66,5 +66,23 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             }
             return RedirectToPage("./MyOrder");
         }
+
+        public async Task<IActionResult> OnPostCompleteAsync(int id)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdStr, out int branchManagerId))
+                return RedirectToPage("./MyOrder");
+
+            var order = await _context.OrderInfos
+                .FirstOrDefaultAsync(o => o.OrderId == id && o.BranchManagerId == branchManagerId);
+
+            if (order != null && order.Status == "Delivering")
+            {
+                order.Status = "Completed";
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Transaction completed.";
+            }
+            return RedirectToPage("./MyOrder");
+        }
     }
 }

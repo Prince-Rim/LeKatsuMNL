@@ -33,11 +33,11 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             if (!int.TryParse(userIdStr, out int branchManagerId))
                 return RedirectToPage("/Login/login");
 
-            // History = fully completed or cancelled orders only
+            // History = fully completed or cancelled/rejected orders only
             var query = _context.OrderInfos
                 .Where(o => o.BranchManagerId == branchManagerId
                          && !o.IsArchived
-                         && (o.Status == "Completed" || o.Status == "Delivered" || o.Status == "Cancelled"))
+                         && (o.Status == "Completed" || o.Status == "Rejected" || o.Status == "Cancelled"))
                 .Include(o => o.Invoices)
                 .OrderByDescending(o => o.OrderDate)
                 .AsQueryable();

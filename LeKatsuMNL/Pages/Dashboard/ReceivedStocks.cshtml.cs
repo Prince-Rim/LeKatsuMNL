@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -104,25 +105,45 @@ namespace LeKatsuMNL.Pages.Dashboard
                 var inventoryItem = await _context.CommissaryInventories.FindAsync(item.ComId);
                 if (inventoryItem != null)
                 {
+                    decimal actualQuantityAdded = item.Quantity;
+
+                    // Parse Yield to convert if it matches the received unit
+                    if (!string.IsNullOrEmpty(inventoryItem.Yield) && item.Unit == inventoryItem.Yield)
+                    {
+                        try 
+                        {
+                            var parts = inventoryItem.Yield.Split('/');
+                            string sizeAndUnit = parts.Length == 2 ? parts[1].Trim() : parts[0].Trim();
+                            var match = Regex.Match(sizeAndUnit, @"^([\d\.]+)\s*(.+)$");
+                            if (match.Success)
+                            {
+                                decimal yieldSize = decimal.Parse(match.Groups[1].Value);
+                                string yieldUom = match.Groups[2].Value.Trim();
+                                actualQuantityAdded = item.Quantity * UomConverter.Convert(yieldSize, yieldUom, inventoryItem.Uom);
+                            }
+                        }
+                        catch { } // fallback to original item.Quantity if parsing fails
+                    }
+
                     // Create Supply List entry
                     var supplyList = new SupplyList
                     {
                         SupplyId = supplyOrder.SoaId,
                         ComId = item.ComId,
-                        Quantity = item.Quantity,
+                        Quantity = actualQuantityAdded,
                         TotalPrice = 0 // Assuming price is handled elsewhere or set to 0 for now
                     };
                     _context.SupplyLists.Add(supplyList);
 
                     // Update Stock
-                    inventoryItem.Stock += item.Quantity;
+                    inventoryItem.Stock += actualQuantityAdded;
 
                     // Record Transaction
                     var transaction = new InventoryTransaction
                     {
                         ComId = item.ComId,
                         TypeId = transactionType.TypeId,
-                        QuantityChange = item.Quantity,
+                        QuantityChange = actualQuantityAdded,
                         TimeStamp = DateTime.Now
                     };
                     _context.InventoryTransactions.Add(transaction);

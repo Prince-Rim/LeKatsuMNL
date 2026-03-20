@@ -188,11 +188,16 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
-            if (!string.IsNullOrEmpty(PackagingType) && 
-                !string.IsNullOrEmpty(PackSize) && 
-                !string.IsNullOrEmpty(PackagingUnit))
+            if (!string.IsNullOrEmpty(PackagingUnit))
             {
-                calculatedYield = $"{PackagingType}/{PackSize}{PackagingUnit}";
+                if (!string.IsNullOrEmpty(PackagingType))
+                {
+                    calculatedYield = $"{PackagingType}/{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
+                else
+                {
+                    calculatedYield = $"{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
             }
 
             var item = new CommissaryInventory
@@ -254,11 +259,16 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
-            if (!string.IsNullOrEmpty(PackagingType) && 
-                !string.IsNullOrEmpty(PackSize) && 
-                !string.IsNullOrEmpty(PackagingUnit))
+            if (!string.IsNullOrEmpty(PackagingUnit))
             {
-                calculatedYield = $"{PackagingType}/{PackSize}{PackagingUnit}";
+                if (!string.IsNullOrEmpty(PackagingType))
+                {
+                    calculatedYield = $"{PackagingType}/{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
+                else
+                {
+                    calculatedYield = $"{(string.IsNullOrEmpty(PackSize) ? "1" : PackSize)}{PackagingUnit}";
+                }
             }
 
             item.ItemName = ItemName;

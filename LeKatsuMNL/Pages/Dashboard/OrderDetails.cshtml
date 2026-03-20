@@ -74,15 +74,27 @@
                 {
                     <form method="post" asp-page-handler="Deliver">
                         <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
-                        <button type="submit" class="bg-green-600 text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-700 transition-all shadow-sm">
-                            Mark as Delivered
+                        <button type="submit" class="bg-cyan-600 text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-cyan-700 transition-all shadow-sm">
+                            Dispatch Delivery
                         </button>
                     </form>
                 }
-                else if (Model.Order.Status == "Delivered")
+                else if (Model.Order.Status == "Delivering")
                 {
-                    <span class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center shadow-sm dark:bg-slate-700 dark:text-gray-300">
+                    <span class="bg-blue-50 text-blue-700 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center shadow-sm dark:bg-blue-500/10 dark:text-blue-400">
+                        In Transit
+                    </span>
+                }
+                else if (Model.Order.Status == "Completed")
+                {
+                    <span class="bg-green-100 text-green-700 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center shadow-sm dark:bg-green-500/10 dark:text-green-400">
                         Transaction Completed
+                    </span>
+                }
+                else if (Model.Order.Status == "Rejected" || Model.Order.Status == "Cancelled")
+                {
+                    <span class="bg-gray-100 text-gray-500 px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center shadow-sm dark:bg-slate-700 dark:text-gray-400">
+                        @Model.Order.Status
                     </span>
                 }
             </div>

@@ -77,7 +77,21 @@
             </div>
         </div>
         <div class="flex-1 space-y-4">
-            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight dark:text-white">@Model.Sku?.ItemName: <span class="text-[#C41E24]">@Model.Sku?.PackSize</span></h2>
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight dark:text-white">@Model.Sku?.ItemName: 
+                <span class="text-[#C41E24]">
+                    @if(Model.Sku != null) {
+                        @if(!string.IsNullOrEmpty(Model.Sku.PackagingUnit)) {
+                            @if(!string.IsNullOrEmpty(Model.Sku.PackagingType)) {
+                                @($"{Model.Sku.PackagingType}/{(string.IsNullOrEmpty(Model.Sku.PackSize) ? "1" : Model.Sku.PackSize)}{Model.Sku.PackagingUnit}")
+                            } else {
+                                @($"{(string.IsNullOrEmpty(Model.Sku.PackSize) ? "1" : Model.Sku.PackSize)}{Model.Sku.PackagingUnit}")
+                            }
+                        } else {
+                            @Model.Sku.Uom
+                        }
+                    }
+                </span>
+            </h2>
             <div class="flex items-center space-x-4">
                 <button type="button" class="px-6 py-2.5 bg-[#FFF5F5] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest shadow-sm hover:bg-red-50 transition-all flex items-center border border-red-100/50">
                     <i class="bi bi-upload mr-2 text-sm"></i> Upload Image
@@ -135,7 +149,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Packaging Unit</label>
-                        <input type="text" asp-for="Sku.PackagingUnit" list="pkgUnitList" placeholder="Packaging Unit"
+                        <input type="text" asp-for="Sku.PackagingUnit" list="pkgUnitList" placeholder="Packaging Unit" required
                                onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
                     </div>

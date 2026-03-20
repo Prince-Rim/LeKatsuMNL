@@ -149,8 +149,12 @@
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.Category?.CategoryName ?? "-")</td>
                             <td class="px-6 py-5 text-gray-600 dark:text-gray-300">@(sku.SubCategory?.SubCategoryName ?? "-")</td>
                             <td class="px-6 py-5 text-gray-600 font-semibold uppercase dark:text-gray-300">
-                                @if(!string.IsNullOrEmpty(sku.PackagingType)) {
-                                    @($"{sku.PackagingType} / {sku.PackSize}{sku.PackagingUnit}")
+                                @if(!string.IsNullOrEmpty(sku.PackagingUnit)) {
+                                    @if(!string.IsNullOrEmpty(sku.PackagingType)) {
+                                        @($"{sku.PackagingType}/{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{sku.PackagingUnit}")
+                                    } else {
+                                        @($"{(string.IsNullOrEmpty(sku.PackSize) ? "1" : sku.PackSize)}{sku.PackagingUnit}")
+                                    }
                                 } else {
                                     @("-")
                                 }
@@ -262,7 +266,7 @@
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
-                            <input type="text" name="PackagingUnit" list="pkgUnitList" placeholder="Unit"
+                            <input type="text" name="PackagingUnit" list="pkgUnitList" placeholder="Unit" required
                                    onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
@@ -380,7 +384,7 @@
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
-                            <input type="text" name="PackagingUnit" id="editPackagingUnit" list="pkgUnitList" placeholder="Unit"
+                            <input type="text" name="PackagingUnit" id="editPackagingUnit" list="pkgUnitList" placeholder="Unit" required
                                    onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)"
                                    class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
