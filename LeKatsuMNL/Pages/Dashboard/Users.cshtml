@@ -222,6 +222,7 @@
             </button>
         </div>
         <form method="post" asp-page-handler="Create" id="createForm" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+            <input type="hidden" asp-for="CurrentPageIndex" />
             <!-- Hidden Step 1 Data -->
             <input type="hidden" asp-for="NewUser.FirstName" id="hiddenFirstName" />
             <input type="hidden" asp-for="NewUser.MiddleName" id="hiddenMiddleName" />
@@ -334,6 +335,7 @@
             </button>
         </div>
         <form method="post" asp-page-handler="Update" id="editForm" class="p-8 space-y-5 overflow-y-auto custom-scrollbar">
+            <input type="hidden" asp-for="CurrentPageIndex" />
             @if (Model.OpenModal == "edit" && TempData["ErrorMessage"] != null)
             {
                 <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium mb-4">

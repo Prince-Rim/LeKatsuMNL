@@ -206,7 +206,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     Rejected = Math.Abs(transactionsInPeriod
                         .Where(t => t.InvTransactionType?.TransactionType == "Rejected")
                         .Sum(t => t.QuantityChange)),
-                    Uom = item.Uom
+                    Uom = UomConverter.NormalizeUnit(item.Uom)
                 };
             })
             .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
@@ -272,7 +272,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     Received = received,
                     Consumed = consumed,
                     Rejected = rejected,
-                    Uom = item.Uom
+                    Uom = UomConverter.NormalizeUnit(item.Uom)
                 };
             })
             .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))

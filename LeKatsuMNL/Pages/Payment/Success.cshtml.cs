@@ -57,8 +57,8 @@ namespace LeKatsuMNL.Pages.Payment
                     }
                     else
                     {
-                        // Direct fallback if no session ID prefix was found but we hit success page
-                        isPaid = true; 
+                        // Direct fallback is insecure. Require a session for verification.
+                        isPaid = false; 
                     }
 
                     if (isPaid)

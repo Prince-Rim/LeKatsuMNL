@@ -212,7 +212,7 @@
                             {
                                 <tr class="hover:bg-gray-50 transition-colors dark:hover:bg-slate-700/50">
                                     <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@item.ItemName</td>
-                                    <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@item.Uom</td>
+                                    <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@LeKatsuMNL.Helpers.UomConverter.NormalizeUnit(item.Uom)</td>
                                     <td class="px-8 py-5 text-center text-gray-800 font-black dark:text-white">@item.RequiredQuantity.ToString("0.##")</td>
                                     <td class="px-8 py-5 text-center text-gray-600 font-bold dark:text-gray-300">@item.CurrentStock.ToString("0.##")</td>
                                     <td class="px-8 py-5 text-right">

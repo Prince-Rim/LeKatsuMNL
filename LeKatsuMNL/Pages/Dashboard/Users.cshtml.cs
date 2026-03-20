@@ -53,6 +53,9 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public string OpenModal { get; set; }
 
+        [BindProperty]
+        public int CurrentPageIndex { get; set; } = 1;
+
         public class UserInputModel
         {
             public int Id { get; set; }
@@ -77,8 +80,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             StatusFilter = statusFilter;
 
             Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
-            int currentStepPageIndex = pageIndex ?? 1;
-            await LoadUsersAsync(currentStepPageIndex);
+            CurrentPageIndex = pageIndex ?? 1;
+            await LoadUsersAsync(CurrentPageIndex);
         }
 
         private async Task LoadUsersAsync(int pageIndex)
@@ -204,7 +207,14 @@ namespace LeKatsuMNL.Pages.Dashboard
                 TempData["ErrorMessage"] = "Passwords do not match.";
                 OpenModal = "create";
                 Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
-                await LoadUsersAsync(1);
+                
+                // Security: Clear password fields
+                NewUser.Password = null;
+                NewUser.ConfirmPassword = null;
+                ModelState.Remove("NewUser.Password");
+                ModelState.Remove("NewUser.ConfirmPassword");
+
+                await LoadUsersAsync(CurrentPageIndex);
                 return Page();
             }
 
@@ -283,7 +293,14 @@ namespace LeKatsuMNL.Pages.Dashboard
                     TempData["ErrorMessage"] = "Passwords do not match.";
                     OpenModal = "edit";
                     Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
-                    await LoadUsersAsync(1);
+                    
+                    // Security: Clear password fields
+                    EditUser.Password = null;
+                    EditUser.ConfirmPassword = null;
+                    ModelState.Remove("EditUser.Password");
+                    ModelState.Remove("EditUser.ConfirmPassword");
+
+                    await LoadUsersAsync(CurrentPageIndex);
                     return Page();
                 }
             }

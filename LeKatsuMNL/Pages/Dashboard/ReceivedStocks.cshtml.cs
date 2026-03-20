@@ -56,8 +56,14 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorName).ToListAsync();
             AllItems = await _context.CommissaryInventories
+                .AsNoTracking()
                 .Where(i => i.SkuId == null && !i.IsArchived)
                 .OrderBy(i => i.ItemName).ToListAsync();
+
+            foreach (var item in AllItems)
+            {
+                item.Uom = UomConverter.NormalizeUnit(item.Uom);
+            }
 
             var orders = _context.SupplyOrders
                 .Where(so => !so.IsArchived)
