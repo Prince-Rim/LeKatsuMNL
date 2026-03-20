@@ -56,9 +56,32 @@
                     <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Statement No</dt>
                     <dd class="font-bold text-gray-800 dark:text-white">@formattedId</dd>
                 </div>
-                <div class="flex gap-3">
-                    <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Reference PO</dt>
-                    <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.ReferenceNumber ?? "—")</dd>
+                <div class="flex gap-3 border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                    <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0 font-bold uppercase text-[10px] tracking-widest pt-1">Reference PO</dt>
+                    <dd class="font-bold text-gray-800 dark:text-white">
+                        @if (invoice?.ReferenceNumber != null && invoice.ReferenceNumber.StartsWith("SESSION:"))
+                        {
+                            <div class="flex flex-col gap-1">
+                                <span class="text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                                    <i class="bi bi-hourglass-split animate-spin text-sm"></i>
+                                    <span class="animate-pulse">Verifying Payment...</span>
+                                </span>
+                                @if (order?.Status == "Approved" && (invoice.PaymentStatus == "Pending" || invoice.PaymentStatus == null))
+                                {
+                                    <form method="post" asp-page-handler="Verify" class="mt-1">
+                                        <input type="hidden" name="id" value="@order.OrderId" />
+                                        <button type="submit" class="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-lg font-black uppercase hover:bg-amber-200 transition-colors shadow-sm">
+                                            <i class="bi bi-arrow-clockwise mr-1"></i> Force Refresh
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            @(invoice?.ReferenceNumber ?? "—")
+                        }
+                    </dd>
                 </div>
                 <div class="flex gap-3">
                     <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Date Issued</dt>
@@ -118,7 +141,7 @@
                                 <td class="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">@itemCode</td>
                                 <td class="px-4 py-4 font-medium text-gray-800 dark:text-white">@itemName</td>
                                 <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@category</td>
-                                <td class="px-4 py-4 text-right font-medium text-gray-700 dark:text-gray-200">@item.Quantity.ToString("G")</td>
+                                <td class="px-4 py-4 text-right font-medium text-gray-700 dark:text-gray-200">@item.Quantity.ToString("0.##")</td>
                                 <td class="px-4 py-4 text-right font-bold text-gray-800 dark:text-white">₱@item.TotalPrice.ToString("N2")</td>
                             </tr>
                         }

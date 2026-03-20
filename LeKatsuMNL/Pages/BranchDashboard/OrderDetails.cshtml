@@ -147,6 +147,22 @@
 
 
 @* Main content *@
+<!-- Main content -->
+<div class="screen-only px-1 mb-4">
+    @if (TempData["Message"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-sm font-medium flex items-center gap-3">
+            <i class="bi bi-info-circle-fill"></i> @TempData["Message"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium flex items-center gap-3">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+</div>
+
 <div class="screen-only grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
     @* Order Details Panel *@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
@@ -156,9 +172,32 @@
                 <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Statement No</dt>
                 <dd class="font-bold text-gray-800 dark:text-white">@formattedId</dd>
             </div>
-            <div class="flex gap-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Reference PO</dt>
-                <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.ReferenceNumber ?? "—")</dd>
+            <div class="flex gap-3 border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0 font-bold uppercase text-[10px] tracking-widest pt-1">Reference PO</dt>
+                <dd class="font-bold text-gray-800 dark:text-white">
+                    @if (invoice?.ReferenceNumber != null && invoice.ReferenceNumber.StartsWith("SESSION:"))
+                    {
+                        <div class="flex flex-col gap-1">
+                            <span class="text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                                <i class="bi bi-hourglass-split animate-spin text-sm"></i>
+                                <span class="animate-pulse">Verifying Payment...</span>
+                            </span>
+                            @if (order?.Status == "Approved" && invoice.PaymentStatus == "Pending")
+                            {
+                                <form method="post" asp-page-handler="Verify" class="mt-1">
+                                    <input type="hidden" name="id" value="@order.OrderId" />
+                                    <button type="submit" class="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-lg font-black uppercase hover:bg-amber-200 transition-colors shadow-sm active:scale-95">
+                                        <i class="bi bi-arrow-clockwise mr-1"></i> Force Refresh
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        @(invoice?.ReferenceNumber ?? "—")
+                    }
+                </dd>
             </div>
             <div class="flex gap-3">
                 <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Date Issued</dt>
@@ -219,7 +258,7 @@
                                 <td class="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">@itemCode</td>
                                 <td class="px-4 py-4 font-medium text-gray-800 dark:text-white">@itemName</td>
                                 <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@category</td>
-                                <td class="px-4 py-4 text-right font-medium text-gray-700 dark:text-gray-200">@item.Quantity.ToString("G")</td>
+                                <td class="px-4 py-4 text-right font-medium text-gray-700 dark:text-gray-200">@item.Quantity.ToString("0.##")</td>
                                 <td class="px-4 py-4 text-right font-bold text-gray-800 dark:text-white">₱@item.TotalPrice.ToString("N2")</td>
                             </tr>
                         }
@@ -276,10 +315,29 @@
                 Cancel Order
             </button>
         </form>
-        <button type="button"
-                class="px-5 py-2.5 text-sm bg-[#C41E24] text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
-            Confirm &amp; Upload Payment
-        </button>
+    </div>
+}
+
+@if (order?.Status == "Approved" && invoice != null && invoice.PaymentStatus == "Pending")
+{
+    <div class="screen-only flex justify-end gap-3 mt-4">
+        <form method="post" asp-page-handler="Pay">
+            <input type="hidden" name="id" value="@order.OrderId" />
+            <button type="submit"
+                    class="px-6 py-3 bg-[#C41E24] text-white font-bold rounded-xl hover:bg-red-700 transition-all shadow-lg flex items-center gap-2 transform hover:scale-105">
+                <i class="bi bi-wallet2"></i> Pay with PayMongo
+            </button>
+        </form>
+        @if (invoice?.ReferenceNumber != null && invoice.ReferenceNumber.StartsWith("SESSION:"))
+        {
+            <form method="post" asp-page-handler="Verify">
+                <input type="hidden" name="id" value="@order.OrderId" />
+                <button type="submit"
+                        class="px-6 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-all shadow-lg flex items-center gap-2 transform hover:scale-105">
+                    <i class="bi bi-patch-check"></i> Verify Payment Status
+                </button>
+            </form>
+        }
     </div>
 }
 @if (order?.Status == "Delivering")

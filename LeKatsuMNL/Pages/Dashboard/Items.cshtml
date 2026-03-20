@@ -800,18 +800,33 @@
             // Filter SubCategories and select the current one
             filterSubCategories('edit', item.subCategoryId);
 
-            // Parse packaging from yield (Format: Type/SizeUnit)
-            if (item.yield && item.yield.includes('/')) {
-                const parts = item.yield.split('/');
-                document.getElementById('editPackagingType').value = parts[0];
-                
-                const remainder = parts[1];
-                const sizeMatch = remainder.match(/^[\d.]+/);
+            // Parse packaging from yield (Format: Type/SizeUnit OR SizeUnit)
+            if (item.yield) {
+                if (item.yield.includes('/')) {
+                    const parts = item.yield.split('/');
+                    document.getElementById('editPackagingType').value = parts[0];
+                    const remainder = parts[1];
+                    parseYieldRemainder(remainder);
+                } else {
+                    document.getElementById('editPackagingType').value = '';
+                    parseYieldRemainder(item.yield);
+                }
+            } else {
+                document.getElementById('editPackagingType').value = '';
+                document.getElementById('editPackSize').value = '';
+                document.getElementById('editPackagingUnit').value = '';
+            }
+
+            function parseYieldRemainder(str) {
+                const sizeMatch = str.match(/^[\d.]+/);
                 if (sizeMatch) {
                     const size = sizeMatch[0];
-                    const unit = remainder.substring(size.length);
+                    const unit = str.substring(size.length);
                     document.getElementById('editPackSize').value = size;
                     document.getElementById('editPackagingUnit').value = unit;
+                } else {
+                    document.getElementById('editPackSize').value = '';
+                    document.getElementById('editPackagingUnit').value = str;
                 }
             }
 

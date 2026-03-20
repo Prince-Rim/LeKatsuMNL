@@ -53,6 +53,9 @@ namespace LeKatsuMNL.Pages.BranchDashboard
         [BindProperty]
         public string ConfirmNewPassword { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string ActiveTab { get; set; } = "account";
+
         [TempData]
         public string SuccessMessage { get; set; }
 
@@ -115,23 +118,52 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             Manager = await GetManagerAsync();
             if (Manager == null) return RedirectToPage("/Login/login");
 
+            // Clear ModelState for account fields since they are not in this form
+            ModelState.Remove(nameof(FirstName));
+            ModelState.Remove(nameof(LastName));
+            ModelState.Remove(nameof(Email));
+
             // Repopulate user info for Page() return
             UserSystemId = "BRCH-" + Manager.BManagerId.ToString("D4");
 
             if (string.IsNullOrWhiteSpace(NewPassword))
             {
+                // Repopulate fields for the view
+                FirstName = Manager.FirstName;
+                MiddleName = Manager.MiddleName;
+                LastName = Manager.LastName;
+                Email = Manager.Email;
+                ContactNum = Manager.ContactNum;
+                ActiveTab = "security";
+
                 ErrorMessage = "New password cannot be empty.";
                 return Page();
             }
 
             if (NewPassword != ConfirmNewPassword)
             {
+                // Repopulate fields for the view
+                FirstName = Manager.FirstName;
+                MiddleName = Manager.MiddleName;
+                LastName = Manager.LastName;
+                Email = Manager.Email;
+                ContactNum = Manager.ContactNum;
+                ActiveTab = "security";
+
                 ErrorMessage = "New passwords do not match.";
                 return Page();
             }
 
             if (string.IsNullOrEmpty(CurrentPassword) || !BCrypt.Net.BCrypt.Verify(CurrentPassword, Manager.Password))
             {
+                // Repopulate fields for the view
+                FirstName = Manager.FirstName;
+                MiddleName = Manager.MiddleName;
+                LastName = Manager.LastName;
+                Email = Manager.Email;
+                ContactNum = Manager.ContactNum;
+                ActiveTab = "security";
+
                 ErrorMessage = "Incorrect current password.";
                 return Page();
             }
@@ -141,7 +173,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             await _context.SaveChangesAsync();
             
             SuccessMessage = "Password updated successfully.";
-            return RedirectToPage();
+            return RedirectToPage(new { ActiveTab = "security" });
         }
 
         public async Task<IActionResult> OnPostDeleteAccountAsync()

@@ -41,6 +41,9 @@ namespace LeKatsuMNL.Pages.Dashboard
         public string Privileges { get; set; }
         public string AccountType { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string ActiveTab { get; set; } = "account";
+
         public async Task<IActionResult> OnGetAsync()
         {
             if (!User.Identity.IsAuthenticated)
@@ -185,7 +188,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToPage("/Dashboard/Settings");
+            return RedirectToPage("/Dashboard/Settings", new { ActiveTab = "account" });
         }
 
         public async Task<IActionResult> OnPostChangePasswordAsync()
@@ -199,13 +202,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (string.IsNullOrWhiteSpace(NewPassword))
             {
                 TempData["ErrorMessage"] = "New password cannot be empty.";
-                return RedirectToPage();
+                return RedirectToPage(new { ActiveTab = "security" });
             }
 
             if (NewPassword != ConfirmNewPassword)
             {
                 TempData["ErrorMessage"] = "New passwords do not match.";
-                return RedirectToPage();
+                return RedirectToPage(new { ActiveTab = "security" });
             }
 
             string storedHash = null;
@@ -242,7 +245,9 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (userEntity == null || string.IsNullOrEmpty(storedHash) || !BCrypt.Net.BCrypt.Verify(CurrentPassword, storedHash))
             {
                 TempData["ErrorMessage"] = "Incorrect current password.";
-                return RedirectToPage();
+                return RedirectToPage(new { ActiveTab = "security" });
+                // We redirect instead of return Page() because the fields in Account are currently not set up for repopulation on password failure.
+                // This follows the existing PRG pattern in this controller.
             }
 
             // Update password
@@ -253,7 +258,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Password updated successfully.";
-            return RedirectToPage();
+            return RedirectToPage(new { ActiveTab = "security" });
         }
     }
 }

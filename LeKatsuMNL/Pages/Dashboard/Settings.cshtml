@@ -14,8 +14,8 @@
         <button id="tab-appearance" onclick="switchTab('appearance')" class="px-6 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent transition-all">Appearance</button>
     </div>
 
-    <!-- Account Tab Content -->
-    <div id="content-account" class="p-8">
+    @* Notifications moved above content *@
+    <div id="settings-alerts" class="px-8 pt-6">
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center shadow-sm animate-fade-in">
@@ -30,6 +30,10 @@
                 <span class="text-sm font-bold">@TempData["ErrorMessage"]</span>
             </div>
         }
+    </div>
+
+    <!-- Account Tab Content -->
+    <div id="content-account" class="p-8">
         <form method="post" asp-page-handler="EditAccount" id="edit-account-form" class="space-y-8 max-w-4xl">
             <!-- User ID (Uneditable) -->
             <div class="grid grid-cols-[200px_1fr] gap-6 items-center">
@@ -209,9 +213,13 @@
             window.location.reload();
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, hideAlerts = true) {
             const tabs = ['account', 'security', 'appearance'];
             
+            // Hide alerts when switching tabs
+            const alerts = document.getElementById('settings-alerts');
+            if (alerts && hideAlerts) alerts.classList.add('hidden');
+
             tabs.forEach(t => {
                 const tabEl = document.getElementById(`tab-${t}`);
                 const contentEl = document.getElementById(`content-${t}`);
@@ -276,6 +284,12 @@
                 setSidebar('collapsed');
             } else {
                 setSidebar('expanded');
+            }
+
+            // Persistence for active tab
+            const activeTab = "@Model.ActiveTab";
+            if (activeTab && activeTab !== 'account') {
+                switchTab(activeTab, false);
             }
         });
     </script>

@@ -27,7 +27,7 @@
 }
 
 <div class="h-[calc(100vh-12rem)] flex flex-col">
-    @if (TempData["ErrorMessage"] != null)
+    @if (TempData["ErrorMessage"] != null && string.IsNullOrEmpty(Model.OpenModal))
     {
         <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium animate-pulse">
             <i class="bi bi-exclamation-triangle-fill mr-2"></i> @TempData["ErrorMessage"]
@@ -160,40 +160,47 @@
             </button>
         </div>
         <div class="p-8 space-y-5 overflow-y-auto custom-scrollbar">
+            @if (Model.OpenModal == "create" && TempData["ErrorMessage"] != null)
+            {
+                <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium mb-4">
+                    <i class="bi bi-exclamation-triangle-fill mr-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+            
             <div class="grid grid-cols-3 gap-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">First Name*</label>
-                    <input id="newFirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. John" required>
+                    <input asp-for="NewUser.FirstName" id="newFirstName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. John" required>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Middle Name</label>
-                    <input id="newMiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Quincy">
+                    <input asp-for="NewUser.MiddleName" id="newMiddleName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Quincy">
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Last Name*</label>
-                    <input id="newLastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Doe" required>
+                    <input asp-for="NewUser.LastName" id="newLastName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="ex. Doe" required>
                 </div>
             </div>
             
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Email Address*</label>
-                    <input id="newEmail" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="email@example.com" required>
+                    <input asp-for="NewUser.Email" id="newEmail" type="email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="email@example.com" required>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Contact Number*</label>
-                    <input id="newContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="09..." required>
+                    <input asp-for="NewUser.ContactNum" id="newContactNum" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="09..." required>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Password*</label>
-                    <input id="newPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
+                    <input asp-for="NewUser.Password" id="newPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Create a password" required>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Confirm Password*</label>
-                    <input id="newConfirmPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Confirm password" required>
+                    <input asp-for="NewUser.ConfirmPassword" id="newConfirmPassword" type="password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] transition-all dark:bg-slate-700/50 dark:border-gray-700" placeholder="Confirm password" required>
                 </div>
             </div>
 
@@ -327,6 +334,12 @@
             </button>
         </div>
         <form method="post" asp-page-handler="Update" id="editForm" class="p-8 space-y-5 overflow-y-auto custom-scrollbar">
+            @if (Model.OpenModal == "edit" && TempData["ErrorMessage"] != null)
+            {
+                <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium mb-4">
+                    <i class="bi bi-exclamation-triangle-fill mr-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
             <input type="hidden" asp-for="EditUser.Id" id="editUserId" />
             <input type="hidden" asp-for="EditUser.Type" id="editUserType" />
             <input type="hidden" asp-for="EditUser.Privileges" id="editPrivileges" />
@@ -359,11 +372,11 @@
 
             <div class="grid grid-cols-2 gap-5">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500">New Password (leave blank if not changing)</label>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500 min-h-[32px] flex items-end">New Password (leave blank if not changing)</label>
                     <input asp-for="EditUser.Password" id="editPassword" type="password" class="w-full px-4 py-3 bg-green-50/30 border border-green-100 rounded-xl text-sm focus:ring-2 focus:ring-green-100 focus:border-green-400 transition-all font-medium">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500">Confirm New Password</label>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider text-green-600 dark:text-gray-500 min-h-[32px] flex items-end">Confirm New Password</label>
                     <input asp-for="EditUser.ConfirmPassword" id="editConfirmPassword" type="password" class="w-full px-4 py-3 bg-green-50/30 border border-green-100 rounded-xl text-sm focus:ring-2 focus:ring-green-100 focus:border-green-400 transition-all font-medium">
                 </div>
             </div>
@@ -726,6 +739,32 @@
                 document.getElementById('editForm').reset();
             }, 300);
         }
+
+        // Window Load auto-open logic
+        window.addEventListener('load', function() {
+            @if (Model.OpenModal == "create")
+            {
+                <text>openCreateModal();</text>
+            }
+            else if (Model.OpenModal == "edit")
+            {
+                <text>
+                const editUserData = @Json.Serialize(new {
+                    id = Model.EditUser.Id,
+                    type = Model.EditUser.Type,
+                    firstName = Model.EditUser.FirstName,
+                    middleName = Model.EditUser.MiddleName,
+                    lastName = Model.EditUser.LastName,
+                    email = Model.EditUser.Email,
+                    contactNum = Model.EditUser.ContactNum,
+                    role = Model.EditUser.Role,
+                    privileges = Model.EditUser.Privileges
+                    // Note: branchName is tricky here, but we can set value instead of text
+                });
+                openEditModal(editUserData);
+                </text>
+            }
+        });
 
         // Backdrop clicking disabled by removing window.onclick handled logic
     </script>

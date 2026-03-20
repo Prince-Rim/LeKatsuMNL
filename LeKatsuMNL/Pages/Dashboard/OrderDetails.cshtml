@@ -63,12 +63,23 @@
                 }
                 else if (Model.Order.Status == "Approved")
                 {
-                    <form method="post" asp-page-handler="Prepare">
-                        <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
-                        <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
-                            Start Preparing
+                    var isPaid = Model.Order.Invoices != null && Model.Order.Invoices.Any(i => i.PaymentStatus == "Paid");
+                    if (isPaid)
+                    {
+                        <form method="post" asp-page-handler="Prepare">
+                            <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
+                            <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
+                                Start Preparing
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button type="button" disabled title="Awaiting Payment Confirmation" 
+                                class="bg-gray-200 text-gray-400 cursor-not-allowed px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest shadow-none dark:bg-slate-700 dark:text-gray-500">
+                            Start Preparing (Unpaid)
                         </button>
-                    </form>
+                    }
                 }
                 else if (Model.Order.Status == "Preparing")
                 {
@@ -116,7 +127,7 @@
                 <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">@Model.Order.OrderDate.ToString("MM/dd/yyyy")</span>
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
-                <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Quantity</span>
+                <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Ordered Items</span>
                 <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">@Model.Order.OrderLists.Sum(ol => ol.Quantity).ToString("N0")</span>
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
