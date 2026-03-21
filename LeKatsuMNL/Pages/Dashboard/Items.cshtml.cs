@@ -60,6 +60,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public decimal? CostPrice { get; set; }
             public decimal? SellingPrice { get; set; }
             public decimal Stock { get; set; }
+            public decimal? ReorderValue { get; set; }
             public bool IsRepack { get; set; }
         }
 
@@ -169,6 +170,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             decimal? CostPrice,
             decimal? SellingPrice,
             decimal Stock,
+            decimal? ReorderValue,
             bool IsRepack)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'C')) return Forbid();
@@ -206,6 +208,23 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
+            decimal unitCostPerUom = CostPrice ?? 0;
+            if (!string.IsNullOrEmpty(PackagingUnit))
+            {
+                try
+                {
+                    if (decimal.TryParse(PackSize, out decimal packSizeValue))
+                    {
+                        decimal conversionFactor = UomConverter.Convert(packSizeValue, PackagingUnit, UOM);
+                        if (conversionFactor > 0)
+                        {
+                            unitCostPerUom = (CostPrice ?? 0) / conversionFactor;
+                        }
+                    }
+                }
+                catch { }
+            }
+
             var item = new CommissaryInventory
             {
                 ItemName = ItemName,
@@ -214,14 +233,39 @@ namespace LeKatsuMNL.Pages.Dashboard
                 VendorId = VendorId,
                 Yield = calculatedYield,
                 Uom = UOM ?? "pack",
-                CostPrice = CostPrice ?? 0,
+                CostPrice = unitCostPerUom,
                 SellingPrice = SellingPrice ?? 0,
                 Stock = Stock,
+                ReorderValue = ReorderValue,
                 IsRepack = IsRepack
             };
 
             _context.CommissaryInventories.Add(item);
             await _context.SaveChangesAsync();
+
+            if (Stock != 0)
+            {
+                var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Manual Adjustment");
+                if (transactionType == null)
+                {
+                    transactionType = new InvTransactionType { TransactionType = "Manual Adjustment" };
+                    _context.InvTransactionTypes.Add(transactionType);
+                    await _context.SaveChangesAsync();
+                }
+
+                _context.InventoryTransactions.Add(new InventoryTransaction
+                {
+                    ComId = item.ComId,
+                    TypeId = transactionType.TypeId,
+                    QuantityChange = Stock,
+                    UnitPrice = item.CostPrice,
+                    TotalPrice = Stock * item.CostPrice,
+                    TimeStamp = System.DateTime.Now,
+                    Remarks = "Initial stock entry upon creation"
+                });
+                await _context.SaveChangesAsync();
+            }
+
 
             StatusMessage = "Successfully recorded. Your new item has been added to the inventory.";
             return RedirectToPage();
@@ -240,6 +284,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             decimal? CostPrice,
             decimal? SellingPrice,
             decimal Stock,
+            decimal? ReorderValue,
             bool IsRepack)
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
@@ -269,6 +314,32 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage();
             }
 
+            // Capture old state for transaction logging and conversion
+            decimal oldStock = item.Stock;
+            string oldUom = item.Uom;
+            string newUom = UOM ?? "pack";
+
+            // If UOM changed, we need to convert the existing stock to the new UOM 
+            // BEFORE applying any manual decimal changes from the form.
+            decimal convertedOldStock = UomConverter.Convert(oldStock, oldUom, newUom);
+
+            decimal unitCostPerUom = CostPrice ?? 0;
+            if (!string.IsNullOrEmpty(PackagingUnit))
+            {
+                try
+                {
+                    if (decimal.TryParse(PackSize, out decimal packSizeValue))
+                    {
+                        decimal conversionFactor = UomConverter.Convert(packSizeValue, PackagingUnit, newUom);
+                        if (conversionFactor > 0)
+                        {
+                            unitCostPerUom = (CostPrice ?? 0) / conversionFactor;
+                        }
+                    }
+                }
+                catch { }
+            }
+
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
             if (!string.IsNullOrEmpty(PackagingUnit))
@@ -288,11 +359,40 @@ namespace LeKatsuMNL.Pages.Dashboard
             item.SubCategoryId = SubCategoryId;
             item.VendorId = VendorId;
             item.Yield = calculatedYield;
-            item.Uom = UOM ?? "pack";
-            item.CostPrice = CostPrice ?? 0;
+            item.Uom = newUom;
+            item.CostPrice = unitCostPerUom;
             item.SellingPrice = SellingPrice ?? 0;
-            item.Stock = Stock;
+            item.Stock = Stock; // The new stock value from the form
+            item.ReorderValue = ReorderValue;
             item.IsRepack = IsRepack;
+
+            // Record Transaction if stock changed (after considering UOM conversion)
+            decimal stockDiff = Stock - convertedOldStock;
+            if (stockDiff != 0)
+            {
+                var transactionType = await _context.InvTransactionTypes
+                    .FirstOrDefaultAsync(t => t.TransactionType == "Manual Adjustment");
+                
+                if (transactionType == null)
+                {
+                    transactionType = new InvTransactionType { TransactionType = "Manual Adjustment" };
+                    _context.InvTransactionTypes.Add(transactionType);
+                    await _context.SaveChangesAsync();
+                }
+
+                var transaction = new InventoryTransaction
+                {
+                    ComId = item.ComId,
+                    TypeId = transactionType.TypeId,
+                    QuantityChange = stockDiff,
+                    UnitPrice = item.CostPrice,
+                    TotalPrice = stockDiff * item.CostPrice,
+                    TimeStamp = System.DateTime.Now,
+                    Remarks = "Manual adjustment via Items management"
+                };
+
+                _context.InventoryTransactions.Add(transaction);
+            }
 
             await _context.SaveChangesAsync();
 
@@ -337,6 +437,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 ComId = RejectId,
                 TypeId = transactionType.TypeId,
                 QuantityChange = -RejectQty,
+                UnitPrice = item.CostPrice,
+                TotalPrice = -RejectQty * item.CostPrice,
                 TimeStamp = System.DateTime.Now
             };
             _context.InventoryTransactions.Add(transaction);

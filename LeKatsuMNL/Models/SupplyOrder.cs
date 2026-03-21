@@ -18,6 +18,10 @@ namespace LeKatsuMNL.Models
         [MaxLength(50)]
         public string Status { get; set; }
 
+        [Required]
+        [MaxLength(20)]
+        public string PaymentStatus { get; set; } = "Unpaid"; // Paid or Unpaid
+
         public string? ReceiptImg { get; set; }
 
         public int? VendorId { get; set; }

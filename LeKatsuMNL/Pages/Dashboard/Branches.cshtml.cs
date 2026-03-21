@@ -36,7 +36,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         {
             var query = _context.BranchLocations
                 .Where(b => !b.IsArchived)
-                .Include(b => b.BranchManagers)
+                .Include(b => b.BranchManager)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(SearchTerm))
@@ -45,6 +45,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             query = query.OrderByDescending(b => b.CreatedAt);
+
+            var hasDuplicates = await _context.BranchManagers
+                .Where(m => !m.IsArchived)
+                .GroupBy(m => m.BranchId)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .AnyAsync(x => x.Count > 1);
+
+            if (hasDuplicates)
+            {
+                ErrorMessage = "Notice: Some branches have multiple active managers assigned. Please ensure each branch only has one active manager for data consistency.";
+            }
 
             int pageSize = PageSize > 0 ? PageSize : 10;
             Branches = await PaginatedList<BranchLocation>.CreateAsync(query, pageIndex ?? 1, pageSize);
@@ -64,7 +75,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (!ModelState.IsValid)
             {
                 var query = _context.BranchLocations
-                    .Include(b => b.BranchManagers)
+                    .Include(b => b.BranchManager)
                     .OrderByDescending(b => b.CreatedAt);
                 
                 int pageSize = PageSize > 0 ? PageSize : 10;
@@ -90,7 +101,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             catch (Exception ex)
             {
                 var query = _context.BranchLocations
-                    .Include(b => b.BranchManagers)
+                    .Include(b => b.BranchManager)
                     .OrderByDescending(b => b.CreatedAt);
                 
                 int pageSize = PageSize > 0 ? PageSize : 10;

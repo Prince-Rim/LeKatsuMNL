@@ -23,14 +23,27 @@ namespace LeKatsuMNL.Pages.Dashboard
         public PaginatedList<Invoice> Invoices { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        public string SearchTerm { get; set; }
+
+        [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
 
         public async Task OnGetAsync(int? pageIndex)
         {
             var query = _context.Invoices
                 .Include(i => i.OrderInfo)
-                .Where(i => !i.OrderInfo.IsArchived)
-                .OrderByDescending(i => i.InvoiceDate);
+                .Where(i => !i.OrderInfo.IsArchived);
+
+            if (!string.IsNullOrEmpty(SearchTerm))
+            {
+                var search = SearchTerm.Trim();
+                query = query.Where(i => i.InvoiceId.ToString().Contains(search) || 
+                                         i.ReferenceNumber.Contains(search) || 
+                                         i.PaymentStatus.Contains(search) ||
+                                         i.PaymentMethod.Contains(search));
+            }
+
+            query = query.OrderByDescending(i => i.InvoiceDate);
             
             int pageSize = PageSize > 0 ? PageSize : 10;
             Invoices = await PaginatedList<Invoice>.CreateAsync(query, pageIndex ?? 1, pageSize);

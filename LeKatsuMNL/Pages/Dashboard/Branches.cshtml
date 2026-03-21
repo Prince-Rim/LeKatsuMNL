@@ -47,18 +47,19 @@
 <div class="h-[calc(100vh-12rem)] flex flex-col">
     <!-- Top toolbar -->
     <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <form method="get" class="relative flex-1 max-w-lg flex items-center gap-2">
-            <div class="relative flex-1">
-                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                    <i class="bi bi-search text-sm"></i>
-                </span>
-                <input type="text" name="SearchTerm" value="@Model.SearchTerm"
-                       class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" 
-                       placeholder="Search branches...">
+        <form method="get" class="relative flex-1 max-w-lg group">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                <i class="bi bi-search text-sm"></i>
+            </span>
+            <input type="text" name="SearchTerm" value="@Model.SearchTerm" 
+                   class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" 
+                   placeholder="Search branches...">
+            <div class="absolute inset-y-1 right-1 flex items-center">
+                <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                    <i class="bi bi-search"></i>
+                    <span>Search</span>
+                </button>
             </div>
-            <button type="submit" class="bg-[#C41E24] text-white px-4 py-2.5 rounded-lg hover:bg-[#a51a1f] transition-colors flex items-center shadow-md">
-                <i class="bi bi-search mr-2"></i> Search
-            </button>
         </form>
 
         <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
@@ -86,9 +87,9 @@
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@branch.BranchName</td>
                             <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">
-                                @if (branch.BranchManagers != null && branch.BranchManagers.Any())
+                                @if (branch.BranchManager != null)
                                 {
-                                    @string.Join(", ", branch.BranchManagers.Select(m => $"BRCH-{m.BManagerId:D4}"))
+                                    @($"BRCH-{branch.BranchManager.BManagerId:D4}")
                                 }
                                 else
                                 {

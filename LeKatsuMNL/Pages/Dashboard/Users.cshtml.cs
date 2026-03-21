@@ -94,29 +94,54 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 var search = SearchString.ToLower();
                 
-                // Support searching by System ID (e.g., ADM-0001, BRCH-0001, STF-0001)
-                int? adminSearchId = (search.StartsWith("adm-") && int.TryParse(search.Substring(4), out int aId)) ? aId : (int.TryParse(search, out int aId2) ? aId2 : (int?)null);
-                int? managerSearchId = (search.StartsWith("brch-") && int.TryParse(search.Substring(5), out int mId)) ? mId : (int.TryParse(search, out int mId2) ? mId2 : (int?)null);
-                int? staffSearchId = (search.StartsWith("stf-") && int.TryParse(search.Substring(4), out int sId)) ? sId : (int.TryParse(search, out int sId2) ? sId2 : (int?)null);
+                // Support searching by System ID (e.g., ADM-0001, BRCH-0001, STF-0001, or USR-0001)
+                int? parsedId = null;
+                string idStr = "";
+                bool isAdminOnly = false;
+                bool isManagerOnly = false;
+                bool isStaffOnly = false;
+
+                if (search.Contains("-"))
+                {
+                    var parts = search.Split('-');
+                    var prefix = parts[0].ToLower();
+                    var idPart = parts.Last();
+                    if (int.TryParse(idPart, out int id))
+                    {
+                        parsedId = id;
+                        idStr = idPart.TrimStart('0'); // Search by the actual number part
+                        if (string.IsNullOrEmpty(idStr) && id == 0) idStr = "0";
+
+                        if (prefix == "adm") isAdminOnly = true;
+                        else if (prefix == "brch") isManagerOnly = true;
+                        else if (prefix == "stf") isStaffOnly = true;
+                    }
+                }
+                else if (int.TryParse(search, out int id))
+                {
+                    parsedId = id;
+                    idStr = search.TrimStart('0');
+                    if (string.IsNullOrEmpty(idStr) && id == 0) idStr = "0";
+                }
 
                 adminQuery = adminQuery.Where(a => 
                     a.FirstName.ToLower().Contains(search) || 
                     a.LastName.ToLower().Contains(search) || 
                     a.Email.ToLower().Contains(search) ||
-                    (adminSearchId.HasValue && a.ManagerId == adminSearchId.Value));
+                    (parsedId.HasValue && !isManagerOnly && !isStaffOnly && a.ManagerId.ToString().Contains(idStr)));
 
                 managerQuery = managerQuery.Where(m => 
                     m.FirstName.ToLower().Contains(search) || 
                     m.LastName.ToLower().Contains(search) || 
                     m.Email.ToLower().Contains(search) || 
                     (m.BranchLocation != null && m.BranchLocation.BranchName.ToLower().Contains(search)) ||
-                    (managerSearchId.HasValue && m.BManagerId == managerSearchId.Value));
+                    (parsedId.HasValue && !isAdminOnly && !isStaffOnly && m.BManagerId.ToString().Contains(idStr)));
 
                 staffQuery = staffQuery.Where(s => 
                     s.FirstName.ToLower().Contains(search) || 
                     s.LastName.ToLower().Contains(search) || 
                     s.Email.ToLower().Contains(search) ||
-                    (staffSearchId.HasValue && s.StaffId == staffSearchId.Value));
+                    (parsedId.HasValue && !isAdminOnly && !isManagerOnly && s.StaffId.ToString().Contains(idStr)));
             }
 
             if (!string.IsNullOrEmpty(StatusFilter) && StatusFilter != "All")
@@ -199,7 +224,10 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (string.IsNullOrWhiteSpace(NewUser.Password))
             {
                 TempData["ErrorMessage"] = "Password cannot be empty.";
-                return RedirectToPage();
+                OpenModal = "create";
+                Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
+                await LoadUsersAsync(CurrentPageIndex);
+                return Page();
             }
 
             if (NewUser.Password != NewUser.ConfirmPassword)
@@ -224,6 +252,19 @@ namespace LeKatsuMNL.Pages.Dashboard
                 {
                     var firstBranch = await _context.BranchLocations.FirstOrDefaultAsync();
                     if (firstBranch != null) NewUser.BranchId = firstBranch.BranchId;
+                }
+
+                // Check if branch already has an active manager
+                var existingManager = await _context.BranchManagers
+                    .FirstOrDefaultAsync(m => m.BranchId == NewUser.BranchId && !m.IsArchived);
+                
+                if (existingManager != null)
+                {
+                    TempData["ErrorMessage"] = $"Branch '{existingManager.FirstName} {existingManager.LastName}' is already assigned to this branch. Each branch can only have one manager.";
+                    OpenModal = "create";
+                    Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
+                    await LoadUsersAsync(CurrentPageIndex);
+                    return Page();
                 }
 
                 var manager = new BranchManager
@@ -285,7 +326,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                 if (string.IsNullOrWhiteSpace(EditUser.Password))
                 {
                     TempData["ErrorMessage"] = "Password cannot be whitespace.";
-                    return RedirectToPage();
+                    OpenModal = "edit";
+                    Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
+                    await LoadUsersAsync(CurrentPageIndex);
+                    return Page();
                 }
 
                 if (EditUser.Password != EditUser.ConfirmPassword)
@@ -334,6 +378,21 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                     if (EditUser.BranchId.HasValue && EditUser.BranchId > 0)
                     {
+                        // Check if the branch is changing or if we are becoming a manager for the first time
+                        if (manager.BranchId != EditUser.BranchId.Value)
+                        {
+                            var existingManager = await _context.BranchManagers
+                                .FirstOrDefaultAsync(m => m.BranchId == EditUser.BranchId.Value && m.BManagerId != manager.BManagerId && !m.IsArchived);
+                            
+                            if (existingManager != null)
+                            {
+                                TempData["ErrorMessage"] = "This branch already has an active manager.";
+                                OpenModal = "edit";
+                                Branches = await _context.BranchLocations.Where(b => !b.IsArchived).ToListAsync();
+                                await LoadUsersAsync(CurrentPageIndex);
+                                return Page();
+                            }
+                        }
                         manager.BranchId = EditUser.BranchId.Value;
                     }
 

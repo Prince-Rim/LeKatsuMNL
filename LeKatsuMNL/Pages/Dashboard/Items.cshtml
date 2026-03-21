@@ -196,6 +196,7 @@
                                             sellingPrice = item.SellingPrice,
                                             yield = item.Yield,
                                             stock = item.Stock,
+                                            reorderValue = item.ReorderValue,
                                             isRepack = item.IsRepack
                                         })))' class="text-blue-500 hover:text-blue-700 transition-colors" title="Edit">
                                             <i class="bi bi-pencil-square text-lg"></i>
@@ -331,6 +332,13 @@
                         <input type="text" name="Stock" id="newStock" placeholder="0.00" required onfocus="this.select()"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Safe Stock</label>
+                        <input type="number" step="0.01" name="ReorderValue" placeholder="0.00" onfocus="this.select()"
+                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-5">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
                         <div class="relative">
@@ -485,6 +493,13 @@
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Safe Stock</label>
+                        <input type="number" step="0.01" name="ReorderValue" id="editReorderValue" placeholder="0.00" onfocus="this.select()"
+                               class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-5">
+                    <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
@@ -629,23 +644,49 @@
         const actionsMenu = document.getElementById('actionsMenu');
         const subCategoriesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SubCategories.Select(s => new { s.SubCategoryId, s.SubCategoryName, s.CategoryId })));
 
-        // UOM categories for client-side validation
+        // UOM categories and base factors for client-side validation and conversion
         const unitMap = {
-            'g': 'weight', 'gram': 'weight', 'grams': 'weight', 'kg': 'weight', 'kilogram': 'weight', 'kilograms': 'weight',
-            'oz': 'weight', 'ounce': 'weight', 'ounces': 'weight', 'lb': 'weight', 'lbs': 'weight', 'pound': 'weight', 'pounds': 'weight', 'mg': 'weight',
-            'ml': 'volume', 'milliliter': 'volume', 'milliliters': 'volume', 'l': 'volume', 'liter': 'volume', 'liters': 'volume',
-            'cup': 'volume', 'cups': 'volume', 'tbsp': 'volume', 'tablespoon': 'volume', 'tsp': 'volume', 'teaspoon': 'volume', 'fl oz': 'volume',
-            'gal': 'volume', 'gallon': 'volume', 'gallons': 'volume', 'qt': 'volume', 'quart': 'volume', 'quarts': 'volume', 'pt': 'volume', 'pint': 'volume', 'pints': 'volume',
-            'pcs': 'count', 'pc': 'count', 'per pc': 'count', 'pieces': 'count', 'piece': 'count', 'ea': 'count', 'dozen': 'count', 'pack': 'count', 'bundle': 'count',
-            'roll': 'count', 'can': 'count', 'cans': 'count', 'stick': 'count', 'sticks': 'count', 'pull': 'count', 'pulls': 'count', 'dip': 'count', 'dips': 'count'
+            // Weight (base = g)
+            'g': { cat: 'weight', f: 1 }, 'gram': { cat: 'weight', f: 1 }, 'grams': { cat: 'weight', f: 1 },
+            'kg': { cat: 'weight', f: 1000 }, 'kilogram': { cat: 'weight', f: 1000 }, 'kilograms': { cat: 'weight', f: 1000 },
+            'oz': { cat: 'weight', f: 28.3495 }, 'ounce': { cat: 'weight', f: 28.3495 }, 'ounces': { cat: 'weight', f: 28.3495 },
+            'lb': { cat: 'weight', f: 453.592 }, 'lbs': { cat: 'weight', f: 453.592 }, 'pound': { cat: 'weight', f: 453.592 }, 'pounds': { cat: 'weight', f: 453.592 },
+            'mg': { cat: 'weight', f: 0.001 },
+
+            // Volume (base = ml)
+            'ml': { cat: 'volume', f: 1 }, 'milliliter': { cat: 'volume', f: 1 }, 'milliliters': { cat: 'volume', f: 1 },
+            'l': { cat: 'volume', f: 1000 }, 'liter': { cat: 'volume', f: 1000 }, 'liters': { cat: 'volume', f: 1000 },
+            'cup': { cat: 'volume', f: 236.588 }, 'cups': { cat: 'volume', f: 236.588 },
+            'tbsp': { cat: 'volume', f: 14.787 }, 'tablespoon': { cat: 'volume', f: 14.787 },
+            'tsp': { cat: 'volume', f: 4.929 }, 'teaspoon': { cat: 'volume', f: 4.929 },
+            'fl oz': { cat: 'volume', f: 29.5735 },
+            'gal': { cat: 'volume', f: 3785.41 }, 'gallon': { cat: 'volume', f: 3785.41 }, 'gallons': { cat: 'volume', f: 3785.41 },
+            'qt': { cat: 'volume', f: 946.353 }, 'quart': { cat: 'volume', f: 946.353 }, 'quarts': { cat: 'volume', f: 946.353 },
+            'pt': { cat: 'volume', f: 473.176 }, 'pint': { cat: 'volume', f: 473.176 }, 'pints': { cat: 'volume', f: 473.176 },
+
+            // Count (base = pcs)
+            'pcs': { cat: 'count', f: 1 }, 'pc': { cat: 'count', f: 1 }, 'per pc': { cat: 'count', f: 1 },
+            'pieces': { cat: 'count', f: 1 }, 'piece': { cat: 'count', f: 1 }, 'ea': { cat: 'count', f: 1 },
+            'dozen': { cat: 'count', f: 12 }, 'pack': { cat: 'count', f: 1 }, 'bundle': { cat: 'count', f: 1 },
+            'roll': { cat: 'count', f: 1 }, 'can': { cat: 'count', f: 1 }, 'cans': { cat: 'count', f: 1 },
+            'stick': { cat: 'count', f: 1 }, 'sticks': { cat: 'count', f: 1 },
+            'pull': { cat: 'count', f: 1 }, 'pulls': { cat: 'count', f: 1 },
+            'dip': { cat: 'count', f: 1 }, 'dips': { cat: 'count', f: 1 }
         };
 
         function validateUomCompatibility(prefix) {
-            const pkgUnit = document.getElementById(prefix + 'PackagingUnit').value.trim().toLowerCase();
-            const uom = document.getElementById(prefix + 'UOM').value.trim().toLowerCase();
+            const pkgUnitInput = document.getElementById(prefix + 'PackagingUnit');
+            const uomInput = document.getElementById(prefix + 'UOM');
+            const stockInput = document.getElementById(prefix + 'Stock');
+
+            const pkgUnit = pkgUnitInput.value.trim();
+            const uom = uomInput.value.trim();
             const errorDiv = document.getElementById(prefix + 'UomError');
             const errorText = document.getElementById(prefix + 'UomErrorText');
             const submitBtn = document.getElementById(prefix + 'SubmitBtn');
+
+            // Handle background UOM tracking for conversion on change
+            if (!uomInput.dataset.lastUom) uomInput.dataset.lastUom = uom;
 
             if (!pkgUnit || !uom) {
                 if (errorDiv) errorDiv.classList.add('hidden');
@@ -656,22 +697,36 @@
                 return true;
             }
 
-            // Simple cleaning for common parentatical units in datalists (e.g. "Grams (g)" -> "g")
             const cleanUnit = (u) => {
                 const match = u.match(/\(([^)]+)\)/);
-                return match ? match[1].toLowerCase() : u.toLowerCase();
+                return (match ? match[1].toLowerCase() : u.toLowerCase()).trim();
             };
 
             const u1 = cleanUnit(pkgUnit);
             const u2 = cleanUnit(uom);
 
-            const cat1 = unitMap[u1] || unitMap[pkgUnit];
-            const cat2 = unitMap[u2] || unitMap[uom];
+            const info1 = unitMap[u1];
+            const info2 = unitMap[u2];
 
-            if (cat1 && cat2 && cat1 !== cat2) {
+            // Perform auto-conversion if UOM changed and units are compatible
+            if (uomInput.dataset.lastUom && uomInput.dataset.lastUom !== uom) {
+                const oldUomClean = cleanUnit(uomInput.dataset.lastUom);
+                const infoOld = unitMap[oldUomClean];
+                
+                if (infoOld && info2 && infoOld.cat === info2.cat && stockInput.value) {
+                    const currentVal = parseFloat(stockInput.value);
+                    if (!isNaN(currentVal)) {
+                        const converted = (currentVal * infoOld.f) / info2.f;
+                        stockInput.value = Number(converted.toFixed(4));
+                    }
+                }
+                uomInput.dataset.lastUom = uom;
+            }
+
+            if (info1 && info2 && info1.cat !== info2.cat) {
                 if (errorDiv) {
                     errorDiv.classList.remove('hidden');
-                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${cat1.toUpperCase()}, while [${uom}] is ${cat2.toUpperCase()}. Please match the unit categories.`;
+                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${info1.cat.toUpperCase()}, while [${uom}] is ${info2.cat.toUpperCase()}. Please match the unit categories.`;
                 }
                 if (submitBtn) {
                     submitBtn.disabled = true;
@@ -730,8 +785,8 @@
         }
 
         function openNewItemModal() {
-            // Reset subcategory dropdown
             document.getElementById('newSubCategoryId').innerHTML = '<option value="" disabled selected hidden>Sub-Category</option>';
+            document.getElementById('newUOM').dataset.lastUom = '';
             openModal('newItemModal');
         }
 
@@ -785,10 +840,13 @@
             document.getElementById('editItemName').value = item.itemName;
             document.getElementById('editCategoryId').value = item.categoryId;
             document.getElementById('editVendorId').value = item.vendorId;
-            document.getElementById('editUOM').value = item.uom;
+            const editUomInput = document.getElementById('editUOM');
+            editUomInput.value = item.uom;
+            editUomInput.dataset.lastUom = item.uom;
             document.getElementById('editCostPrice').value = item.costPrice ? parseFloat(item.costPrice).toFixed(2) : '';
             document.getElementById('editSellingPrice').value = (item.sellingPrice && item.sellingPrice > 0) ? parseFloat(item.sellingPrice).toFixed(2) : '';
             document.getElementById('editStock').value = item.stock ? parseFloat(item.stock).toString() : '0';
+            document.getElementById('editReorderValue').value = item.reorderValue ? parseFloat(item.reorderValue).toFixed(2) : '';
             document.getElementById('editIsRepack').checked = item.isRepack || false;
             
             // Handle Selling Price Toggle

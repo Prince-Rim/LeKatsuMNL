@@ -48,7 +48,12 @@ namespace LeKatsuMNL.Models
         
         // Navigation Property: Link to the Order Lists
         public ICollection<OrderList> OrderLists { get; set; } = new List<OrderList>();
+        public ICollection<RejectItem> RejectItems { get; set; } = new List<RejectItem>();
 
         public bool IsArchived { get; set; } = false;
+        
+        // Navigation Property: Link to the inventory record
+        [InverseProperty("SkuHeader")]
+        public CommissaryInventory CommissaryInventory { get; set; }
     }
 }

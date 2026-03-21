@@ -1,5 +1,7 @@
 @page
+@using LeKatsuMNL.Helpers
 @model LeKatsuMNL.Pages.Dashboard.BranchOrdersModel
+
 @{
     ViewData["Title"] = "Transaction / Branch Orders";
 }
@@ -271,9 +273,11 @@
             @foreach (var item in Model.AvailableItems)
             {
                 var key = item.SkuId.HasValue ? $"SKU-{item.SkuId}" : $"COM-{item.ComId}";
-                <text>"@key": { "price": @item.SellingPrice, "name": "@item.ItemName", "type": "@item.Type" },</text>
+                var uomNormalized = UomConverter.NormalizeUnit(item.Uom);
+                <text>"@key": { "price": @item.SellingPrice, "name": "@item.ItemName", "type": "@item.Type", "stock": @item.Stock, "uom": "@uomNormalized" },</text>
             }
         };
+
 
         function calculateGrandTotal() {
             let grandTotal = 0;
@@ -297,10 +301,20 @@
             const qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : 0;
             const priceInput = row.querySelector('input[name="Prices"]');
             
-            // Only update price input if it was an item selection change
-            if (element.name === "ItemIds" && itemId && priceInput) {
-                priceInput.value = (itemData[itemId]?.price || 0).toFixed(2);
+            // Only update price input and stock display if it was an item selection change
+            if (element.name === "ItemIds") {
+                const stockDisplay = row.querySelector('.stock-display');
+                if (itemId && itemData[itemId]) {
+                    if (priceInput) priceInput.value = itemData[itemId].price.toFixed(2);
+                    if (stockDisplay) {
+                        stockDisplay.innerText = `Available: ${itemData[itemId].stock.toLocaleString()} ${itemData[itemId].uom}`;
+                        stockDisplay.classList.remove('hidden');
+                    }
+                } else {
+                    if (stockDisplay) stockDisplay.classList.add('hidden');
+                }
             }
+
 
             const price = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
             const total = price * qty;
@@ -324,7 +338,9 @@
                             <option value="">Select Item</option>
                             ${Array.from(document.querySelectorAll('#itemTemplate option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
                         </select>
+                        <div class="stock-display hidden text-[10px] font-bold text-blue-500 mt-1 ml-1 uppercase tracking-wider"></div>
                     </div>
+
                     <div class="w-24 text-center">
                         <div class="relative">
                             <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-xs">₱</span>
@@ -458,6 +474,7 @@
                                                 <option value="@key">[@item.Type] @item.ItemName</option>
                                             }
                                         </select>
+                                        <div class="stock-display hidden text-[10px] font-bold text-blue-500 mt-1 ml-1 uppercase tracking-wider"></div>
                                     </div>
                                     <div class="w-24 text-center">
                                         <div class="relative">

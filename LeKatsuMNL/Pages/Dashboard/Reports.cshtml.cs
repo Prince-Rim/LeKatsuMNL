@@ -63,27 +63,18 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<SkuInventoryReportRow> SkuInventoryReports { get; set; }
 
-        // Sales Report
+        // Sales Report (Branch Order Report)
         public class SalesReportRow
         {
-            public string ItemName { get; set; }
-            public decimal Quantity { get; set; }
-            public decimal TotalSales { get; set; }
+            public int OrderId { get; set; }
+            public string FormattedOrderId => $"{Date.Year}-{OrderId:D4}";
+            public string BranchName { get; set; }
+            public decimal TotalAmount { get; set; }
+            public decimal MoneyPaid { get; set; }
             public DateTime Date { get; set; }
         }
 
         public PaginatedList<SalesReportRow> SalesReports { get; set; }
-
-        // Expense Report
-        public class ExpenseReportRow
-        {
-            public string ExpenseName { get; set; }
-            public string Category { get; set; }
-            public decimal Amount { get; set; }
-            public DateTime Date { get; set; }
-        }
-
-        public PaginatedList<ExpenseReportRow> ExpenseReports { get; set; }
 
         // Reject Report
         public class RejectReportRow
@@ -97,28 +88,51 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<RejectReportRow> RejectReports { get; set; }
 
-        // Restaurant Inventory
-        public class RestaurantInventoryReportRow
+        // Vendor Summary Report
+        public class VendorSummaryReportRow
+        {
+            public string VendorName { get; set; }
+            public int TotalOrders { get; set; }
+            public decimal TotalItems { get; set; }
+            public decimal TotalSpent { get; set; }
+        }
+
+        public PaginatedList<VendorSummaryReportRow> VendorSummaryReports { get; set; }
+
+        // Branch Summary Report
+        public class BranchSummaryReportRow
+        {
+            public string BranchName { get; set; }
+            public int TotalOrders { get; set; }
+            public decimal TotalRevenue { get; set; }
+            public decimal TotalCollected { get; set; }
+        }
+
+        public PaginatedList<BranchSummaryReportRow> BranchSummaryReports { get; set; }
+        
+        // Ingredient Finance Report
+        public class IngredientFinanceReportRow
         {
             public string ItemName { get; set; }
-            public decimal Beginning { get; set; }
-            public decimal Added { get; set; }
-            public decimal Deducted { get; set; }
-            public decimal Current { get; set; }
+            public string Uom { get; set; }
+            public decimal CostPrice { get; set; }
+            public decimal SellingPrice { get; set; }
+            public decimal Markup => SellingPrice - CostPrice;
+            public decimal MarginPercentage => SellingPrice != 0 ? (Markup / SellingPrice) * 100 : 0;
         }
+        public PaginatedList<IngredientFinanceReportRow> IngredientFinanceReports { get; set; }
 
-        public PaginatedList<RestaurantInventoryReportRow> RestaurantInventoryReports { get; set; }
-
-        // Restaurant Sales
-        public class RestaurantSalesReportRow
+        // SKU Finance Report
+        public class SkuFinanceReportRow
         {
-            public string ReceiptNum { get; set; }
-            public decimal TotalPrice { get; set; }
-            public DateTime Date { get; set; }
-            public string StaffName { get; set; }
+            public string ItemName { get; set; }
+            public string Uom { get; set; }
+            public decimal CostPrice { get; set; }
+            public decimal SellingPrice { get; set; }
+            public decimal Markup => SellingPrice - CostPrice;
+            public decimal MarginPercentage => SellingPrice != 0 ? (Markup / SellingPrice) * 100 : 0;
         }
-
-        public PaginatedList<RestaurantSalesReportRow> RestaurantSalesReports { get; set; }
+        public PaginatedList<SkuFinanceReportRow> SkuFinanceReports { get; set; }
 
         public async Task OnGetAsync(int? pageIndex)
         {
@@ -144,17 +158,20 @@ namespace LeKatsuMNL.Pages.Dashboard
                 case "Sales":
                     await LoadSalesReport(pageIndex ?? 1, pageSize);
                     break;
-                case "Expenses":
-                    await LoadExpenseReport(pageIndex ?? 1, pageSize);
-                    break;
                 case "Rejects":
                     await LoadRejectReport(pageIndex ?? 1, pageSize);
                     break;
-                case "RestaurantInventory":
-                    await LoadRestaurantInventoryReport(pageIndex ?? 1, pageSize);
+                case "VendorSummary":
+                    await LoadVendorSummaryReport(pageIndex ?? 1, pageSize);
                     break;
-                case "RestaurantSales":
-                    await LoadRestaurantSalesReport(pageIndex ?? 1, pageSize);
+                case "BranchSummary":
+                    await LoadBranchSummaryReport(pageIndex ?? 1, pageSize);
+                    break;
+                case "IngredientFinance":
+                    await LoadIngredientFinanceReport(pageIndex ?? 1, pageSize);
+                    break;
+                case "SkuFinance":
+                    await LoadSkuFinanceReport(pageIndex ?? 1, pageSize);
                     break;
             }
         }
@@ -185,11 +202,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 decimal stockAtEnd = item.Stock - transactionsAfterPeriod;
 
                 decimal received = transactionsInPeriod
-                    .Where(t => t.QuantityChange > 0)
+                    .Where(t => t.QuantityChange > 0 && t.InvTransactionType?.TransactionType == "Stock In")
                     .Sum(t => t.QuantityChange);
 
                 decimal consumed = Math.Abs(transactionsInPeriod
-                    .Where(t => t.QuantityChange < 0)
+                    .Where(t => t.QuantityChange < 0 && t.InvTransactionType?.TransactionType == "Branch Order")
                     .Sum(t => t.QuantityChange));
 
                 // For simplicity, let's assume "Beginning" is stockAtEnd minus net change in period
@@ -414,46 +431,38 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         private async Task LoadSalesReport(int pageIndex, int pageSize)
         {
-            var sales = await _context.OrderListArchives
-                .Join(_context.OrderInfos,
-                    ola => ola.OrderId,
-                    oi => oi.OrderId,
-                    (ola, oi) => new { ola, oi })
-                .Where(x => x.oi.OrderDate >= StartDate && x.oi.OrderDate <= EndDate)
-                .Join(_context.CommissaryInventories,
-                    x => x.ola.ComId,
-                    s => s.ComId,
-                    (x, s) => new SalesReportRow
-                    {
-                        ItemName = s.ItemName,
-                        Quantity = x.ola.Quantity,
-                        TotalSales = x.ola.TotalPrice,
-                        Date = x.oi.OrderDate
-                    })
-                .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(r => r.Date)
+            var query = _context.OrderInfos
+                .Where(o => o.Status == "Completed" && !o.IsArchived)
+                .Include(o => o.BranchManager)
+                    .ThenInclude(bm => bm.BranchLocation)
+                .Include(o => o.Invoices)
+                .AsQueryable();
+
+            if (StartDate.HasValue)
+                query = query.Where(o => o.OrderDate >= StartDate.Value);
+            if (EndDate.HasValue)
+                query = query.Where(o => o.OrderDate <= EndDate.Value);
+
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(o => 
+                    o.BranchManager.BranchLocation.BranchName.Contains(SearchQuery) ||
+                    o.OrderId.ToString().Contains(SearchQuery));
+            }
+
+            var sales = await query
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new SalesReportRow
+                {
+                    OrderId = o.OrderId,
+                    BranchName = o.BranchManager.BranchLocation.BranchName,
+                    TotalAmount = o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0,
+                    MoneyPaid = o.Invoices.Any() && o.Invoices.First().PaymentStatus == "Paid" ? o.Invoices.First().TotalPrice : 0,
+                    Date = o.OrderDate
+                })
                 .ToListAsync();
 
             SalesReports = PaginatedList<SalesReportRow>.Create(sales, pageIndex, pageSize);
-        }
-
-        private async Task LoadExpenseReport(int pageIndex, int pageSize)
-        {
-            var expenses = await _context.CashExpenses
-                .Include(e => e.ExpenseType)
-                .Where(e => e.DateTime >= StartDate && e.DateTime <= EndDate)
-                .Select(e => new ExpenseReportRow
-                {
-                    ExpenseName = e.ExpenseName,
-                    Category = e.ExpenseType.TypeName,
-                    Amount = e.ExpenseAmount,
-                    Date = e.DateTime
-                })
-                .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ExpenseName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(r => r.Date)
-                .ToListAsync();
-
-            ExpenseReports = PaginatedList<ExpenseReportRow>.Create(expenses, pageIndex, pageSize);
         }
 
         private async Task LoadRejectReport(int pageIndex, int pageSize)
@@ -475,43 +484,131 @@ namespace LeKatsuMNL.Pages.Dashboard
             RejectReports = PaginatedList<RejectReportRow>.Create(rejects, pageIndex, pageSize);
         }
 
-        private async Task LoadRestaurantInventoryReport(int pageIndex, int pageSize)
+        private async Task LoadVendorSummaryReport(int pageIndex, int pageSize)
         {
-            var resItems = await _context.RestaurantInventories
-                .AsNoTracking()
-                .ToListAsync();
+            var query = _context.VendorInfos
+                .Where(v => !v.IsArchived)
+                .AsNoTracking();
 
-            var reportData = resItems.Select(item => new RestaurantInventoryReportRow
+            if (!string.IsNullOrEmpty(SearchQuery))
             {
-                ItemName = item.ItemName,
-                Beginning = item.BeginningStock,
-                Added = item.AddedStock ?? 0,
-                Deducted = item.DeductedStock ?? 0,
-                Current = item.CurrentStock
-            })
-            .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ItemName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+                query = query.Where(v => v.VendorName.Contains(SearchQuery));
+            }
 
-            RestaurantInventoryReports = PaginatedList<RestaurantInventoryReportRow>.Create(reportData, pageIndex, pageSize);
+            var vendors = await query.ToListAsync();
+            var reportData = new List<VendorSummaryReportRow>();
+
+            foreach (var vendor in vendors)
+            {
+                var ordersQuery = _context.SupplyOrders
+                    .Where(so => so.VendorId == vendor.VendorId && !so.IsArchived);
+
+                if (StartDate.HasValue) ordersQuery = ordersQuery.Where(so => so.SupplyDate >= StartDate.Value);
+                if (EndDate.HasValue) ordersQuery = ordersQuery.Where(so => so.SupplyDate <= EndDate.Value);
+
+                var orderIds = await ordersQuery.Select(so => so.SoaId).ToListAsync();
+                
+                var supplyLists = await _context.SupplyLists
+                    .Where(sl => orderIds.Contains(sl.SupplyId))
+                    .ToListAsync();
+
+                reportData.Add(new VendorSummaryReportRow
+                {
+                    VendorName = vendor.VendorName,
+                    TotalOrders = orderIds.Count,
+                    TotalItems = supplyLists.Sum(sl => sl.Quantity),
+                    TotalSpent = supplyLists.Sum(sl => sl.TotalPrice)
+                });
+            }
+
+            VendorSummaryReports = PaginatedList<VendorSummaryReportRow>.Create(reportData.OrderByDescending(r => r.TotalSpent).ToList(), pageIndex, pageSize);
         }
 
-        private async Task LoadRestaurantSalesReport(int pageIndex, int pageSize)
+        private async Task LoadBranchSummaryReport(int pageIndex, int pageSize)
         {
-            var sales = await _context.RestaurantTransactions
-                .Include(t => t.Staff)
-                .Where(t => t.DateTime >= StartDate && t.DateTime <= EndDate && !t.IsRefunded)
-                .Select(t => new RestaurantSalesReportRow
+            var query = _context.BranchLocations
+                .Where(bl => !bl.IsArchived)
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(bl => bl.BranchName.Contains(SearchQuery));
+            }
+
+            var branches = await query.ToListAsync();
+            var reportData = new List<BranchSummaryReportRow>();
+
+            foreach (var branch in branches)
+            {
+                var ordersQuery = _context.OrderInfos
+                    .Include(o => o.BranchManager)
+                    .Where(o => o.BranchManager.BranchId == branch.BranchId && o.Status == "Completed" && !o.IsArchived);
+
+                if (StartDate.HasValue) ordersQuery = ordersQuery.Where(o => o.OrderDate >= StartDate.Value);
+                if (EndDate.HasValue) ordersQuery = ordersQuery.Where(o => o.OrderDate <= EndDate.Value);
+
+                var orders = await ordersQuery
+                    .Include(o => o.Invoices)
+                    .ToListAsync();
+
+                reportData.Add(new BranchSummaryReportRow
                 {
-                    ReceiptNum = t.ReceiptNum,
-                    TotalPrice = t.TotalPrice,
-                    Date = t.DateTime,
-                    StaffName = t.Staff.FirstName + " " + t.Staff.LastName
+                    BranchName = branch.BranchName,
+                    TotalOrders = orders.Count,
+                    TotalRevenue = orders.Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0),
+                    TotalCollected = orders.Sum(o => o.Invoices.Any() && o.Invoices.First().PaymentStatus == "Paid" ? o.Invoices.First().TotalPrice : 0)
+                });
+            }
+
+            BranchSummaryReports = PaginatedList<BranchSummaryReportRow>.Create(reportData.OrderByDescending(r => r.TotalRevenue).ToList(), pageIndex, pageSize);
+        }
+
+        private async Task LoadIngredientFinanceReport(int pageIndex, int pageSize)
+        {
+            var query = _context.CommissaryInventories
+                .Where(i => !i.IsArchived);
+
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(i => i.ItemName.Contains(SearchQuery));
+            }
+
+            var items = await query
+                .OrderBy(i => i.ItemName)
+                .Select(i => new IngredientFinanceReportRow
+                {
+                    ItemName = i.ItemName,
+                    Uom = i.Uom,
+                    CostPrice = i.CostPrice,
+                    SellingPrice = i.SellingPrice
                 })
-                .Where(r => string.IsNullOrEmpty(SearchQuery) || r.ReceiptNum.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(r => r.Date)
                 .ToListAsync();
 
-            RestaurantSalesReports = PaginatedList<RestaurantSalesReportRow>.Create(sales, pageIndex, pageSize);
+            IngredientFinanceReports = PaginatedList<IngredientFinanceReportRow>.Create(items, pageIndex, pageSize);
+        }
+
+        private async Task LoadSkuFinanceReport(int pageIndex, int pageSize)
+        {
+            var query = _context.SkuHeaders
+                .Where(s => !s.IsArchived);
+
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(s => s.ItemName.Contains(SearchQuery));
+            }
+
+            var items = await query
+                .OrderBy(s => s.ItemName)
+                .Select(s => new SkuFinanceReportRow
+                {
+                    ItemName = s.ItemName,
+                    Uom = s.Uom,
+                    CostPrice = s.UnitCost ?? 0,
+                    SellingPrice = s.SellingPrice
+                })
+                .ToListAsync();
+
+            SkuFinanceReports = PaginatedList<SkuFinanceReportRow>.Create(items, pageIndex, pageSize);
         }
     }
 }

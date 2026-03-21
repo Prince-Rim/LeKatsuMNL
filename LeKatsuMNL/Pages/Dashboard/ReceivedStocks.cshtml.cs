@@ -39,10 +39,17 @@ namespace LeKatsuMNL.Pages.Dashboard
         [BindProperty]
         public List<ReceivedStockItemInput> ItemsToReceive { get; set; }
 
+        public decimal UnpaidTotal { get; set; }
+        public int UnpaidCount { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string FilterStatus { get; set; }
+
         public class ReceivedStockItemInput
         {
             public int ComId { get; set; }
             public decimal Quantity { get; set; }
+            public decimal UnitPrice { get; set; }
             public string Unit { get; set; }
         }
 
@@ -54,28 +61,42 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task OnGetAsync(int? pageIndex)
         {
+            if (string.IsNullOrEmpty(FilterStatus)) FilterStatus = "All";
+            
             Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorName).ToListAsync();
             AllItems = await _context.CommissaryInventories
                 .AsNoTracking()
                 .Where(i => i.SkuId == null && !i.IsArchived)
                 .OrderBy(i => i.ItemName).ToListAsync();
 
-            foreach (var item in AllItems)
-            {
-                item.Uom = UomConverter.NormalizeUnit(item.Uom);
-            }
+            // Summaries for Unpaid orders
+            var unpaidOrders = await _context.SupplyOrders
+                .Where(so => !so.IsArchived && so.PaymentStatus == "Unpaid")
+                .Include(so => so.SupplyLists)
+                .ToListAsync();
 
-            var orders = _context.SupplyOrders
+            UnpaidCount = unpaidOrders.Count;
+            UnpaidTotal = unpaidOrders.Sum(so => so.SupplyLists.Sum(sl => sl.TotalPrice));
+
+            var ordersQuery = _context.SupplyOrders
                 .Where(so => !so.IsArchived)
+                .Include(so => so.Vendor) // Fixed: Added Vendor include
                 .Include(so => so.SupplyLists)
                     .ThenInclude(sl => sl.CommissaryInventory)
-                .OrderByDescending(so => so.SupplyDate);
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(FilterStatus) && FilterStatus != "All")
+            {
+                ordersQuery = ordersQuery.Where(so => so.PaymentStatus == FilterStatus);
+            }
+
+            var orders = ordersQuery.OrderByDescending(so => so.SupplyDate);
 
             int pageSize = PageSize > 0 ? PageSize : 10;
             SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, pageSize);
         }
 
-        public async Task<IActionResult> OnPostSaveAsync()
+        public async Task<IActionResult> OnPostSaveAsync(string PaymentStatus)
         {
             if (SelectedVendorId == 0 || ItemsToReceive == null || !ItemsToReceive.Any())
             {
@@ -86,6 +107,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 SupplyDate = DateTime.Now,
                 Status = "Received",
+                PaymentStatus = PaymentStatus ?? "Unpaid",
                 DeliveryDate = DateTime.Now,
                 VendorId = SelectedVendorId
             };
@@ -112,6 +134,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 if (inventoryItem != null)
                 {
                     decimal actualQuantityAdded = item.Quantity;
+                    decimal lineTotal = item.Quantity * item.UnitPrice;
+                    decimal unitCostPerUom = inventoryItem.CostPrice;
 
                     // Parse Yield to convert if it matches the received unit
                     if (!string.IsNullOrEmpty(inventoryItem.Yield) && item.Unit == inventoryItem.Yield)
@@ -126,11 +150,21 @@ namespace LeKatsuMNL.Pages.Dashboard
                                 if (decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal yieldSize))
                                 {
                                     string yieldUom = match.Groups[2].Value.Trim();
-                                    actualQuantityAdded = item.Quantity * UomConverter.Convert(yieldSize, yieldUom, inventoryItem.Uom);
+                                    decimal conversionFactor = UomConverter.Convert(yieldSize, yieldUom, inventoryItem.Uom);
+                                    actualQuantityAdded = item.Quantity * conversionFactor;
+                                    
+                                    if (conversionFactor > 0)
+                                    {
+                                        unitCostPerUom = item.UnitPrice / conversionFactor;
+                                    }
                                 }
                             }
                         }
                         catch { } // fallback to original item.Quantity if parsing fails
+                    }
+                    else if (item.Unit == inventoryItem.Uom)
+                    {
+                        unitCostPerUom = item.UnitPrice;
                     }
 
                     // Create Supply List entry
@@ -139,11 +173,13 @@ namespace LeKatsuMNL.Pages.Dashboard
                         SupplyId = supplyOrder.SoaId,
                         ComId = item.ComId,
                         Quantity = actualQuantityAdded,
-                        TotalPrice = 0 // Assuming price is handled elsewhere or set to 0 for now
+                        UnitPrice = item.UnitPrice,
+                        TotalPrice = lineTotal
                     };
                     _context.SupplyLists.Add(supplyList);
 
-                    // Update Stock
+                    // Update Inventory
+                    inventoryItem.CostPrice = unitCostPerUom;
                     inventoryItem.Stock += actualQuantityAdded;
 
                     // Record Transaction
@@ -152,14 +188,52 @@ namespace LeKatsuMNL.Pages.Dashboard
                         ComId = item.ComId,
                         TypeId = transactionType.TypeId,
                         QuantityChange = actualQuantityAdded,
-                        TimeStamp = DateTime.Now
+                        UnitPrice = unitCostPerUom,
+                        TotalPrice = lineTotal,
+                        IsPaid = (PaymentStatus == "Paid"),
+                        TimeStamp = DateTime.Now,
+                        Remarks = $"Stock In via Supply Order #{supplyOrder.SoaId:D5}"
                     };
+
                     _context.InventoryTransactions.Add(transaction);
                 }
             }
 
             await _context.SaveChangesAsync();
             StatusMessage = "Successfully recorded stock receipt and updated inventory.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostMarkAsPaidAsync(int id)
+        {
+            var order = await _context.SupplyOrders
+                .FirstOrDefaultAsync(so => so.SoaId == id);
+            
+            if (order != null)
+            {
+                order.PaymentStatus = "Paid";
+                await _context.SaveChangesAsync();
+                StatusMessage = $"Order SO-{id:D5} marked as Paid.";
+            }
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkMarkAsPaidAsync([FromForm] List<int> selectedIds)
+        {
+            if (selectedIds != null && selectedIds.Any())
+            {
+                var orders = await _context.SupplyOrders
+                    .Where(so => selectedIds.Contains(so.SoaId) && so.PaymentStatus == "Unpaid")
+                    .ToListAsync();
+
+                foreach (var order in orders)
+                {
+                    order.PaymentStatus = "Paid";
+                }
+
+                await _context.SaveChangesAsync();
+                StatusMessage = $"Updated {orders.Count} orders to Paid.";
+            }
             return RedirectToPage();
         }
 
@@ -170,6 +244,26 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 supplyOrder.IsArchived = true;
                 await _context.SaveChangesAsync();
+                StatusMessage = "Supply Order archived successfully.";
+            }
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostBulkArchiveAsync([FromForm] List<int> selectedIds)
+        {
+            if (selectedIds != null && selectedIds.Any())
+            {
+                var orders = await _context.SupplyOrders
+                    .Where(so => selectedIds.Contains(so.SoaId))
+                    .ToListAsync();
+
+                foreach (var order in orders)
+                {
+                    order.IsArchived = true;
+                }
+
+                await _context.SaveChangesAsync();
+                StatusMessage = $"Archived {orders.Count} supply orders.";
             }
             return RedirectToPage();
         }

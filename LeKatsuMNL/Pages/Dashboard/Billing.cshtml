@@ -8,12 +8,20 @@
 <div class="h-[calc(100vh-12rem)] flex flex-col">
     <!-- Top toolbar -->
     <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="relative flex-1 max-w-lg">
+        <form method="get" class="relative flex-1 max-w-lg group">
             <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                 <i class="bi bi-search text-sm"></i>
             </span>
-            <input type="text" id="billingSearchInput" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:placeholder:text-gray-400 dark:border-gray-600 dark:text-gray-800" placeholder="Search invoices...">
-        </div>
+            <input type="text" name="SearchTerm" value="@Model.SearchTerm" 
+                   class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" 
+                   placeholder="Search invoices...">
+            <div class="absolute inset-y-1 right-1 flex items-center">
+                <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                    <i class="bi bi-search"></i>
+                    <span>Search</span>
+                </button>
+            </div>
+        </form>
 
         <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
             <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
@@ -168,15 +176,5 @@
             }, 300);
         }
 
-        // Search functionality
-        document.getElementById('billingSearchInput')?.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#billingTableBody tr');
-            
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        });
     </script>
 }
