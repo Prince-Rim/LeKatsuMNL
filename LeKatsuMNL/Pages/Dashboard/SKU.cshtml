@@ -125,9 +125,11 @@
                     <th class="px-6 py-4">Category</th>
                     <th class="px-6 py-4">Sub-Category</th>
                     <th class="px-6 py-4">Yield</th>
+                    <th class="px-6 py-4">In Stock</th>
                     <th class="px-6 py-4">Unit Cost</th>
                     <th class="px-6 py-4">Selling Price</th>
                     <th class="px-6 py-4">Action</th>
+
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -159,8 +161,15 @@
                                     @("-")
                                 }
                             </td>
-                            <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
+                            <td class="px-6 py-5">
+                                <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400">
+                                    @(sku.CommissaryInventory?.Stock.ToString("G29") ?? "0") @UomConverter.NormalizeUnit(sku.Uom)
+                                </span>
+                            </td>
+                             <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">@(sku.UnitCost.HasValue ? $"₱ {sku.UnitCost.Value:0.00}" : "-")</td>
                             <td class="px-6 py-5 font-bold text-gray-900 text-sm tracking-tight dark:text-white">₱ @sku.SellingPrice.ToString("F2")</td>
+
+
                             <td class="px-6 py-5">
                                 <div class="flex items-center space-x-3">
                                     @if (PermissionHelper.HasPermission(User, "SKU", 'U'))
@@ -176,7 +185,9 @@
                                             uom = sku.Uom,
                                             isSellingPriceEnabled = sku.IsSellingPriceEnabled,
                                             sellingPrice = sku.SellingPrice,
-                                            unitCost = sku.UnitCost
+                                            unitCost = sku.UnitCost,
+                                            reorderValue = sku.CommissaryInventory?.ReorderValue,
+                                            stock = sku.CommissaryInventory?.Stock
                                         })))' class="text-blue-500 hover:text-blue-700 transition-colors" title="Edit">
                                             <i class="bi bi-pencil-square text-lg"></i>
                                         </button>
@@ -292,7 +303,6 @@
                         </div>
                     </div>
 
-                    <!-- Pricing -->
                     <div class="grid grid-cols-2 gap-5">
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Cost</label>
@@ -302,16 +312,22 @@
                                        class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                             </div>
                         </div>
-                        <!-- Selling Price (Always visible, required) -->
-                        <div id="newSellingPriceContainer" class="space-y-1.5">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
-                            <div class="relative">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                                <input type="number" step="0.01" name="SellingPrice" placeholder="0.00" required onfocus="this.select()"
-                                       class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                            </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Safe Stock</label>
+                            <input type="number" step="0.01" name="ReorderValue" placeholder="0.00" onfocus="this.select()"
+                                   class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                     </div>
+                    <!-- Selling Price (Always visible, required) -->
+                    <div id="newSellingPriceContainer" class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                            <input type="number" step="0.01" name="SellingPrice" placeholder="0.00" required onfocus="this.select()"
+                                   class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -415,26 +431,36 @@
                         </div>
                     </div>
 
-                    <!-- Pricing -->
-                    <div class="grid grid-cols-2 gap-5">
-                        <div class="space-y-1.5">
+                    <div class="grid grid-cols-3 gap-5">
+                        <div class="space-y-1.5 col-span-1">
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">In Stock</label>
+                            <input type="number" step="0.01" name="Stock" id="editStock" placeholder="0.00" onfocus="this.select()"
+                                   class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                        </div>
+                        <div class="space-y-1.5 col-span-1">
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Safe Stock</label>
+                            <input type="number" step="0.01" name="ReorderValue" id="editReorderValue" placeholder="0.00" onfocus="this.select()"
+                                   class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                        </div>
+                        <div class="space-y-1.5 col-span-1">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Cost</label>
                             <div class="relative">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
                                 <input type="number" step="0.01" name="UnitCost" id="editUnitCost" placeholder="0.00" onfocus="this.select()"
-                                       class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                            </div>
-                        </div>
-                        <!-- Selling Price (Always visible, required) -->
-                        <div id="editSellingPriceContainer" class="space-y-1.5">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
-                            <div class="relative">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                                <input type="number" step="0.01" name="SellingPrice" id="editSellingPrice" placeholder="0.00" required onfocus="this.select()"
-                                       class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                                       class="w-full border border-gray-200 rounded-xl pl-8 pr-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                             </div>
                         </div>
                     </div>
+                    <!-- Selling Price (Always visible, required) -->
+                    <div id="editSellingPriceContainer" class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Selling Price</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
+                            <input type="number" step="0.01" name="SellingPrice" id="editSellingPrice" placeholder="0.00" required onfocus="this.select()"
+                                   class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -729,6 +755,9 @@
             document.querySelector('#editProductModal [name="UOM"]').value = sku.uom || '';
             document.getElementById('editUnitCost').value = sku.unitCost ? parseFloat(sku.unitCost).toFixed(2) : '';
             document.getElementById('editSellingPrice').value = sku.sellingPrice ? parseFloat(sku.sellingPrice).toFixed(2) : '';
+            document.getElementById('editStock').value = sku.stock !== null ? parseFloat(sku.stock) : '0';
+            document.getElementById('editReorderValue').value = sku.reorderValue !== null ? parseFloat(sku.reorderValue) : '';
+
 
             const modal = document.getElementById('editProductModal');
             modal.classList.remove('hidden');

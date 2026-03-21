@@ -20,25 +20,43 @@
 
 <!-- Filters Section -->
 <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm dark:bg-slate-800 dark:border-gray-700 mb-6">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        <div>
-            <label for="searchQuery" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Search Item</label>
-            <input id="searchQuery" type="text" asp-for="SearchQuery" placeholder="Search item name..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+    <form id="filterForm" method="get" class="flex flex-wrap items-end gap-6">
+        <div class="relative flex-1 min-w-[200px] max-w-md group h-[41px]">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                <i class="bi bi-search text-sm"></i>
+            </span>
+            <input id="searchQuery" type="text" asp-for="SearchQuery" placeholder="Search item name..." 
+                   class="w-full h-full border border-gray-300 rounded-xl pl-11 pr-32 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-slate-800 dark:border-gray-600 dark:placeholder:text-gray-500 transition-all">
+            <div class="absolute inset-y-1 right-1 flex items-center">
+                <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-lg text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                    <i class="bi bi-search"></i>
+                    <span>Search</span>
+                </button>
+            </div>
         </div>
-        <div>
-            <label for="startDate" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
-            <input id="startDate" type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+
+        <div class="flex flex-col">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Reject Period</label>
+            <div class="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-[#C41E24]/20 focus-within:border-[#C41E24]">
+                <input type="date" id="startDate" asp-for="StartDate" class="bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none">
+                <span class="mx-3 text-gray-400 font-medium text-xs">to</span>
+                <input type="date" id="endDate" asp-for="EndDate" class="bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none">
+            </div>
         </div>
-        <div>
-            <label for="endDate" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
-            <input id="endDate" type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
+
+        <div class="flex flex-col">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Quick Ranges</label>
+            <div class="flex items-center space-x-2 h-[41px]">
+                <button type="button" onclick="setRange('today')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Today</button>
+                <button type="button" onclick="setRange('7days')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">7D</button>
+                <button type="button" onclick="setRange('30days')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">30D</button>
+                <button type="button" onclick="setRange('month')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Month</button>
+            </div>
         </div>
-        <div class="flex space-x-2">
-            <button type="submit" class="flex-1 bg-[#C41E24] text-white rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-[#A0181D] transition-all">
-                <i class="bi bi-filter mr-2"></i>Apply Filters
-            </button>
-            <a asp-page="./Rejects" aria-label="Reset filters" title="Reset filters" class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
-                <i class="bi bi-arrow-clockwise"></i>
+
+        <div class="flex items-center space-x-2">
+            <a asp-page="./Rejects" class="flex items-center justify-center bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-all shadow-sm" aria-label="Reset filters" title="Reset filters">
+                <i class="bi bi-arrow-clockwise text-lg"></i>
             </a>
         </div>
     </form>
@@ -136,6 +154,47 @@
             if (!event.target.closest('.relative')) {
                 if (actionsMenu) actionsMenu.classList.add('hidden');
             }
+        }
+
+        // Date Filter Logic
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        startDateInput.addEventListener('change', function() {
+            if (endDateInput.value && this.value > endDateInput.value) {
+                endDateInput.value = this.value;
+            }
+        });
+
+        endDateInput.addEventListener('change', function() {
+            if (startDateInput.value && this.value < startDateInput.value) {
+                startDateInput.value = this.value;
+            }
+        });
+
+        function setRange(range) {
+            const now = new Date();
+            let start = new Date();
+            let end = new Date();
+
+            switch(range) {
+                case 'today':
+                    start = now;
+                    break;
+                case '7days':
+                    start.setDate(now.getDate() - 7);
+                    break;
+                case '30days':
+                    start.setDate(now.getDate() - 30);
+                    break;
+                case 'month':
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    break;
+            }
+
+            startDateInput.value = start.toISOString().split('T')[0];
+            endDateInput.value = end.toISOString().split('T')[0];
+            document.getElementById('filterForm').submit();
         }
     </script>
 }

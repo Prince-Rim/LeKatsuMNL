@@ -222,6 +222,12 @@
             </button>
         </div>
         <form method="post" asp-page-handler="Create" id="createForm" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+            @if (Model.OpenModal == "create" && TempData["ErrorMessage"] != null)
+            {
+                <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-medium mb-4">
+                    <i class="bi bi-exclamation-triangle-fill mr-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
             <input type="hidden" asp-for="CurrentPageIndex" />
             <!-- Hidden Step 1 Data -->
             <input type="hidden" asp-for="NewUser.FirstName" id="hiddenFirstName" />
@@ -709,9 +715,11 @@
             togglePermissionsUI('edit');
             parsePermissions('edit', user.privileges);
             
-            // Handle branch selection if applicable
+            // Handle branch selection
             const branchSelect = document.getElementById('editBranchId');
-            if (user.branchName !== "Main / All") {
+            if (user.branchId) {
+                branchSelect.value = user.branchId;
+            } else if (user.branchName && user.branchName !== "Main / All") {
                 for (let i = 0; i < branchSelect.options.length; i++) {
                     if (branchSelect.options[i].text === user.branchName) {
                         branchSelect.selectedIndex = i;
@@ -760,8 +768,8 @@
                     email = Model.EditUser.Email,
                     contactNum = Model.EditUser.ContactNum,
                     role = Model.EditUser.Role,
-                    privileges = Model.EditUser.Privileges
-                    // Note: branchName is tricky here, but we can set value instead of text
+                    privileges = Model.EditUser.Privileges,
+                    branchId = Model.EditUser.BranchId
                 });
                 openEditModal(editUserData);
                 </text>

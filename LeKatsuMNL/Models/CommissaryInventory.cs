@@ -55,6 +55,7 @@ namespace LeKatsuMNL.Models
         public ICollection<SupplyList> SupplyLists { get; set; } = new List<SupplyList>();
         public ICollection<SkuRecipe> SkuRecipes { get; set; } = new List<SkuRecipe>();
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
+        public ICollection<RejectItem> RejectItems { get; set; } = new List<RejectItem>();
 
         public bool IsArchived { get; set; } = false;
     }

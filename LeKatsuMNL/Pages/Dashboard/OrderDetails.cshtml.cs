@@ -6,6 +6,8 @@ using LeKatsuMNL.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LeKatsuMNL.Helpers;
+
 
 namespace LeKatsuMNL.Pages.Dashboard
 {
@@ -84,16 +86,11 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // Populate Stock Check List
             var requirements = new Dictionary<int, decimal>();
+            var stockSnapshots = new Dictionary<int, decimal>();
+
             foreach (var item in Order.OrderLists)
             {
-                if (item.SkuId.HasValue && item.SkuHeader != null)
-                {
-                    await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, requirements);
-                }
-                else if (item.ComId.HasValue)
-                {
-                    await AggregateIngredientRequirements(item.ComId.Value, item.Quantity, requirements);
-                }
+                await AggregateDeductions(item.SkuId, item.ComId, item.Quantity, requirements, stockSnapshots);
             }
 
             foreach (var req in requirements)
@@ -111,6 +108,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     });
                 }
             }
+
 
             return Page();
         }
@@ -180,6 +178,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.SkuHeader)
                         .ThenInclude(s => s.SkuRecipes)
+                            .ThenInclude(r => r.CommissaryInventory)
+                .Include(o => o.OrderLists)
+                    .ThenInclude(ol => ol.SkuHeader)
+                        .ThenInclude(s => s.SkuRecipes)
+                            .ThenInclude(r => r.TargetSku)
                 .Include(o => o.OrderLists)
                     .ThenInclude(ol => ol.CommissaryInventory)
                         .ThenInclude(ci => ci.IngredientRecipes)
@@ -192,33 +195,26 @@ namespace LeKatsuMNL.Pages.Dashboard
             string formattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
             if (order.Status != "Pending") return RedirectToPage(new { id = formattedId });
 
-            // 1. Check stock availability recursively across all items in the order
-            var stockRequirements = new Dictionary<int, decimal>();
+            // 1. Calculate deductions using Stock-Aware Logic (Stock First, then Recipe)
+            var deductions = new Dictionary<int, decimal>();
+            var stockSnapshots = new Dictionary<int, decimal>();
             foreach (var item in order.OrderLists)
             {
-                if (item.SkuId.HasValue && item.SkuHeader != null)
-                {
-                    await AggregateStockRequirements(item.SkuHeader.SkuId, item.Quantity, stockRequirements);
-                }
-                else if (item.ComId.HasValue)
-                {
-                    await AggregateIngredientRequirements(item.ComId.Value, item.Quantity, stockRequirements);
-                }
+                await AggregateDeductions(item.SkuId, item.ComId, item.Quantity, deductions, stockSnapshots);
             }
 
-            // Verify aggregated requirements against current inventory
-            foreach (var req in stockRequirements)
+            // Verify if any inventory goes negative (In cases where even recipes or raw materials are not enough)
+            foreach (var det in deductions)
             {
-                var inventory = await _context.CommissaryInventories.FindAsync(req.Key);
-                if (inventory == null || inventory.Stock < req.Value)
+                var inventory = await _context.CommissaryInventories.FindAsync(det.Key);
+                if (inventory == null || inventory.Stock < det.Value)
                 {
-                    ErrorMessage = $"Insufficient stock for: {inventory?.ItemName ?? "Unknown Item"} (Required: {req.Value:0.##} {inventory?.Uom}, Available: {inventory?.Stock:0.##} {inventory?.Uom})";
-                    string fId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
-                    return RedirectToPage(new { id = fId });
+                    ErrorMessage = $"Insufficient stock for: {inventory?.ItemName ?? "Unknown Item"} (Required: {det.Value:0.##} {inventory?.Uom}, Available: {inventory?.Stock:0.##} {inventory?.Uom})";
+                    return RedirectToPage(new { id = formattedId });
                 }
             }
 
-            // 2. If stock is sufficient, deduct from inventory and log transactions
+            // 2. Perform Deductions and log transactions
             var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Branch Order");
             if (transactionType == null)
             {
@@ -227,68 +223,22 @@ namespace LeKatsuMNL.Pages.Dashboard
                 await _context.SaveChangesAsync();
             }
 
-            foreach (var req in stockRequirements)
+            foreach (var item in deductions)
             {
-                var inventory = await _context.CommissaryInventories.FindAsync(req.Key);
+                var inventory = await _context.CommissaryInventories.FindAsync(item.Key);
                 if (inventory != null)
                 {
-                    inventory.Stock -= req.Value;
+                    decimal oldStock = inventory.Stock;
+                    inventory.Stock -= item.Value;
 
-                    // Log the transaction
-                    var transaction = new InventoryTransaction
-                    {
-                        ComId = req.Key,
-                        TypeId = transactionType.TypeId,
-                        QuantityChange = -req.Value,
-                        TimeStamp = System.DateTime.Now
-                    };
-                    _context.InventoryTransactions.Add(transaction);
-                }
-            }
-
-            // 2.5 Deduct the SKU itself if it exists in CommissaryInventory (for SKU Report tracking)
-            foreach (var item in order.OrderLists)
-            {
-                if (item.SkuId.HasValue && item.SkuHeader != null)
-                {
-                    var skuInventory = await _context.CommissaryInventories
-                        .FirstOrDefaultAsync(i => i.SkuId == item.SkuHeader.SkuId);
-                    
-                    if (skuInventory == null)
-                    {
-                        var firstVendor = await _context.VendorInfos.OrderBy(v => v.VendorId).FirstOrDefaultAsync();
-                        int defaultVendorId = firstVendor?.VendorId ?? 0;
-
-                        // Create inventory record if missing
-                        skuInventory = new CommissaryInventory
-                        {
-                            SkuId = item.SkuHeader.SkuId,
-                            ItemName = item.SkuHeader.ItemName,
-                            Stock = 0,
-                            Uom = item.SkuHeader.Uom,
-                            CostPrice = item.SkuHeader.UnitCost ?? 0,
-                            ReorderValue = 0,
-                            CategoryId = item.SkuHeader.CategoryId,
-                            VendorId = defaultVendorId,
-                            Yield = "100%"
-                        };
-                        _context.CommissaryInventories.Add(skuInventory);
-                        await _context.SaveChangesAsync(); // Save to get ComId
-                    }
-
-                    skuInventory.Stock -= item.Quantity;
                     _context.InventoryTransactions.Add(new InventoryTransaction
                     {
-                        ComId = skuInventory.ComId,
+                        ComId = inventory.ComId,
                         TypeId = transactionType.TypeId,
-                        QuantityChange = -item.Quantity,
-                        TimeStamp = System.DateTime.Now
+                        QuantityChange = -item.Value,
+                        TimeStamp = DateTime.Now,
+                        Remarks = $"Branch Order #{formattedId} deduction"
                     });
-                }
-                else if (item.ComId.HasValue)
-                {
-                    // Ingredient stock deduction is already handled in the stockRequirements loop above
-                    // This section is for SKU-specific inventory tracking if needed.
                 }
             }
 
@@ -296,7 +246,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             var invoice = new Invoice
             {
                 OrderId = order.OrderId,
-                InvoiceDate = System.DateTime.Now,
+                InvoiceDate = DateTime.Now,
                 TotalPrice = order.OrderLists.Sum(ol => ol.TotalPrice),
                 PaymentStatus = "Pending",
                 PaymentMethod = "TBD",
@@ -304,13 +254,13 @@ namespace LeKatsuMNL.Pages.Dashboard
             };
             _context.Invoices.Add(invoice);
 
-            // 4. Update status
+            // 4. Update order status
             order.Status = "Approved";
             await _context.SaveChangesAsync();
 
-            string approvedFormattedId = $"{order.OrderDate.Year}-{order.OrderId:D4}";
-            return RedirectToPage(new { id = approvedFormattedId });
+            return RedirectToPage(new { id = formattedId });
         }
+
 
         public async Task<IActionResult> OnPostPrepareAsync(int OrderId)
         {
@@ -353,75 +303,75 @@ namespace LeKatsuMNL.Pages.Dashboard
             return RedirectToPage(new { id = deliverFormattedId });
         }
 
-        private async Task AggregateStockRequirements(int skuId, decimal multiplier, Dictionary<int, decimal> requirements, HashSet<int> visitedSkuIds = null)
+        private async Task AggregateDeductions(int? skuId, int? comId, decimal quantity, Dictionary<int, decimal> deductions, Dictionary<int, decimal> stockSnapshots)
         {
-            if (visitedSkuIds == null) visitedSkuIds = new HashSet<int>();
-            if (visitedSkuIds.Contains(skuId)) return;
-
-            visitedSkuIds.Add(skuId);
-
-            var sku = await _context.SkuHeaders
-                .Include(s => s.SkuRecipes)
-                    .ThenInclude(r => r.CommissaryInventory)
-                .Include(s => s.SkuRecipes)
-                    .ThenInclude(r => r.TargetSku)
-                .FirstOrDefaultAsync(s => s.SkuId == skuId);
-
-            if (sku == null || sku.SkuRecipes == null) return;
-
-            foreach (var recipe in sku.SkuRecipes)
+            CommissaryInventory inv = null;
+            if (skuId.HasValue)
             {
-                if (recipe.ComId.HasValue && recipe.CommissaryInventory != null)
-                {
-                    decimal convertedQty = Helpers.UomConverter.Convert(
-                        recipe.QuantityNeeded, recipe.Uom, recipe.CommissaryInventory.Uom);
-                    decimal totalNeeded = convertedQty * multiplier;
+                inv = await _context.CommissaryInventories
+                    .Include(i => i.SkuHeader)
+                        .ThenInclude(s => s.SkuRecipes)
+                            .ThenInclude(r => r.CommissaryInventory)
+                    .Include(i => i.SkuHeader)
+                        .ThenInclude(s => s.SkuRecipes)
+                            .ThenInclude(r => r.TargetSku)
+                    .FirstOrDefaultAsync(i => i.SkuId == skuId);
+            }
+            else if (comId.HasValue)
+            {
+                inv = await _context.CommissaryInventories
+                    .Include(i => i.IngredientRecipes)
+                        .ThenInclude(r => r.Material)
+                    .FirstOrDefaultAsync(i => i.ComId == comId);
+            }
 
-                    if (requirements.ContainsKey(recipe.ComId.Value))
-                        requirements[recipe.ComId.Value] += totalNeeded;
-                    else
-                        requirements[recipe.ComId.Value] = totalNeeded;
-                }
-                else if (recipe.TargetSkuId.HasValue)
+            if (inv == null) return;
+
+            if (!stockSnapshots.ContainsKey(inv.ComId))
+            {
+                stockSnapshots[inv.ComId] = inv.Stock;
+            }
+
+            decimal available = Math.Min(quantity, stockSnapshots[inv.ComId]);
+            if (available > 0)
+            {
+                stockSnapshots[inv.ComId] -= available;
+                deductions[inv.ComId] = deductions.GetValueOrDefault(inv.ComId) + available;
+            }
+
+            decimal remaining = quantity - available;
+            if (remaining > 0)
+            {
+                if (skuId.HasValue && inv.SkuHeader?.SkuRecipes != null && inv.SkuHeader.SkuRecipes.Any())
                 {
-                    await AggregateStockRequirements(recipe.TargetSkuId.Value, multiplier * recipe.QuantityNeeded, requirements, new HashSet<int>(visitedSkuIds));
+                    foreach (var recipe in inv.SkuHeader.SkuRecipes)
+                    {
+                        string targetUom = recipe.ComId.HasValue ? recipe.CommissaryInventory?.Uom : recipe.TargetSku?.Uom;
+                        if (string.IsNullOrEmpty(targetUom)) targetUom = recipe.Uom;
+
+                        decimal componentQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, targetUom);
+                        await AggregateDeductions(recipe.TargetSkuId, recipe.ComId, componentQty * remaining, deductions, stockSnapshots);
+                    }
+                }
+                else if (comId.HasValue && inv.IsRepack && inv.IngredientRecipes != null && inv.IngredientRecipes.Any())
+                {
+                    foreach (var recipe in inv.IngredientRecipes)
+                    {
+                        if (recipe.MaterialId > 0 && recipe.Material != null)
+                        {
+                            decimal materialQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, recipe.Material.Uom);
+                            await AggregateDeductions(null, recipe.MaterialId, materialQty * remaining, deductions, stockSnapshots);
+                        }
+                    }
+                }
+                else
+                {
+                    // No stock and no recipe/not repack - take from this item
+                    deductions[inv.ComId] = deductions.GetValueOrDefault(inv.ComId) + remaining;
+                    stockSnapshots[inv.ComId] -= remaining;
                 }
             }
         }
 
-        private async Task AggregateIngredientRequirements(int comId, decimal quantity, Dictionary<int, decimal> requirements, HashSet<int> visitedComIds = null)
-        {
-            if (visitedComIds == null) visitedComIds = new HashSet<int>();
-            if (visitedComIds.Contains(comId)) return;
-            visitedComIds.Add(comId);
-
-            var inventory = await _context.CommissaryInventories
-                .Include(ci => ci.IngredientRecipes)
-                    .ThenInclude(r => r.Material)
-                .FirstOrDefaultAsync(ci => ci.ComId == comId);
-
-            if (inventory == null) return;
-
-            // Add the parent ingredient itself
-            if (requirements.ContainsKey(comId))
-                requirements[comId] += quantity;
-            else
-                requirements[comId] = quantity;
-
-            // Add materials if it's a repack
-            if (inventory.IsRepack && inventory.IngredientRecipes != null)
-            {
-                foreach (var recipe in inventory.IngredientRecipes)
-                {
-                    if (recipe.Material == null) continue;
-
-                    decimal convertedQty = Helpers.UomConverter.Convert(
-                        recipe.QuantityNeeded, recipe.Uom, recipe.Material.Uom);
-                    decimal materialQty = convertedQty * quantity;
-                    
-                    await AggregateIngredientRequirements(recipe.MaterialId, materialQty, requirements, new HashSet<int>(visitedComIds));
-                }
-            }
-        }
     }
 }

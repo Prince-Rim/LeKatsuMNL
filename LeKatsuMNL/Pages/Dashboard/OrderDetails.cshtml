@@ -5,10 +5,6 @@
     ViewData["Title"] = $"Transaction / Branch Orders / {formattedOrderId}";
 }
 
-
-
-
-
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
         <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm flex items-center animate-pulse dark:bg-red-500/10 dark:border-red-500/50">
@@ -117,7 +113,7 @@
                 <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">@formattedOrderId</span>
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
-                <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Manager ID</span>
+                <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Branch ID</span>
                 <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">
                     @(Model.Order.BranchManager != null ? $"BRCH-{Model.Order.BranchManager.BManagerId:D4}" : "-")
                 </span>

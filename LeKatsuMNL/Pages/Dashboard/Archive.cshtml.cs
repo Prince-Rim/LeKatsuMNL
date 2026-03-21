@@ -50,6 +50,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ToListAsync();
 
                 var managers = await _context.BranchManagers
+                    .IgnoreQueryFilters()
                     .Where(m => m.IsArchived)
                     .Select(m => new ArchiveRow { Id = m.BManagerId, FormattedId = "BRCH-" + m.BManagerId.ToString("D4"), Name = m.FirstName + " " + m.LastName, Type = "Manager", Details = "Branch Manager" })
                     .ToListAsync();
@@ -71,54 +72,106 @@ namespace LeKatsuMNL.Pages.Dashboard
             }
 
             IQueryable<ArchiveRow> query = null;
+            string searchString = SearchTerm?.Trim();
 
             switch (ActiveTab)
             {
                 case "Items":
-                    query = _context.CommissaryInventories
-                        .Where(i => i.IsArchived)
-                        .Select(i => new ArchiveRow { Id = i.ComId, FormattedId = "ING-" + i.ComId.ToString("D3"), Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
+                    var itemsQuery = _context.CommissaryInventories.Where(i => i.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        if (searchString.StartsWith("ING-", StringComparison.OrdinalIgnoreCase) && int.TryParse(searchString.Substring(4), out int id))
+                        {
+                            itemsQuery = itemsQuery.Where(i => i.ItemName.Contains(searchString) || i.Uom.Contains(searchString) || i.ComId == id);
+                        }
+                        else
+                        {
+                            itemsQuery = itemsQuery.Where(i => i.ItemName.Contains(searchString) || i.Uom.Contains(searchString));
+                        }
+                    }
+                    query = itemsQuery.Select(i => new ArchiveRow { Id = i.ComId, FormattedId = "ING-" + i.ComId.ToString("D3"), Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
                     break;
+
                 case "SKU":
-                    query = _context.SkuHeaders
-                        .Where(s => s.IsArchived)
-                        .Select(s => new ArchiveRow { Id = s.SkuId, FormattedId = "SKU-" + s.SkuId.ToString("D3"), Name = s.ItemName, Type = "SKU", Details = s.Uom });
+                    var skuQuery = _context.SkuHeaders.Where(s => s.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        if (searchString.StartsWith("SKU-", StringComparison.OrdinalIgnoreCase) && int.TryParse(searchString.Substring(4), out int id))
+                        {
+                            skuQuery = skuQuery.Where(s => s.ItemName.Contains(searchString) || s.Uom.Contains(searchString) || s.SkuId == id);
+                        }
+                        else
+                        {
+                            skuQuery = skuQuery.Where(s => s.ItemName.Contains(searchString) || s.Uom.Contains(searchString));
+                        }
+                    }
+                    query = skuQuery.Select(s => new ArchiveRow { Id = s.SkuId, FormattedId = "SKU-" + s.SkuId.ToString("D3"), Name = s.ItemName, Type = "SKU", Details = s.Uom });
                     break;
+
                 case "Suppliers":
-                    query = _context.VendorInfos
-                        .Where(v => v.IsArchived)
-                        .Select(v => new ArchiveRow { Id = v.VendorId, FormattedId = "SUP-" + v.VendorId.ToString("D4"), Name = v.VendorName, Type = "Supplier", Details = v.ContactNum });
+                    var supplierQuery = _context.VendorInfos.Where(v => v.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        if (searchString.StartsWith("SUP-", StringComparison.OrdinalIgnoreCase) && int.TryParse(searchString.Substring(4), out int id))
+                        {
+                            supplierQuery = supplierQuery.Where(v => v.VendorName.Contains(searchString) || v.ContactNum.Contains(searchString) || v.VendorId == id);
+                        }
+                        else
+                        {
+                            supplierQuery = supplierQuery.Where(v => v.VendorName.Contains(searchString) || v.ContactNum.Contains(searchString));
+                        }
+                    }
+                    query = supplierQuery.Select(v => new ArchiveRow { Id = v.VendorId, FormattedId = "SUP-" + v.VendorId.ToString("D4"), Name = v.VendorName, Type = "Supplier", Details = v.ContactNum });
                     break;
+
                 case "Branches":
-                    query = _context.BranchLocations
-                        .Where(b => b.IsArchived)
-                        .Select(b => new ArchiveRow { Id = b.BranchId, FormattedId = "BRN-" + b.BranchId.ToString("D3"), Name = b.BranchName, Type = "Branch", Details = b.CityMunicipality });
+                    var branchQuery = _context.BranchLocations.Where(b => b.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        if (searchString.StartsWith("BRN-", StringComparison.OrdinalIgnoreCase) && int.TryParse(searchString.Substring(4), out int id))
+                        {
+                            branchQuery = branchQuery.Where(b => b.BranchName.Contains(searchString) || b.CityMunicipality.Contains(searchString) || b.BranchId == id);
+                        }
+                        else
+                        {
+                            branchQuery = branchQuery.Where(b => b.BranchName.Contains(searchString) || b.CityMunicipality.Contains(searchString));
+                        }
+                    }
+                    query = branchQuery.Select(b => new ArchiveRow { Id = b.BranchId, FormattedId = "BRN-" + b.BranchId.ToString("D3"), Name = b.BranchName, Type = "Branch", Details = b.CityMunicipality });
                     break;
+
                 case "Orders":
-                    query = _context.OrderInfos
-                        .Where(o => o.IsArchived)
-                        .Select(o => new ArchiveRow { Id = o.OrderId, FormattedId = o.OrderDate.Year + "-" + o.OrderId.ToString("D4"), Name = "Order #" + o.OrderId, Type = "Branch Order", Details = o.Status });
+                    var orderQuery = _context.OrderInfos.Where(o => o.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        orderQuery = orderQuery.Where(o => o.Status.Contains(searchString) || o.OrderId.ToString().Contains(searchString));
+                    }
+                    query = orderQuery.Select(o => new ArchiveRow { Id = o.OrderId, FormattedId = o.OrderDate.Year + "-" + o.OrderId.ToString("D4"), Name = "Order #" + o.OrderId, Type = "Branch Order", Details = o.Status });
                     break;
+
                 case "SupplyOrders":
-                    query = _context.SupplyOrders
-                        .Where(s => s.IsArchived)
-                        .Select(s => new ArchiveRow { Id = s.SoaId, FormattedId = s.SupplyDate.Year + "-" + s.SoaId.ToString("D4"), Name = "Supply Order #" + s.SoaId, Type = "Stock Receipt", Details = s.Status });
+                    var supplyQuery = _context.SupplyOrders.Where(s => s.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        supplyQuery = supplyQuery.Where(s => s.Status.Contains(searchString) || s.SoaId.ToString().Contains(searchString));
+                    }
+                    query = supplyQuery.Select(s => new ArchiveRow { Id = s.SoaId, FormattedId = s.SupplyDate.Year + "-" + s.SoaId.ToString("D4"), Name = "Supply Order #" + s.SoaId, Type = "Stock Receipt", Details = s.Status });
                     break;
+
                 case "Categories":
-                    query = _context.Categories
-                        .Where(c => c.IsArchived)
-                        .Select(c => new ArchiveRow { Id = c.CategoryId, FormattedId = "CAT-" + c.CategoryId.ToString("D3"), Name = c.CategoryName, Type = "Category", Details = c.SubCategoryNames ?? "-" });
+                    var catQuery = _context.Categories.Where(c => c.IsArchived);
+                    if (!string.IsNullOrEmpty(searchString))
+                    {
+                        catQuery = catQuery.Where(c => c.CategoryName.Contains(searchString) || c.SubCategoryNames.Contains(searchString));
+                    }
+                    query = catQuery.Select(c => new ArchiveRow { Id = c.CategoryId, FormattedId = "CAT-" + c.CategoryId.ToString("D3"), Name = c.CategoryName, Type = "Category", Details = c.SubCategoryNames ?? "-" });
                     break;
+
                 default:
                     query = _context.CommissaryInventories
                         .Where(i => i.IsArchived)
                         .Select(i => new ArchiveRow { Id = i.ComId, FormattedId = "ING-" + i.ComId.ToString("D3"), Name = i.ItemName, Type = "Ingredient", Details = i.Uom });
                     break;
-            }
-
-            if (!string.IsNullOrEmpty(SearchTerm))
-            {
-                query = query.Where(r => r.Name.Contains(SearchTerm) || r.Type.Contains(SearchTerm) || r.FormattedId.Contains(SearchTerm));
             }
 
             ArchivedItems = await PaginatedList<ArchiveRow>.CreateAsync(query.AsNoTracking(), pageIndex ?? 1, pageSize);
@@ -133,8 +186,17 @@ namespace LeKatsuMNL.Pages.Dashboard
                     if (item != null) item.IsArchived = false;
                     break;
                 case "SKU":
-                    var sku = await _context.SkuHeaders.FindAsync(id);
-                    if (sku != null) sku.IsArchived = false;
+                    var sku = await _context.SkuHeaders
+                        .Include(s => s.CommissaryInventory)
+                        .FirstOrDefaultAsync(s => s.SkuId == id);
+                    if (sku != null)
+                    {
+                        sku.IsArchived = false;
+                        if (sku.CommissaryInventory != null)
+                        {
+                            sku.CommissaryInventory.IsArchived = false;
+                        }
+                    }
                     break;
                 case "Users":
                     if (subType == "Admin")
@@ -144,8 +206,18 @@ namespace LeKatsuMNL.Pages.Dashboard
                     }
                     else if (subType == "Manager")
                     {
-                        var manager = await _context.BranchManagers.FindAsync(id);
-                        if (manager != null) manager.IsArchived = false;
+                        var manager = await _context.BranchManagers.IgnoreQueryFilters().FirstOrDefaultAsync(m => m.BManagerId == id);
+                        if (manager != null)
+                        {
+                            var existing = await _context.BranchManagers.FirstOrDefaultAsync(m => m.BranchId == manager.BranchId && !m.IsArchived && m.BManagerId != manager.BManagerId);
+                            if (existing != null)
+                            {
+                                TempData["ErrorMessage"] = "Cannot restore this manager because the branch already has an active manager.";
+                                return RedirectToPage(new { ActiveTab = tab });
+                            }
+                            manager.IsArchived = false;
+                            TempData["SuccessMessage"] = "Manager restored successfully.";
+                        }
                     }
                     else if (subType == "Staff")
                     {
@@ -192,8 +264,17 @@ namespace LeKatsuMNL.Pages.Dashboard
                     items.ForEach(i => i.IsArchived = false);
                     break;
                 case "SKU":
-                    var skus = await _context.SkuHeaders.Where(s => idList.Contains(s.SkuId)).ToListAsync();
-                    skus.ForEach(s => s.IsArchived = false);
+                    var skus = await _context.SkuHeaders
+                        .Include(s => s.CommissaryInventory)
+                        .Where(s => idList.Contains(s.SkuId)).ToListAsync();
+                    foreach (var s in skus)
+                    {
+                        s.IsArchived = false;
+                        if (s.CommissaryInventory != null)
+                        {
+                            s.CommissaryInventory.IsArchived = false;
+                        }
+                    }
                     break;
                 case "Users":
                     var admins = await _context.AdminAccounts.Where(a => idList.Contains(a.ManagerId)).ToListAsync();

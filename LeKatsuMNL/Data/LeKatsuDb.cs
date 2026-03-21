@@ -115,11 +115,11 @@ namespace LeKatsuMNL.Data
                 .HasForeignKey(s => s.SubCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // SkuHeader -> CommissaryInventory (1:M)
+            // SkuHeader -> CommissaryInventory (1:1)
             modelBuilder.Entity<CommissaryInventory>()
                 .HasOne(ci => ci.SkuHeader)
-                .WithMany() // SkuHeader doesn't have CommissaryInventories collection
-                .HasForeignKey(ci => ci.SkuId)
+                .WithOne(s => s.CommissaryInventory)
+                .HasForeignKey<CommissaryInventory>(ci => ci.SkuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // CommissaryInventory -> InventoryTransaction (1:M)
@@ -180,12 +180,16 @@ namespace LeKatsuMNL.Data
                 .HasForeignKey(i => i.OrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // BranchLocation -> BranchManager (1:M)
+            // BranchLocation -> BranchManager (1:1)
             modelBuilder.Entity<BranchManager>()
                 .HasOne(bm => bm.BranchLocation)
-                .WithMany(bl => bl.BranchManagers)
-                .HasForeignKey(bm => bm.BranchId)
+                .WithOne(bl => bl.BranchManager)
+                .HasForeignKey<BranchManager>(bm => bm.BranchId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Global query filter to ensure 1:1 queries only see active managers
+            modelBuilder.Entity<BranchManager>()
+                .HasQueryFilter(bm => !bm.IsArchived);
 
             // BranchManager -> OrderInfo (1:M)
             modelBuilder.Entity<OrderInfo>()
@@ -331,6 +335,19 @@ namespace LeKatsuMNL.Data
                 .HasOne(ir => ir.Material)
                 .WithMany()
                 .HasForeignKey(ir => ir.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            // RejectItem configuration
+            modelBuilder.Entity<RejectItem>()
+                .HasOne(r => r.CommissaryInventory)
+                .WithMany(ci => ci.RejectItems)
+                .HasForeignKey(r => r.ComId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RejectItem>()
+                .HasOne(r => r.SkuHeader)
+                .WithMany(sh => sh.RejectItems)
+                .HasForeignKey(r => r.SkuId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

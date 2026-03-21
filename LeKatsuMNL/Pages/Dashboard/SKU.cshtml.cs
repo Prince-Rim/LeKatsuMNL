@@ -46,6 +46,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(s => !s.IsArchived)
                 .Include(s => s.Category)
                 .Include(s => s.SubCategory)
+                .Include(s => s.CommissaryInventory)
                 .AsQueryable();
 
             // Apply Filters
@@ -92,7 +93,9 @@ namespace LeKatsuMNL.Pages.Dashboard
             string PackSize,
             string UOM,
             decimal? SellingPrice,
-            decimal? UnitCost)
+            decimal? UnitCost,
+            decimal? ReorderValue)
+
         {
             if (!PermissionHelper.HasPermission(User, "SKU", 'C')) return Forbid();
 
@@ -145,10 +148,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                 Stock = 0,
                 Uom = newSku.Uom,
                 CostPrice = newSku.UnitCost ?? 0,
-                ReorderValue = 0,
+                ReorderValue = ReorderValue,
                 CategoryId = newSku.CategoryId,
                 VendorId = defaultVendorId,
                 Yield = "100%"
+
             };
             _context.CommissaryInventories.Add(inventory);
             await _context.SaveChangesAsync();
@@ -167,7 +171,10 @@ namespace LeKatsuMNL.Pages.Dashboard
             string PackSize,
             string UOM,
             decimal SellingPrice,
-            decimal? UnitCost)
+            decimal? UnitCost,
+            decimal? ReorderValue,
+            decimal? Stock)
+
         {
             if (!PermissionHelper.HasPermission(User, "SKU", 'U')) return Forbid();
 
@@ -220,23 +227,69 @@ namespace LeKatsuMNL.Pages.Dashboard
                 {
                     SkuId = sku.SkuId,
                     ItemName = sku.ItemName,
-                    Stock = 0,
+                    Stock = Stock ?? 0,
                     Uom = sku.Uom,
                     CostPrice = sku.UnitCost ?? 0,
-                    ReorderValue = 0,
+                    ReorderValue = ReorderValue,
                     CategoryId = sku.CategoryId,
                     VendorId = defaultVendorId,
                     Yield = "100%"
                 };
                 _context.CommissaryInventories.Add(inv);
+
+                if (Stock > 0)
+                {
+                    var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Manual Adjustment");
+                    if (transactionType == null)
+                    {
+                        transactionType = new InvTransactionType { TransactionType = "Manual Adjustment" };
+                        _context.InvTransactionTypes.Add(transactionType);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    {
+                        ComId = inv.ComId,
+                        TypeId = transactionType.TypeId,
+                        QuantityChange = Stock.Value,
+                        TimeStamp = DateTime.Now,
+                        Remarks = "Initial SKU stock recorded upon creation"
+                    });
+                }
             }
             else
             {
+                // Track stock change
+                if (Stock.HasValue && inv.Stock != Stock.Value)
+                {
+                    var diff = Stock.Value - inv.Stock;
+                    var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Manual Adjustment");
+                    if (transactionType == null)
+                    {
+                        transactionType = new InvTransactionType { TransactionType = "Manual Adjustment" };
+                        _context.InvTransactionTypes.Add(transactionType);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    {
+                        ComId = inv.ComId,
+                        TypeId = transactionType.TypeId,
+                        QuantityChange = diff,
+                        TimeStamp = DateTime.Now,
+                        Remarks = "Manual SKU stock adjustment"
+                    });
+
+                    inv.Stock = Stock.Value;
+                }
+
                 inv.ItemName = sku.ItemName;
                 inv.Uom = sku.Uom;
                 inv.CostPrice = sku.UnitCost ?? 0;
+                inv.ReorderValue = ReorderValue;
                 inv.CategoryId = sku.CategoryId;
             }
+
 
             await _context.SaveChangesAsync();
 
@@ -284,8 +337,10 @@ namespace LeKatsuMNL.Pages.Dashboard
                     ComId = ci.ComId,
                     TypeId = transactionType.TypeId,
                     QuantityChange = -RejectQty,
-                    TimeStamp = System.DateTime.Now
+                    TimeStamp = System.DateTime.Now,
+                    Remarks = "Manual adjustment via SKU management"
                 };
+
                 _context.InventoryTransactions.Add(transaction);
             }
 
@@ -309,10 +364,16 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task<IActionResult> OnPostArchiveAsync(int id)
         {
-            var sku = await _context.SkuHeaders.FindAsync(id);
+            var sku = await _context.SkuHeaders
+                .Include(s => s.CommissaryInventory)
+                .FirstOrDefaultAsync(s => s.SkuId == id);
             if (sku == null) return NotFound();
 
             sku.IsArchived = true;
+            if (sku.CommissaryInventory != null)
+            {
+                sku.CommissaryInventory.IsArchived = true;
+            }
             await _context.SaveChangesAsync();
 
             StatusMessage = "Successfully archived. The SKU has been moved to archives.";
@@ -325,10 +386,17 @@ namespace LeKatsuMNL.Pages.Dashboard
             if (string.IsNullOrEmpty(ids)) return RedirectToPage();
 
             var idList = ids.Split(',').Select(int.Parse).ToList();
-            var skus = await _context.SkuHeaders.Where(s => idList.Contains(s.SkuId)).ToListAsync();
+            var skus = await _context.SkuHeaders
+                .Include(s => s.CommissaryInventory)
+                .Where(s => idList.Contains(s.SkuId)).ToListAsync();
+
             foreach (var sku in skus)
             {
                 sku.IsArchived = true;
+                if (sku.CommissaryInventory != null)
+                {
+                    sku.CommissaryInventory.IsArchived = true;
+                }
             }
 
             await _context.SaveChangesAsync();

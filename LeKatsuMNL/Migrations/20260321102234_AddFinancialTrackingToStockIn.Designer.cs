@@ -4,6 +4,7 @@ using LeKatsuMNL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeKatsuMNL.Migrations
 {
     [DbContext(typeof(LeKatsuDb))]
-    partial class LeKatsuDbModelSnapshot : ModelSnapshot
+    [Migration("20260321102234_AddFinancialTrackingToStockIn")]
+    partial class AddFinancialTrackingToStockIn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -718,9 +721,6 @@ namespace LeKatsuMNL.Migrations
 
                     b.Property<decimal>("QuantityChange")
                         .HasColumnType("decimal(18,4)");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");

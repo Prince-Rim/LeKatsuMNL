@@ -47,7 +47,7 @@ namespace LeKatsuMNL.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation Properties
-        public ICollection<BranchManager> BranchManagers { get; set; } = new List<BranchManager>();
+        public BranchManager? BranchManager { get; set; }
 
         public bool IsArchived { get; set; } = false;
     }

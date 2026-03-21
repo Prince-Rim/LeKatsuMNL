@@ -19,6 +19,9 @@ namespace LeKatsuMNL.Models
         public decimal Quantity { get; set; }
 
         [Column(TypeName = "decimal(18,4)")]
+        public decimal UnitPrice { get; set; }
+
+        [Column(TypeName = "decimal(18,4)")]
         public decimal TotalPrice { get; set; }
     }
 }

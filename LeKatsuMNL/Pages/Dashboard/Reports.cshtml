@@ -69,56 +69,66 @@
     }
 </style>
 
-<!-- Filters Section -->
-<div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm dark:bg-slate-800 dark:border-gray-700 mb-6">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Report Type</label>
-            <select name="ReportType" asp-for="ReportType" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white" onchange="this.form.submit()">
-                <option value="Inventory">Ingredient Report</option>
-                <option value="SkuInventory">SKU Report</option>
-                <option value="Sales">Branch Orders</option>
-                <option value="Expenses">Expense Report</option>
-                <option value="Rejects">Reject Report</option>
-                <option value="RestaurantInventory">Res. Inventory Report</option>
-                <option value="RestaurantSales">Res. Sales Report</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">Start Date</label>
-            <input type="date" asp-for="StartDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
-        </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">End Date</label>
-            <input type="date" asp-for="EndDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none dark:bg-slate-700 dark:border-gray-600 dark:text-white">
-        </div>
-        <div class="flex space-x-2">
-            <button type="submit" class="flex-1 bg-[#C41E24] text-white rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-[#A0181D] transition-all">
-                <i class="bi bi-filter mr-2"></i>Apply Filters
-            </button>
-            <a asp-page="./Reports" class="flex items-center justify-center border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
-                <i class="bi bi-arrow-clockwise"></i>
-            </a>
-        </div>
-    </form>
-</div>
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700 mb-6">
+    <!-- Tab Navigation -->
+    <div class="flex flex-wrap border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-slate-900/10">
+        <button type="button" onclick="setReportType('Inventory')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "Inventory" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Ing. In/Out</button>
+        <button type="button" onclick="setReportType('IngredientFinance')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "IngredientFinance" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Ing. Markup</button>
+        <button type="button" onclick="setReportType('SkuInventory')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "SkuInventory" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">SKU In/Out</button>
+        <button type="button" onclick="setReportType('SkuFinance')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "SkuFinance" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">SKU Markup</button>
+        <button type="button" onclick="setReportType('Sales')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "Sales" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Orders</button>
+        <button type="button" onclick="setReportType('Rejects')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "Rejects" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Rejects</button>
+        <button type="button" onclick="setReportType('VendorSummary')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "VendorSummary" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Vendors</button>
+        <button type="button" onclick="setReportType('BranchSummary')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "BranchSummary" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Branches</button>
+    </div>
 
-<!-- Search Section -->
-<div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <form method="get" class="flex items-center gap-2">
-            <input type="hidden" name="ReportType" value="@Model.ReportType" />
-            <input type="hidden" name="StartDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
-            <input type="hidden" name="EndDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
-            <div class="relative flex-1">
+    <!-- Toolbar Filters -->
+    <div class="p-6">
+        <form id="filterForm" method="get" class="flex flex-wrap items-end gap-6">
+            <input type="hidden" name="ReportType" asp-for="ReportType" id="reportTypeInput" />
+            
+            <div class="relative flex-1 min-w-[200px] max-w-md group h-[41px]">
                 <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                     <i class="bi bi-search text-sm"></i>
                 </span>
-                <input type="text" asp-for="SearchQuery" class="w-full border border-gray-300 rounded-lg pl-11 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:text-gray-800 dark:bg-white" placeholder="Search report data...">
+                <input id="searchQuery" type="text" asp-for="SearchQuery" placeholder="Search item name..." 
+                       class="w-full h-full border border-gray-300 rounded-xl pl-11 pr-32 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-slate-800 dark:border-gray-600 dark:placeholder:text-gray-500 transition-all">
+                <div class="absolute inset-y-1 right-1 flex items-center">
+                    <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-lg text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                        <i class="bi bi-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
             </div>
-            <button type="submit" class="bg-[#C41E24] text-white px-4 py-2.5 rounded-lg hover:bg-[#a51a1f] transition-colors flex items-center shadow-md">
-                <i class="bi bi-search mr-2"></i> Search
-            </button>
+
+            <div class="flex flex-col">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Report Period</label>
+                <div class="flex items-center h-[41px] bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 transition-all focus-within:ring-2 focus-within:ring-[#C41E24]/20 focus-within:border-[#C41E24]">
+                    <input type="date" id="startDate" asp-for="StartDate" class="bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none">
+                    <span class="mx-3 text-gray-400 font-medium text-xs">to</span>
+                    <input type="date" id="endDate" asp-for="EndDate" class="bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none">
+                </div>
+            </div>
+
+            <div class="flex flex-col">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Quick Ranges</label>
+                <div class="flex items-center space-x-2 h-[41px]">
+                    <button type="button" onclick="setRange('today')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Today</button>
+                    <button type="button" onclick="setRange('7days')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">7D</button>
+                    <button type="button" onclick="setRange('30days')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">30D</button>
+                    <button type="button" onclick="setRange('month')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Month</button>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 h-[41px]">
+                <a asp-page="./Reports" class="flex items-center justify-center bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 h-full text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-all shadow-sm">
+                    <i class="bi bi-arrow-clockwise text-lg"></i>
+                </a>
+            </div>
         </form>
+    </div>
+</div>
+
     <div class="flex space-x-3">
         <button onclick="window.print()" class="flex items-center space-x-2 border border-blue-600 bg-blue-50 text-blue-600 rounded-lg px-5 py-2.5 text-sm hover:bg-blue-100 transition-all font-bold dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400">
             <i class="bi bi-printer"></i> <span>Print Report</span>
@@ -205,9 +215,10 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4">Item Name</th>
-                    <th class="px-8 py-4 text-center">Qty Sold</th>
-                    <th class="px-8 py-4 text-center">Total Price</th>
+                    <th class="px-8 py-4">Order ID</th>
+                    <th class="px-8 py-4">Branch</th>
+                    <th class="px-8 py-4 text-center">Total Amount</th>
+                    <th class="px-8 py-4 text-center">Money Paid</th>
                     <th class="px-8 py-4 text-center">Date</th>
                 </tr>
             </thead>
@@ -217,9 +228,10 @@
                     foreach (var report in Model.SalesReports)
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Quantity.ToString("N2")</td>
-                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.TotalSales.ToString("N2")</td>
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.FormattedOrderId</td>
+                            <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@report.BranchName</td>
+                            <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">₱@report.TotalAmount.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.MoneyPaid.ToString("N2")</td>
                             <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy")</td>
                         </tr>
                     }
@@ -228,35 +240,6 @@
             </tbody>
         </table>
         <partial name="_Pagination" model="Model.SalesReports" />
-    }
-    else if (Model.ReportType == "Expenses")
-    {
-        <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
-                <tr>
-                    <th class="px-8 py-4">Expense Name</th>
-                    <th class="px-8 py-4 text-center">Category</th>
-                    <th class="px-8 py-4 text-center">Amount</th>
-                    <th class="px-8 py-4 text-center">Date</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                @if (Model.ExpenseReports != null && Model.ExpenseReports.Any())
-                {
-                    foreach (var report in Model.ExpenseReports)
-                    {
-                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ExpenseName</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Category</td>
-                            <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">₱@report.Amount.ToString("N2")</td>
-                            <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy")</td>
-                        </tr>
-                    }
-                }
-                else { <partial name="_EmptyReport" /> }
-            </tbody>
-        </table>
-        <partial name="_Pagination" model="Model.ExpenseReports" />
     }
     else if (Model.ReportType == "Rejects")
     {
@@ -293,75 +276,190 @@
         </table>
         <partial name="_Pagination" model="Model.RejectReports" />
     }
-    else if (Model.ReportType == "RestaurantInventory")
+    else if (Model.ReportType == "VendorSummary")
     {
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4">Item Name</th>
-                    <th class="px-8 py-4 text-center">Beginning</th>
-                    <th class="px-8 py-4 text-center">Added</th>
-                    <th class="px-8 py-4 text-center">Deducted</th>
-                    <th class="px-8 py-4 text-center">Current</th>
+                    <th class="px-8 py-4">Vendor Name</th>
+                    <th class="px-8 py-4 text-center">Total Orders</th>
+                    <th class="px-8 py-4 text-center">Total Items</th>
+                    <th class="px-8 py-4 text-center">Total Spent</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                @if (Model.RestaurantInventoryReports != null && Model.RestaurantInventoryReports.Any())
+                @if (Model.VendorSummaryReports != null && Model.VendorSummaryReports.Any())
                 {
-                    foreach (var report in Model.RestaurantInventoryReports)
+                    foreach (var report in Model.VendorSummaryReports)
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ItemName</td>
-                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.Beginning.ToString("N2")</td>
-                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">@report.Added.ToString("N2")</td>
-                            <td class="px-8 py-5 text-center text-red-600 font-bold dark:text-red-400">@report.Deducted.ToString("N2")</td>
-                            <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">@report.Current.ToString("N2")</td>
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.VendorName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.TotalOrders</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.TotalItems.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.TotalSpent.ToString("N2")</td>
                         </tr>
                     }
                 }
                 else { <partial name="_EmptyReport" /> }
             </tbody>
         </table>
-        <partial name="_Pagination" model="Model.RestaurantInventoryReports" />
+        <partial name="_Pagination" model="Model.VendorSummaryReports" />
     }
-    else if (Model.ReportType == "RestaurantSales")
+    else if (Model.ReportType == "BranchSummary")
     {
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
                 <tr>
-                    <th class="px-8 py-4">Receipt #</th>
-                    <th class="px-8 py-4 text-center">Total Price</th>
-                    <th class="px-8 py-4 text-center">Date</th>
-                    <th class="px-8 py-4">Staff</th>
+                    <th class="px-8 py-4">Branch Name</th>
+                    <th class="px-8 py-4 text-center">Total Orders</th>
+                    <th class="px-8 py-4 text-center">Total Revenue</th>
+                    <th class="px-8 py-4 text-center">Total Collected</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                @if (Model.RestaurantSalesReports != null && Model.RestaurantSalesReports.Any())
+                @if (Model.BranchSummaryReports != null && Model.BranchSummaryReports.Any())
                 {
-                    foreach (var report in Model.RestaurantSalesReports)
+                    foreach (var report in Model.BranchSummaryReports)
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
-                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.ReceiptNum</td>
-                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.TotalPrice.ToString("N2")</td>
-                            <td class="px-8 py-5 text-center text-gray-500 font-medium dark:text-gray-400">@report.Date.ToString("MMM dd, yyyy HH:mm")</td>
-                            <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@report.StaffName</td>
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@report.BranchName</td>
+                            <td class="px-8 py-5 text-center text-gray-600 font-medium dark:text-gray-300">@report.TotalOrders</td>
+                            <td class="px-8 py-5 text-center text-gray-800 font-bold dark:text-white">₱@report.TotalRevenue.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center text-green-600 font-bold dark:text-green-400">₱@report.TotalCollected.ToString("N2")</td>
                         </tr>
                     }
                 }
                 else { <partial name="_EmptyReport" /> }
             </tbody>
         </table>
-        <partial name="_Pagination" model="Model.RestaurantSalesReports" />
+        <partial name="_Pagination" model="Model.BranchSummaryReports" />
+    }
+    else if (Model.ReportType == "IngredientFinance")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Ingredient Name</th>
+                    <th class="px-8 py-4">UOM</th>
+                    <th class="px-8 py-4 text-right">Cost</th>
+                    <th class="px-8 py-4 text-right">Selling Price</th>
+                    <th class="px-8 py-4 text-right">Markup</th>
+                    <th class="px-8 py-4 text-center">Margin (%)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.IngredientFinanceReports != null && Model.IngredientFinanceReports.Any())
+                {
+                    foreach (var item in Model.IngredientFinanceReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@item.ItemName</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@item.Uom</td>
+                            <td class="px-8 py-5 text-right text-gray-600 font-medium dark:text-gray-300">₱@item.CostPrice.ToString("N2")</td>
+                            <td class="px-8 py-5 text-right text-gray-800 font-bold dark:text-white">₱@item.SellingPrice.ToString("N2")</td>
+                            <td class="px-8 py-5 text-right text-green-600 font-bold dark:text-green-400">₱@item.Markup.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold @(item.MarginPercentage >= 30 ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400" : "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400")">
+                                    @item.MarginPercentage.ToString("F2")%
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.IngredientFinanceReports" />
+    }
+    else if (Model.ReportType == "SkuFinance")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">SKU Name</th>
+                    <th class="px-8 py-4">UOM</th>
+                    <th class="px-8 py-4 text-right">Cost</th>
+                    <th class="px-8 py-4 text-right">Selling Price</th>
+                    <th class="px-8 py-4 text-right">Markup</th>
+                    <th class="px-8 py-4 text-center">Margin (%)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.SkuFinanceReports != null && Model.SkuFinanceReports.Any())
+                {
+                    foreach (var item in Model.SkuFinanceReports)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
+                            <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">@item.ItemName</td>
+                            <td class="px-8 py-5 text-gray-500 font-medium dark:text-gray-400">@item.Uom</td>
+                            <td class="px-8 py-5 text-right text-gray-600 font-medium dark:text-gray-300">₱@item.CostPrice.ToString("N2")</td>
+                            <td class="px-8 py-5 text-right text-gray-800 font-bold dark:text-white">₱@item.SellingPrice.ToString("N2")</td>
+                            <td class="px-8 py-5 text-right text-green-600 font-bold dark:text-green-400">₱@item.Markup.ToString("N2")</td>
+                            <td class="px-8 py-5 text-center">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold @(item.MarginPercentage >= 30 ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400" : "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400")">
+                                    @item.MarginPercentage.ToString("F2")%
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.SkuFinanceReports" />
     }
 </div>
 
 @section Scripts {
     <script>
-        // Automatic form submission on date change
-        document.querySelectorAll('input[type="date"]').forEach(input => {
-            input.addEventListener('change', () => {
-                input.form.submit();
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            startDateInput.addEventListener('change', function() {
+                if (endDateInput.value && this.value > endDateInput.value) {
+                    endDateInput.value = this.value;
+                }
             });
+
+            endDateInput.addEventListener('change', function() {
+                if (startDateInput.value && this.value < startDateInput.value) {
+                    startDateInput.value = this.value;
+                }
+            });
+
+            window.setReportType = function(type) {
+                const input = document.getElementById('reportTypeInput');
+                if (input) {
+                    input.value = type;
+                    document.getElementById('filterForm').submit();
+                }
+            };
+
+            window.setRange = function(range) {
+                const now = new Date();
+                let start = new Date();
+                let end = new Date();
+
+                switch(range) {
+                    case 'today':
+                        start = now;
+                        break;
+                    case '7days':
+                        start.setDate(now.getDate() - 7);
+                        break;
+                    case '30days':
+                        start.setDate(now.getDate() - 30);
+                        break;
+                    case 'month':
+                        start = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                }
+
+                startDateInput.value = start.toISOString().split('T')[0];
+                endDateInput.value = end.toISOString().split('T')[0];
+                document.getElementById('filterForm').submit();
+            };
         });
     </script>
 }

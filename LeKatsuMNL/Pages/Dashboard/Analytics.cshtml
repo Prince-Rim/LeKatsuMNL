@@ -1,0 +1,413 @@
+@page
+@model LeKatsuMNL.Pages.Dashboard.AnalyticsModel
+@{
+    ViewData["Title"] = "Operations Analytics";
+}
+
+<!-- Date Filter -->
+<div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-8 shadow-sm">
+    <form id="filterForm" method="get" class="flex flex-wrap items-center justify-between gap-6">
+        <div class="flex flex-wrap items-center gap-8">
+            <div class="flex flex-col">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Analysis Period</label>
+                <div class="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-[#C41E24]/20 focus-within:border-[#C41E24]">
+                    <input type="date" id="startDate" name="StartDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" class="bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none">
+                    <span class="mx-3 text-gray-400 font-medium">to</span>
+                    <input type="date" id="endDate" name="EndDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" class="bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none">
+                </div>
+            </div>
+            
+            <div class="flex flex-col">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 leading-none">Quick Ranges</label>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="setRange('today')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Today</button>
+                    <button type="button" onclick="setRange('7days')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Last 7d</button>
+                    <button type="button" onclick="setRange('30days')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">Last 30d</button>
+                    <button type="button" onclick="setRange('month')" class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 dark:bg-slate-900/50 dark:border-gray-700 dark:text-gray-400 transition-all">This Month</button>
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="bg-[#C41E24] hover:bg-[#a51a1f] text-white rounded-xl px-10 py-3.5 text-xs font-black uppercase tracking-widest shadow-xl shadow-red-900/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center">
+            <i class="bi bi-arrow-clockwise mr-2 text-sm"></i> Sync Dashboard
+        </button>
+    </form>
+</div>
+
+<!-- Metrics Grid -->
+<div class="space-y-8 mb-10">
+    <!-- Group 1: Financial Performance -->
+    <div>
+        <div class="flex items-center space-x-3 mb-4 ml-1">
+            <div class="w-1 h-3 bg-[#C41E24] rounded-full shadow-[0_0_8px_rgba(196,30,36,0.5)]"></div>
+            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Financial Performance</h4>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                        <span class="text-2xl font-black text-[#C41E24]">₱</span>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Revenue</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.TotalRevenue.ToString("N0")</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Earned from completions</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                        <i class="bi bi-wallet2 text-2xl text-green-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Collected</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.TotalCollected.ToString("N0")</h3>
+                <p class="text-xs text-green-600 mt-2 font-bold">@((Model.TotalRevenue > 0 ? (Model.TotalCollected / Model.TotalRevenue * 100) : 0).ToString("N1"))% Collection Rate</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+                        <i class="bi bi-cart-dash text-2xl text-orange-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Supplier Expenses</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.TotalSupplierExpenses.ToString("N0")</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Stock-in procurement costs</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md ring-2 ring-[#C41E24]/10 dark:ring-[#C41E24]/20">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-[#C41E24]/10 rounded-xl">
+                        <i class="bi bi-graph-up-arrow text-2xl text-[#C41E24]"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Gross Profit</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.GrossProfit.ToString("N0")</h3>
+                <p class="text-xs text-[#C41E24] mt-2 font-black uppercase tracking-widest">@Model.ProfitMargin.ToString("N1")% Margin</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group 2: Order Pipeline -->
+    <div>
+        <div class="flex items-center space-x-3 mb-4 ml-1">
+            <div class="w-1 h-3 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Order Pipeline</h4>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+                        <i class="bi bi-hourglass-split text-2xl text-yellow-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Pending Actions</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.PendingOrders</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Awaiting approval/payment</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl">
+                        <i class="bi bi-tools text-2xl text-sky-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">In Preparation</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.PreparingOrders</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Items being packed</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
+                        <i class="bi bi-truck text-2xl text-indigo-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Awaiting Pickup</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.DeliveringOrders</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Pending branch confirmation</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                        <i class="bi bi-cart-check text-2xl text-blue-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Completed Orders</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.TotalOrders</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Finished transactions</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group 3: Assets & Waste -->
+    <div>
+        <div class="flex items-center space-x-3 mb-4 ml-1">
+            <div class="w-1 h-3 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
+            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Assets & Inventory</h4>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                        <i class="bi bi-safe2 text-2xl text-purple-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Asset Value</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.TotalAssetValue.ToString("N0")</h3>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Warehouse stock valuation</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                        <i class="bi bi-trash-fill text-2xl text-red-600"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Waste Valuation</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.TotalWasteValue.ToString("N0")</h3>
+                <p class="text-xs text-red-600 mt-2 font-bold">Estimated loss from rejects</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Sales Trend -->
+    <div class="lg:col-span-8 bg-white dark:bg-slate-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h4 class="text-lg font-extrabold text-gray-800 dark:text-white tracking-tight">Revenue Trend</h4>
+                <p class="text-xs text-gray-400 font-medium mt-1 uppercase tracking-widest">Daily completed orders value</p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 bg-[#C41E24] rounded-full"></span>
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Revenue</span>
+            </div>
+        </div>
+        <div class="h-[300px]"><canvas id="salesTrendChart"></canvas></div>
+    </div>
+
+    <!-- Category Distribution -->
+    <div class="lg:col-span-4 bg-white dark:bg-slate-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h4 class="text-lg font-extrabold text-gray-800 dark:text-white tracking-tight mb-8">Inventory Mix</h4>
+        <div class="h-[250px] mb-6"><canvas id="categoryChart"></canvas></div>
+        <p class="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">Top 5 categories by consumption frequency</p>
+    </div>
+
+    <!-- Branch Performance -->
+    <div class="lg:col-span-12 bg-white dark:bg-slate-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div class="flex justify-between items-center mb-8">
+            <h4 class="text-lg font-extrabold text-gray-800 dark:text-white tracking-tight">Branch Performance Comparison</h4>
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 dark:bg-slate-700 px-3 py-1 rounded-full">Total Revenue Ranking</span>
+        </div>
+        <div class="h-[350px]"><canvas id="branchChart"></canvas></div>
+    </div>
+
+    <!-- Rejects and Summary -->
+    <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h4 class="text-lg font-extrabold text-gray-800 dark:text-white tracking-tight mb-8">Common Reject Reasons</h4>
+        <div class="h-[250px]"><canvas id="rejectChart"></canvas></div>
+    </div>
+
+    <div class="lg:col-span-7 bg-black text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col justify-center">
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-red-600 rounded-full blur-[100px] opacity-20"></div>
+        <div class="relative z-10">
+            <h4 class="text-2xl font-black mb-4 flex items-center">
+                <i class="bi bi-stars text-red-500 mr-3"></i> Operations Summary
+            </h4>
+            <div class="space-y-6">
+                <div class="flex items-start space-x-4">
+                    <div class="w-2 h-12 bg-green-600 rounded-full"></div>
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.2em] text-green-500 mb-1">Profitability</p>
+                        <p class="text-sm font-medium leading-relaxed opacity-80">
+                            The business generated <span class="text-white font-extrabold">₱@Model.GrossProfit.ToString("N0")</span> in gross profit this period, with a margin of <span class="text-green-500 font-extrabold">@Model.ProfitMargin.ToString("N1")%</span>. 
+                            This takes into account the current unit costs of items sold.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div class="w-2 h-12 bg-red-600 rounded-full"></div>
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.2em] text-red-500 mb-1">Expense Alert</p>
+                        <p class="text-sm font-medium leading-relaxed opacity-80">
+                            Total supplier expenses reached <span class="text-red-500 font-extrabold">₱@Model.TotalSupplierExpenses.ToString("N0")</span>. 
+                            Highest performing branch: <span class="text-white font-extrabold">@((Model.BranchLabels != null && Model.BranchLabels != "[]") ? System.Text.Json.JsonDocument.Parse(Model.BranchLabels).RootElement[0].GetString() : "N/A")</span>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Configuration for all charts
+            const primaryColor = '#C41E24';
+            const gridColor = 'rgba(0, 0, 0, 0.05)';
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+            
+            // Date Sync Logic
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            startDateInput.addEventListener('change', function() {
+                if (endDateInput.value && this.value > endDateInput.value) {
+                    endDateInput.value = this.value;
+                }
+            });
+
+            endDateInput.addEventListener('change', function() {
+                if (startDateInput.value && this.value < startDateInput.value) {
+                    startDateInput.value = this.value;
+                }
+            });
+
+            window.setRange = function(range) {
+                const now = new Date();
+                let start = new Date();
+                let end = new Date();
+
+                switch(range) {
+                    case 'today':
+                        start = now;
+                        break;
+                    case '7days':
+                        start.setDate(now.getDate() - 7);
+                        break;
+                    case '30days':
+                        start.setDate(now.getDate() - 30);
+                        break;
+                    case 'month':
+                        start = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                }
+
+                startDateInput.value = start.toISOString().split('T')[0];
+                endDateInput.value = end.toISOString().split('T')[0];
+                document.getElementById('filterForm').submit();
+            };
+
+            // 1. Sales Trend Chart
+            new Chart(document.getElementById('salesTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Model.SalesTrendLabels),
+                    datasets: [{
+                        label: 'Daily Revenue',
+                        data: @Html.Raw(Model.SalesTrendData),
+                        borderColor: primaryColor,
+                        backgroundColor: 'rgba(196, 30, 36, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointRadius: 4,
+                        pointBackgroundColor: primaryColor,
+                        pointBorderColor: '#fff',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 10 } } },
+                        y: { 
+                            grid: { color: gridColor }, 
+                            ticks: { 
+                                color: textColor, 
+                                font: { weight: 'bold', size: 10 },
+                                callback: value => '₱' + value.toLocaleString()
+                            } 
+                        }
+                    }
+                }
+            });
+
+            // 2. Category Usage Chart
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @Html.Raw(Model.CategoryLabels),
+                    datasets: [{
+                        data: @Html.Raw(Model.CategoryData),
+                        backgroundColor: [primaryColor, '#1e293b', '#475569', '#94a3b8', '#cbd5e1'],
+                        borderWidth: 0,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 10, weight: 'bold' }, color: textColor } }
+                    }
+                }
+            });
+
+            // 3. Branch Performance Chart
+            new Chart(document.getElementById('branchChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Model.BranchLabels),
+                    datasets: [{
+                        label: 'Total Revenue',
+                        data: @Html.Raw(Model.BranchData),
+                        backgroundColor: primaryColor,
+                        borderRadius: 12,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 11 } } },
+                        y: { 
+                            grid: { color: gridColor }, 
+                            ticks: { 
+                                color: textColor, 
+                                font: { weight: 'bold', size: 11 },
+                                callback: value => '₱' + value.toLocaleString()
+                            } 
+                        }
+                    }
+                }
+            });
+
+            // 4. Reject Analysis Chart
+            new Chart(document.getElementById('rejectChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Model.RejectLabels),
+                    datasets: [{
+                        data: @Html.Raw(Model.RejectData),
+                        backgroundColor: '#f97316',
+                        borderRadius: 8,
+                        indexAxis: 'y'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 10 } } }
+                    }
+                }
+            });
+        });
+    </script>
+}
