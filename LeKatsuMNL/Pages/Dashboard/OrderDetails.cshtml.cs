@@ -134,6 +134,22 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return RedirectToPage(new { id = fId, tab = "chat" });
             }
 
+            // Security check: Only Admins or the owner of the order (BranchManager) can comment
+            var order = await _context.OrderInfos.FindAsync(OrderId);
+            if (order == null) return NotFound();
+
+            if (userRole != "Admin")
+            {
+                if (userRole == "BranchManager" && order.BranchManagerId != userId)
+                {
+                    return Forbid();
+                }
+                else if (userRole != "BranchManager")
+                {
+                    return Forbid();
+                }
+            }
+
             var newComment = new OrderComment
             {
                 OrderId = OrderId,

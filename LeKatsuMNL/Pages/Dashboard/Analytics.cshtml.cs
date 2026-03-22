@@ -35,6 +35,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         public decimal ProfitMargin { get; set; }
         
         public int TotalOrders { get; set; }
+        public int TotalCompletedOrders { get; set; }
         public int PendingOrders { get; set; }
         public int PreparingOrders { get; set; }
         public int DeliveringOrders { get; set; }
@@ -89,7 +90,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                                      .Where(i => i.PaymentStatus == "Paid")
                                      .Sum(i => i.TotalPrice);
             
-            TotalOrders = allOrders.Count(o => o.Status == "Completed");
+            TotalOrders = allOrders.Count(o => revenueStatuses.Contains(o.Status));
+            TotalCompletedOrders = allOrders.Count(o => o.Status == "Completed");
             
             // 2. Supplier Expenses (Supply Orders in period)
             var supplyOrders = await _context.SupplyOrders

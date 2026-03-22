@@ -104,49 +104,60 @@
             </div>
             <i id="arrow-pipeline" class="bi bi-chevron-up text-gray-400 text-sm transition-transform duration-300"></i>
         </button>
-        <div id="content-pipeline" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 mb-6">
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+        <div id="content-pipeline" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 mb-6">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md ring-1 ring-blue-500/20">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
-                        <i class="bi bi-hourglass-split text-2xl text-yellow-600"></i>
+                    <div class="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                        <i class="bi bi-list-check text-xl text-blue-600"></i>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Pending Actions</span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400">Total Active Orders</span>
                 </div>
-                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.PendingOrders</h3>
-                <p class="text-xs text-gray-500 mt-2 font-medium">Awaiting approval/payment</p>
+                <h3 class="text-xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.TotalOrders</h3>
+                <p class="text-[10px] text-gray-500 mt-2 font-medium">All revenue tracking orders</p>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl">
-                        <i class="bi bi-tools text-2xl text-sky-600"></i>
+                    <div class="p-2.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+                        <i class="bi bi-hourglass-split text-xl text-yellow-600"></i>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">In Preparation</span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400">Pending Actions</span>
                 </div>
-                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.PreparingOrders</h3>
-                <p class="text-xs text-gray-500 mt-2 font-medium">Items being packed</p>
+                <h3 class="text-xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.PendingOrders</h3>
+                <p class="text-[10px] text-gray-500 mt-2 font-medium">Awaiting approval/payment</p>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-                        <i class="bi bi-truck text-2xl text-indigo-600"></i>
+                    <div class="p-2.5 bg-sky-50 dark:bg-sky-900/20 rounded-xl">
+                        <i class="bi bi-tools text-xl text-sky-600"></i>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Awaiting Confirmation</span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400">In Preparation</span>
                 </div>
-                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.DeliveringOrders</h3>
-                <p class="text-xs text-gray-500 mt-2 font-medium">Pending branch confirmation</p>
+                <h3 class="text-xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.PreparingOrders</h3>
+                <p class="text-[10px] text-gray-500 mt-2 font-medium">Items being packed</p>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                        <i class="bi bi-cart-check text-2xl text-blue-600"></i>
+                    <div class="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
+                        <i class="bi bi-truck text-xl text-indigo-600"></i>
                     </div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Completed Orders</span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400">Confirmation</span>
                 </div>
-                <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.TotalOrders</h3>
-                <p class="text-xs text-gray-500 mt-2 font-medium">Finished transactions</p>
+                <h3 class="text-xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.DeliveringOrders</h3>
+                <p class="text-[10px] text-gray-500 mt-2 font-medium">Delivering to branch</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-2.5 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                        <i class="bi bi-cart-check text-xl text-green-600"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400">Completed Orders</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">@Model.TotalCompletedOrders</h3>
+                <p class="text-[10px] text-gray-500 mt-2 font-medium">Finished transactions</p>
             </div>
         </div>
     </div>

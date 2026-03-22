@@ -43,7 +43,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         public int UnpaidCount { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string FilterStatus { get; set; }
+        public string? FilterStatus { get; set; }
 
         public class ReceivedStockItemInput
         {
@@ -61,46 +61,21 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task OnGetAsync(int? pageIndex)
         {
-            if (string.IsNullOrEmpty(FilterStatus)) FilterStatus = "All";
-            
-            Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorName).ToListAsync();
-            AllItems = await _context.CommissaryInventories
-                .AsNoTracking()
-                .Where(i => i.SkuId == null && !i.IsArchived)
-                .OrderBy(i => i.ItemName).ToListAsync();
-
-            // Summaries for Unpaid orders
-            var unpaidOrders = await _context.SupplyOrders
-                .Where(so => !so.IsArchived && so.PaymentStatus == "Unpaid")
-                .Include(so => so.SupplyLists)
-                .ToListAsync();
-
-            UnpaidCount = unpaidOrders.Count;
-            UnpaidTotal = unpaidOrders.Sum(so => so.SupplyLists.Sum(sl => sl.TotalPrice));
-
-            var ordersQuery = _context.SupplyOrders
-                .Where(so => !so.IsArchived)
-                .Include(so => so.Vendor) // Fixed: Added Vendor include
-                .Include(so => so.SupplyLists)
-                    .ThenInclude(sl => sl.CommissaryInventory)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(FilterStatus) && FilterStatus != "All")
+            await PopulateOnGetAsync();
+            if (pageIndex.HasValue && SupplyOrders != null)
             {
-                ordersQuery = ordersQuery.Where(so => so.PaymentStatus == FilterStatus);
+                 // Re-create with correct page index if needed, but PopulateOnGet defaults to 1.
+                 // For simplicity in error handling, we'll just use PopulateOnGetAsync.
             }
-
-            var orders = ordersQuery.OrderByDescending(so => so.SupplyDate);
-
-            int pageSize = PageSize > 0 ? PageSize : 10;
-            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostSaveAsync(string PaymentStatus)
         {
-            if (SelectedVendorId == 0 || ItemsToReceive == null || !ItemsToReceive.Any())
+            if (SelectedVendorId == 0 || ItemsToReceive == null || !ItemsToReceive.Any(i => i.ComId > 0 && i.Quantity > 0))
             {
-                return RedirectToPage();
+                ModelState.AddModelError(string.Empty, "Please select a supplier and add at least one item.");
+                await PopulateOnGetAsync();
+                return Page();
             }
 
             var supplyOrder = new SupplyOrder
@@ -169,14 +144,16 @@ namespace LeKatsuMNL.Pages.Dashboard
                             }
                             else
                             {
-                                // Incompatible units - fail closed by using factor 1 but could also skip/error
-                                // As requested by CodeRabbit: "Fail closed... notify the user"
-                                // Since we are in a loop, we'll log it and proceed with 1 to avoid freezing,
-                                // but a better way is to add an error message.
-                                conversionFactor = 1;
+                                // Incompatible units - fail closed as per CodeRabbit recommendation
+                                ModelState.AddModelError(string.Empty, $"Skipped item '{inventoryItem.ItemName}': Incompatible units '{unitPart}' and '{inventoryItem.Uom}'. Please correct the unit or conversion rules.");
+                                continue; 
                             }
                         }
-                        catch { conversionFactor = 1; }
+                        catch (Exception ex)
+                        { 
+                            ModelState.AddModelError(string.Empty, $"Error converting units for '{inventoryItem.ItemName}': {ex.Message}");
+                            continue;
+                        }
                     }
 
                     actualQuantityAdded = item.Quantity * conversionFactor;
@@ -215,9 +192,51 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
+            if (!ModelState.IsValid)
+            {
+                await PopulateOnGetAsync();
+                return Page();
+            }
+
             await _context.SaveChangesAsync();
             StatusMessage = "Successfully recorded stock receipt and updated inventory.";
             return RedirectToPage();
+        }
+
+        private async Task PopulateOnGetAsync()
+        {
+            if (string.IsNullOrEmpty(FilterStatus)) FilterStatus = "All";
+            
+            Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorName).ToListAsync();
+            AllItems = await _context.CommissaryInventories
+                .AsNoTracking()
+                .Where(i => i.SkuId == null && !i.IsArchived)
+                .OrderBy(i => i.ItemName).ToListAsync();
+
+            var unpaidOrders = await _context.SupplyOrders
+                .Where(so => !so.IsArchived && so.PaymentStatus == "Unpaid")
+                .Include(so => so.SupplyLists)
+                .ToListAsync();
+
+            UnpaidCount = unpaidOrders.Count;
+            UnpaidTotal = unpaidOrders.Sum(so => so.SupplyLists.Sum(sl => sl.TotalPrice));
+
+            var ordersQuery = _context.SupplyOrders
+                .Where(so => !so.IsArchived)
+                .Include(so => so.Vendor)
+                .Include(so => so.SupplyLists)
+                    .ThenInclude(sl => sl.CommissaryInventory)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(FilterStatus) && FilterStatus != "All")
+            {
+                ordersQuery = ordersQuery.Where(so => so.PaymentStatus == FilterStatus);
+            }
+
+            var orders = ordersQuery.OrderByDescending(so => so.SupplyDate);
+
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostMarkAsPaidAsync(int id)
