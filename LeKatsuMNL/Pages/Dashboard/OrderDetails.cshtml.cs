@@ -120,7 +120,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 var o = await _context.OrderInfos.FindAsync(OrderId);
                 string fId = o != null ? $"{o.OrderDate.Year}-{o.OrderId:D4}" : OrderId.ToString();
-                return RedirectToPage(new { id = fId, tab = "issues" });
+                return RedirectToPage(new { id = fId, tab = "chat" });
             }
 
             // Get user info from Claims
@@ -131,13 +131,14 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 var o = await _context.OrderInfos.FindAsync(OrderId);
                 string fId = o != null ? $"{o.OrderDate.Year}-{o.OrderId:D4}" : OrderId.ToString();
-                return RedirectToPage(new { id = fId, tab = "issues" });
+                return RedirectToPage(new { id = fId, tab = "chat" });
             }
 
             var newComment = new OrderComment
             {
                 OrderId = OrderId,
-                Comment = CommentText
+                Comment = CommentText,
+                CreatedAt = DateTime.UtcNow
             };
 
             if (userRole == "Admin")
@@ -154,7 +155,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             var finalOrder = await _context.OrderInfos.FindAsync(OrderId);
             string finalFormattedId = finalOrder != null ? $"{finalOrder.OrderDate.Year}-{finalOrder.OrderId:D4}" : OrderId.ToString();
-            return RedirectToPage(new { id = finalFormattedId, tab = "issues" });
+            return RedirectToPage(new { id = finalFormattedId, tab = "chat" });
         }
 
         private async Task LogSystemMessage(int orderId, string message)
@@ -163,7 +164,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 OrderId = orderId,
                 Comment = "System: " + message,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
             _context.OrderComments.Add(systemComment);
         }
@@ -248,7 +249,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                         ComId = inventory.ComId,
                         TypeId = transactionType.TypeId,
                         QuantityChange = -item.Value,
-                        TimeStamp = DateTime.Now,
+                        TimeStamp = DateTime.UtcNow,
                         Remarks = $"Branch Order #{formattedId} deduction"
                     });
                 }
@@ -258,7 +259,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             var invoice = new Invoice
             {
                 OrderId = order.OrderId,
-                InvoiceDate = DateTime.Now,
+                InvoiceDate = DateTime.UtcNow,
                 TotalPrice = order.OrderLists.Sum(ol => ol.TotalPrice),
                 PaymentStatus = "Pending",
                 PaymentMethod = "TBD",
@@ -417,6 +418,14 @@ namespace LeKatsuMNL.Pages.Dashboard
                         decimal componentQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, targetUom);
                         await AggregateDeductions(recipe.TargetSkuId, recipe.ComId, componentQty * quantity, deductions, stockSnapshots);
                     }
+                }
+                else
+                {
+                    // No inventory AND no recipe - this is a critical failure point.
+                    // We must record this as a requirement for some ID, but since there's no inventory, 
+                    // we'll use a special negative ID or just record it as is to trigger the "Insufficient stock" check later.
+                    // For now, we'll assign it to -1 * skuId to indicate a missing inventory mapping.
+                    deductions[-skuId.Value] = deductions.GetValueOrDefault(-skuId.Value) + quantity;
                 }
             }
         }

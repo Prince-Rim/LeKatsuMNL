@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -16,7 +16,7 @@ namespace LeKatsuMNL.Migrations
                 table: "OrderComments",
                 type: "datetime2",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValueSql: "SYSUTCDATETIME()");
         }
 
         /// <inheritdoc />

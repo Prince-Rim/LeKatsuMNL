@@ -2,6 +2,7 @@
 @model LeKatsuMNL.Pages.Dashboard.AnalyticsModel
 @{
     ViewData["Title"] = "Operations Analytics";
+    ViewData["HideBackButton"] = true;
 }
 
 <!-- Date Filter -->
@@ -38,10 +39,10 @@
 <div class="space-y-6 mb-10">
     <!-- Group 1: Financial Performance (Expanded by default) -->
     <div class="border-b border-gray-50 dark:border-gray-800 pb-2">
-        <button onclick="toggleSection('financial')" class="w-full flex items-center justify-between py-3 hover:opacity-70 transition-all group">
+        <button onclick="toggleSection('financial')" aria-expanded="true" aria-controls="content-financial" class="w-full flex items-center justify-between py-3 hover:opacity-70 transition-all group">
             <div class="flex items-center space-x-3">
                 <div class="w-1 h-3 bg-[#C41E24] rounded-full shadow-[0_0_8px_rgba(196,30,36,0.5)]"></div>
-                <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">Financial Performance</h4>
+                <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">Financial Performance</span>
             </div>
             <i id="arrow-financial" class="bi bi-chevron-up text-gray-400 text-sm transition-transform duration-300"></i>
         </button>
@@ -54,7 +55,7 @@
                     <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Accounts Receivable</span>
                 </div>
                 <h3 class="text-2xl font-extrabold text-gray-800 dark:text-white tracking-tight break-all">₱@Model.AccountsReceivable.ToString("N0")</h3>
-                <p class="text-xs text-gray-500 mt-2 font-medium">Unpaid approved orders</p>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Unpaid invoices from approved orders</p>
                 <p class="text-[9px] text-gray-400 mt-1 font-bold italic">Total Sales: ₱@Model.TotalRevenue.ToString("N0")</p>
             </div>
 
@@ -96,10 +97,10 @@
 
     <!-- Group 2: Order Pipeline (Expanded by default) -->
     <div class="border-b border-gray-50 dark:border-gray-800 pb-2">
-        <button onclick="toggleSection('pipeline')" class="w-full flex items-center justify-between py-3 hover:opacity-70 transition-all group">
+        <button onclick="toggleSection('pipeline')" aria-expanded="true" aria-controls="content-pipeline" class="w-full flex items-center justify-between py-3 hover:opacity-70 transition-all group">
             <div class="flex items-center space-x-3">
                 <div class="w-1 h-3 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-                <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">Order Pipeline</h4>
+                <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">Order Pipeline</span>
             </div>
             <i id="arrow-pipeline" class="bi bi-chevron-up text-gray-400 text-sm transition-transform duration-300"></i>
         </button>
@@ -152,10 +153,10 @@
 
     <!-- Group 3: Assets & Waste (Expanded by default) -->
     <div>
-        <button onclick="toggleSection('assets')" class="w-full flex items-center justify-between py-3 hover:opacity-70 transition-all group">
+        <button onclick="toggleSection('assets')" aria-expanded="true" aria-controls="content-assets" class="w-full flex items-center justify-between py-3 hover:opacity-70 transition-all group">
             <div class="flex items-center space-x-3">
                 <div class="w-1 h-3 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
-                <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">Assets & Inventory</h4>
+                <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">Assets & Inventory</span>
             </div>
             <i id="arrow-assets" class="bi bi-chevron-up text-gray-400 text-sm transition-transform duration-300"></i>
         </button>
@@ -267,16 +268,19 @@
 
             // Toggle Section Logic
             window.toggleSection = function(id) {
+                const button = event.currentTarget;
                 const content = document.getElementById('content-' + id);
                 const arrow = document.getElementById('arrow-' + id);
                 
-                if (content.classList.contains('hidden')) {
-                    content.classList.remove('hidden');
-                    arrow.classList.replace('bi-chevron-down', 'bi-chevron-up');
-                    // Trigger chart resize if any charts were inside (none in this case, but good practice)
-                } else {
+                const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', !isExpanded);
+
+                if (isExpanded) {
                     content.classList.add('hidden');
                     arrow.classList.replace('bi-chevron-up', 'bi-chevron-down');
+                } else {
+                    content.classList.remove('hidden');
+                    arrow.classList.replace('bi-chevron-down', 'bi-chevron-up');
                 }
             };
             

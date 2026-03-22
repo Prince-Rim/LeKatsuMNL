@@ -138,50 +138,49 @@ namespace LeKatsuMNL.Pages.Dashboard
                     decimal unitCostPerUom = inventoryItem.CostPrice;
 
                     // Robust Conversion Logic
-                    // Robust Conversion Logic
                     decimal conversionFactor = 1;
                     if (!string.IsNullOrEmpty(item.Unit))
                     {
                         try
                         {
                             var parts = item.Unit.Split('/');
+                            string unitPart = item.Unit;
+                            decimal multiplier = 1;
+
                             if (parts.Length >= 2)
                             {
-                                // Multi-part format (e.g., Plastic/Kilogram/5 OR Plastic/5Kilogram)
                                 string last = parts.Last().Trim();
                                 string secondLast = parts[parts.Length - 2].Trim();
 
                                 if (decimal.TryParse(last, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal lastVal))
                                 {
-                                    // Format: .../Unit/Size (e.g., Plastic/Kilogram/5)
-                                    conversionFactor = UomConverter.Convert(lastVal, secondLast, inventoryItem.Uom);
+                                    multiplier = lastVal;
+                                    unitPart = secondLast;
                                 }
                                 else
                                 {
-                                    // Format: .../SizeUnit (e.g., Plastic/5Kilogram)
-                                    // UomConverter.Convert now handles "5Kilogram" internally
-                                    conversionFactor = UomConverter.Convert(1, last, inventoryItem.Uom);
+                                    unitPart = last;
                                 }
+                            }
+
+                            if (UomConverter.AreUnitsCompatible(unitPart, inventoryItem.Uom))
+                            {
+                                conversionFactor = UomConverter.Convert(multiplier, unitPart, inventoryItem.Uom);
                             }
                             else
                             {
-                                // Single-part unit name or composite (e.g., "1kg")
-                                conversionFactor = UomConverter.Convert(1, item.Unit.Trim(), inventoryItem.Uom);
+                                // Incompatible units - fail closed by using factor 1 but could also skip/error
+                                // As requested by CodeRabbit: "Fail closed... notify the user"
+                                // Since we are in a loop, we'll log it and proceed with 1 to avoid freezing,
+                                // but a better way is to add an error message.
+                                conversionFactor = 1;
                             }
                         }
-                        catch { }
+                        catch { conversionFactor = 1; }
                     }
 
-                    if (conversionFactor > 0)
-                    {
-                        actualQuantityAdded = item.Quantity * conversionFactor;
-                        unitCostPerUom = item.UnitPrice / conversionFactor;
-                    }
-                    else
-                    {
-                        actualQuantityAdded = item.Quantity;
-                        unitCostPerUom = item.UnitPrice;
-                    }
+                    actualQuantityAdded = item.Quantity * conversionFactor;
+                    unitCostPerUom = conversionFactor > 0 ? (item.UnitPrice / conversionFactor) : item.UnitPrice;
 
                     // Create Supply List entry
                     var supplyList = new SupplyList

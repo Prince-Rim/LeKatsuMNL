@@ -21,6 +21,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public PaginatedList<OrderInfo> Orders { get; set; } = default!;
         public List<BranchManager> BranchManagers { get; set; } = new();
+        public List<BranchLocation> BranchLocations { get; set; } = new();
 
         [TempData]
         public string SuccessMessage { get; set; }
@@ -46,6 +47,12 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         [BindProperty(SupportsGet = true)]
         public string SearchTerm { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string SelectedStatus { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? SelectedBranchId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? pageIndex)
         {
@@ -81,6 +88,16 @@ namespace LeKatsuMNL.Pages.Dashboard
                     (parsedId.HasValue && o.OrderId == parsedId.Value));
             }
 
+            if (!string.IsNullOrEmpty(SelectedStatus))
+            {
+                query = query.Where(o => o.Status == SelectedStatus);
+            }
+
+            if (SelectedBranchId.HasValue && SelectedBranchId.Value > 0)
+            {
+                query = query.Where(o => o.BranchManager.BranchLocation.BranchId == SelectedBranchId.Value);
+            }
+
             query = query.OrderByDescending(o => o.OrderDate);
             
             int pageSize = PageSize > 0 ? PageSize : 10;
@@ -89,6 +106,11 @@ namespace LeKatsuMNL.Pages.Dashboard
             BranchManagers = await _context.BranchManagers
                 .Include(bm => bm.BranchLocation)
                 .Where(bm => bm.Status == "Active" && !bm.IsArchived)
+                .ToListAsync();
+
+            BranchLocations = await _context.BranchLocations
+                .Where(bl => !bl.IsArchived)
+                .OrderBy(bl => bl.BranchName)
                 .ToListAsync();
 
             var skus = await _context.SkuHeaders

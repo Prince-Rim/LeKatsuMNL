@@ -73,19 +73,23 @@ namespace LeKatsuMNL.Pages.Dashboard
             // 1. Financial Performance Analysis
             var revenueStatuses = new[] { "Approved", "Preparing", "Delivering", "Completed" };
             
-            // Total Revenue (Total Sales Volume - committed income)
+            // Total Revenue (Total Sales Volume - sum of all invoices for approved/in-progress/completed orders)
             TotalRevenue = allOrders.Where(o => revenueStatuses.Contains(o.Status))
-                                   .Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0);
+                                   .Sum(o => o.Invoices.Sum(i => i.TotalPrice));
             
-            // Accounts Receivable (Committed but NOT paid)
-            AccountsReceivable = allOrders.Where(o => revenueStatuses.Contains(o.Status) && o.Invoices.Any() && o.Invoices.First().PaymentStatus != "Paid")
-                                         .Sum(o => o.Invoices.First().TotalPrice);
+            // Accounts Receivable (Total of invoices NOT paid)
+            AccountsReceivable = allOrders.Where(o => revenueStatuses.Contains(o.Status))
+                                         .SelectMany(o => o.Invoices)
+                                         .Where(i => i.PaymentStatus != "Paid")
+                                         .Sum(i => i.TotalPrice);
 
             // Total Collected (Actually paid)
-            TotalCollected = allOrders.Where(o => revenueStatuses.Contains(o.Status) && o.Invoices.Any() && o.Invoices.First().PaymentStatus == "Paid")
-                                     .Sum(o => o.Invoices.First().TotalPrice);
+            TotalCollected = allOrders.Where(o => revenueStatuses.Contains(o.Status))
+                                     .SelectMany(o => o.Invoices)
+                                     .Where(i => i.PaymentStatus == "Paid")
+                                     .Sum(i => i.TotalPrice);
             
-            TotalOrders = allOrders.Count(o => revenueStatuses.Contains(o.Status));
+            TotalOrders = allOrders.Count(o => o.Status == "Completed");
             
             // 2. Supplier Expenses (Supply Orders in period)
             var supplyOrders = await _context.SupplyOrders
@@ -173,7 +177,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             var dailySales = allOrders
                 .Where(o => revenueStatuses.Contains(o.Status))
                 .GroupBy(o => o.OrderDate.Date)
-                .Select(g => new { Date = g.Key, Total = g.Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0) })
+                .Select(g => new { Date = g.Key, Total = g.Sum(o => o.Invoices.Sum(i => i.TotalPrice)) })
                 .OrderBy(g => g.Date)
                 .ToList();
 
@@ -184,7 +188,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             var branchRevenue = allOrders
                 .Where(o => revenueStatuses.Contains(o.Status))
                 .GroupBy(o => o.BranchManager.BranchLocation.BranchName)
-                .Select(g => new { Branch = g.Key, Total = g.Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0) })
+                .Select(g => new { Branch = g.Key, Total = g.Sum(o => o.Invoices.Sum(i => i.TotalPrice)) })
                 .OrderByDescending(g => g.Total)
                 .ToList();
 

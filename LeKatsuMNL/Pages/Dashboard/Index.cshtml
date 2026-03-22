@@ -14,10 +14,10 @@
         <div class="absolute top-7 right-7 opacity-20 text-4xl"><i class="bi bi-wallet2"></i></div>
     </div>
 
-    <div class="bg-white p-7 rounded-2xl border border-gray-100 shadow-sm relative transition-all hover:scale-[1.01] dark:bg-slate-800 dark:border-gray-700">
-        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-2 dark:text-gray-400">No. of Low Stocks</p>
+    <div class="bg-white p-7 rounded-2xl border border-gray-100 shadow-sm relative transition-all hover:scale-[1.01] dark:bg-slate-800 dark:border-gray-700" title="Total number of items with stock levels below their reorder point.">
+        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-2 dark:text-gray-400">Low Stock Items</p>
         <h3 class="text-4xl font-extrabold text-gray-800 tracking-tight dark:text-white">@Model.LowStockCount</h3>
-        <p class="text-red-500 text-xs font-bold mt-3 flex items-center">Items needing restock</p>
+        <p class="text-red-500 text-xs font-bold mt-3 flex items-center">@Model.LowStockCount items need restock</p>
         <div class="absolute top-7 right-7 text-[#C41E24] text-2xl opacity-80"><i class="bi bi-exclamation-triangle"></i></div>
 </div>
 
@@ -28,10 +28,10 @@
         <div class="absolute top-7 right-7 text-[#C41E24] text-2xl opacity-80"><i class="bi bi-cart-dash"></i></div>
 </div>
 
-    <div class="bg-white p-7 rounded-2xl border border-gray-100 shadow-sm relative transition-all hover:scale-[1.01] dark:bg-slate-800 dark:border-gray-700">
-        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-2 dark:text-gray-400">Today's Rejects</p>
+    <div class="bg-white p-7 rounded-2xl border border-gray-100 shadow-sm relative transition-all hover:scale-[1.01] dark:bg-slate-800 dark:border-gray-700" title="Number of items marked as rejected today.">
+        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-2 dark:text-gray-400">Today's Rejections</p>
         <h3 class="text-4xl font-extrabold text-gray-800 tracking-tight dark:text-white">@Model.DiscrepancyCount</h3>
-        <p class="text-orange-500 text-xs font-bold mt-3 flex items-center">New rejects today</p>
+        <p class="text-orange-500 text-xs font-bold mt-3 flex items-center">@Model.DiscrepancyCount new rejects today</p>
         <div class="absolute top-7 right-7 text-[#C41E24] text-2xl opacity-80"><i class="bi bi-exclamation-octagon"></i></div>
 </div>
 </div>
@@ -190,8 +190,10 @@
                         foreach (var order in Model.RecentOrders)
                         {
                             string formattedOrderId = $"FO-{order.OrderDate.Year.ToString().Substring(2)}{order.OrderId:D4}";
-                            <tr class="transition-colors hover:bg-gray-50/50 cursor-pointer" onclick="window.location.href='/Dashboard/OrderDetails/@order.OrderId'">
-                                <td class="py-4 font-bold text-gray-800 text-sm dark:text-white">@formattedOrderId</td>
+                            <tr class="transition-colors hover:bg-gray-50/50">
+                                <td class="py-4 font-bold text-[#C41E24] hover:underline text-sm dark:text-red-400">
+                                    <a href="/Dashboard/OrderDetails?id=@order.OrderId">@formattedOrderId</a>
+                                </td>
                                 <td class="py-4 text-gray-600 dark:text-gray-300 font-medium">@order.BranchManager?.BranchLocation?.BranchName</td>
                                 <td class="py-4">
                                     <span class="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tight 

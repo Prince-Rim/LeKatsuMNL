@@ -229,7 +229,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 Yield = calculatedYield,
                 Uom = UOM ?? "pack",
                 CostPrice = unitCostPerUom,
-                SellingPrice = SellingPrice ?? 0,
+                SellingPrice = (SellingPrice == null || SellingPrice == 0) ? unitCostPerUom : SellingPrice.Value,
                 Stock = Stock,
                 ReorderValue = ReorderValue,
                 IsRepack = ItemType == "Repacked" || ItemType == "Recipe",
@@ -359,7 +359,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             item.Yield = calculatedYield;
             item.Uom = newUom;
             item.CostPrice = unitCostPerUom;
-            item.SellingPrice = SellingPrice ?? 0;
+            item.SellingPrice = (SellingPrice == null || SellingPrice == 0) ? unitCostPerUom : SellingPrice.Value;
             item.Stock = Stock; // The new stock value from the form
             item.ReorderValue = ReorderValue;
             item.IsRepack = ItemType == "Repacked" || ItemType == "Recipe";
@@ -449,7 +449,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 Quantity = RejectQty,
                 Uom = item.Uom,
                 Reason = string.IsNullOrWhiteSpace(RejectReason) ? "N/A" : RejectReason,
-                RejectedAt = System.DateTime.Now,
+                RejectedAt = System.DateTime.UtcNow,
                 RejectType = "Recipe"
             };
 
