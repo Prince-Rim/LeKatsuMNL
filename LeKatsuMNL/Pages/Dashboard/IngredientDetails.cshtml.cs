@@ -81,6 +81,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // Update basic info
             itemToUpdate.ItemName = Ingredient.ItemName;
+            itemToUpdate.CategoryId = Ingredient.CategoryId;
             itemToUpdate.SubCategoryId = Ingredient.SubCategoryId;
             itemToUpdate.Uom = Ingredient.Uom;
             itemToUpdate.SellingPrice = Ingredient.SellingPrice;

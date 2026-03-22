@@ -43,7 +43,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         public int UnpaidCount { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string FilterStatus { get; set; }
+        public string? FilterStatus { get; set; }
 
         public class ReceivedStockItemInput
         {
@@ -61,46 +61,21 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public async Task OnGetAsync(int? pageIndex)
         {
-            if (string.IsNullOrEmpty(FilterStatus)) FilterStatus = "All";
-            
-            Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorName).ToListAsync();
-            AllItems = await _context.CommissaryInventories
-                .AsNoTracking()
-                .Where(i => i.SkuId == null && !i.IsArchived)
-                .OrderBy(i => i.ItemName).ToListAsync();
-
-            // Summaries for Unpaid orders
-            var unpaidOrders = await _context.SupplyOrders
-                .Where(so => !so.IsArchived && so.PaymentStatus == "Unpaid")
-                .Include(so => so.SupplyLists)
-                .ToListAsync();
-
-            UnpaidCount = unpaidOrders.Count;
-            UnpaidTotal = unpaidOrders.Sum(so => so.SupplyLists.Sum(sl => sl.TotalPrice));
-
-            var ordersQuery = _context.SupplyOrders
-                .Where(so => !so.IsArchived)
-                .Include(so => so.Vendor) // Fixed: Added Vendor include
-                .Include(so => so.SupplyLists)
-                    .ThenInclude(sl => sl.CommissaryInventory)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(FilterStatus) && FilterStatus != "All")
+            await PopulateOnGetAsync();
+            if (pageIndex.HasValue && SupplyOrders != null)
             {
-                ordersQuery = ordersQuery.Where(so => so.PaymentStatus == FilterStatus);
+                 // Re-create with correct page index if needed, but PopulateOnGet defaults to 1.
+                 // For simplicity in error handling, we'll just use PopulateOnGetAsync.
             }
-
-            var orders = ordersQuery.OrderByDescending(so => so.SupplyDate);
-
-            int pageSize = PageSize > 0 ? PageSize : 10;
-            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), pageIndex ?? 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostSaveAsync(string PaymentStatus)
         {
-            if (SelectedVendorId == 0 || ItemsToReceive == null || !ItemsToReceive.Any())
+            if (SelectedVendorId == 0 || ItemsToReceive == null || !ItemsToReceive.Any(i => i.ComId > 0 && i.Quantity > 0))
             {
-                return RedirectToPage();
+                ModelState.AddModelError(string.Empty, "Please select a supplier and add at least one item.");
+                await PopulateOnGetAsync();
+                return Page();
             }
 
             var supplyOrder = new SupplyOrder
@@ -138,50 +113,51 @@ namespace LeKatsuMNL.Pages.Dashboard
                     decimal unitCostPerUom = inventoryItem.CostPrice;
 
                     // Robust Conversion Logic
-                    // Robust Conversion Logic
                     decimal conversionFactor = 1;
                     if (!string.IsNullOrEmpty(item.Unit))
                     {
                         try
                         {
                             var parts = item.Unit.Split('/');
+                            string unitPart = item.Unit;
+                            decimal multiplier = 1;
+
                             if (parts.Length >= 2)
                             {
-                                // Multi-part format (e.g., Plastic/Kilogram/5 OR Plastic/5Kilogram)
                                 string last = parts.Last().Trim();
                                 string secondLast = parts[parts.Length - 2].Trim();
 
                                 if (decimal.TryParse(last, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal lastVal))
                                 {
-                                    // Format: .../Unit/Size (e.g., Plastic/Kilogram/5)
-                                    conversionFactor = UomConverter.Convert(lastVal, secondLast, inventoryItem.Uom);
+                                    multiplier = lastVal;
+                                    unitPart = secondLast;
                                 }
                                 else
                                 {
-                                    // Format: .../SizeUnit (e.g., Plastic/5Kilogram)
-                                    // UomConverter.Convert now handles "5Kilogram" internally
-                                    conversionFactor = UomConverter.Convert(1, last, inventoryItem.Uom);
+                                    unitPart = last;
                                 }
+                            }
+
+                            if (UomConverter.AreUnitsCompatible(unitPart, inventoryItem.Uom))
+                            {
+                                conversionFactor = UomConverter.Convert(multiplier, unitPart, inventoryItem.Uom);
                             }
                             else
                             {
-                                // Single-part unit name or composite (e.g., "1kg")
-                                conversionFactor = UomConverter.Convert(1, item.Unit.Trim(), inventoryItem.Uom);
+                                // Incompatible units - fail closed as per CodeRabbit recommendation
+                                ModelState.AddModelError(string.Empty, $"Skipped item '{inventoryItem.ItemName}': Incompatible units '{unitPart}' and '{inventoryItem.Uom}'. Please correct the unit or conversion rules.");
+                                continue; 
                             }
                         }
-                        catch { }
+                        catch (Exception ex)
+                        { 
+                            ModelState.AddModelError(string.Empty, $"Error converting units for '{inventoryItem.ItemName}': {ex.Message}");
+                            continue;
+                        }
                     }
 
-                    if (conversionFactor > 0)
-                    {
-                        actualQuantityAdded = item.Quantity * conversionFactor;
-                        unitCostPerUom = item.UnitPrice / conversionFactor;
-                    }
-                    else
-                    {
-                        actualQuantityAdded = item.Quantity;
-                        unitCostPerUom = item.UnitPrice;
-                    }
+                    actualQuantityAdded = item.Quantity * conversionFactor;
+                    unitCostPerUom = conversionFactor > 0 ? (item.UnitPrice / conversionFactor) : item.UnitPrice;
 
                     // Create Supply List entry
                     var supplyList = new SupplyList
@@ -216,9 +192,51 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
+            if (!ModelState.IsValid)
+            {
+                await PopulateOnGetAsync();
+                return Page();
+            }
+
             await _context.SaveChangesAsync();
             StatusMessage = "Successfully recorded stock receipt and updated inventory.";
             return RedirectToPage();
+        }
+
+        private async Task PopulateOnGetAsync()
+        {
+            if (string.IsNullOrEmpty(FilterStatus)) FilterStatus = "All";
+            
+            Vendors = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorName).ToListAsync();
+            AllItems = await _context.CommissaryInventories
+                .AsNoTracking()
+                .Where(i => i.SkuId == null && !i.IsArchived)
+                .OrderBy(i => i.ItemName).ToListAsync();
+
+            var unpaidOrders = await _context.SupplyOrders
+                .Where(so => !so.IsArchived && so.PaymentStatus == "Unpaid")
+                .Include(so => so.SupplyLists)
+                .ToListAsync();
+
+            UnpaidCount = unpaidOrders.Count;
+            UnpaidTotal = unpaidOrders.Sum(so => so.SupplyLists.Sum(sl => sl.TotalPrice));
+
+            var ordersQuery = _context.SupplyOrders
+                .Where(so => !so.IsArchived)
+                .Include(so => so.Vendor)
+                .Include(so => so.SupplyLists)
+                    .ThenInclude(sl => sl.CommissaryInventory)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(FilterStatus) && FilterStatus != "All")
+            {
+                ordersQuery = ordersQuery.Where(so => so.PaymentStatus == FilterStatus);
+            }
+
+            var orders = ordersQuery.OrderByDescending(so => so.SupplyDate);
+
+            int pageSize = PageSize > 0 ? PageSize : 10;
+            SupplyOrders = await PaginatedList<SupplyOrder>.CreateAsync(orders.AsNoTracking(), 1, pageSize);
         }
 
         public async Task<IActionResult> OnPostMarkAsPaidAsync(int id)

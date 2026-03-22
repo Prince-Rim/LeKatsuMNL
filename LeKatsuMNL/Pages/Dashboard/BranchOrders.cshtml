@@ -76,35 +76,58 @@
 }
 
 
-    <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <div class="flex items-center space-x-4 flex-1 max-w-4xl">
+    <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 search-filter-form">
+        <div class="flex items-center space-x-3 flex-1">
             <div class="relative inline-block text-left">
                 <button type="button" onclick="toggleActions(event)" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-400 dark:border-gray-600">
-                    <span>Actions</span>
+                    <span class="font-bold">Actions</span>
                     <i class="bi bi-chevron-down text-xs"></i>
                 </button>
-                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700">
+                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700 font-bold">
                     <a asp-page-handler="Export" class="w-full block text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export List</a>
                     <button type="button" onclick="printOrders()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Print Table</button>
                     <button type="button" onclick="handleBulkUpdateStatus()" class="w-full text-left px-5 py-3 text-xs font-bold text-cyan-500 uppercase tracking-widest hover:bg-cyan-50 border-b border-gray-50 dark:hover:bg-cyan-500/10 dark:border-gray-700 transition-colors">Bulk Update Status</button>
                     <button type="button" onclick="handleBulkArchive()" class="w-full text-left px-5 py-3 text-xs font-bold text-red-500 uppercase tracking-widest hover:bg-red-50 transition-colors">Bulk Archive</button>
                 </div>
             </div>
- 
-            <div class="relative flex-1 group">
+
+            <!-- Search Bar -->
+            <div class="relative w-72 group">
                 <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
                     <i class="bi bi-search text-sm"></i>
                 </span>
                 <input type="text" name="searchTerm" value="@Model.SearchTerm" 
-                       class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-white dark:text-gray-800 dark:placeholder:text-gray-500 dark:border-gray-600" 
-                       placeholder="Search Order ID or Branch...">
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-14 py-2 text-sm font-bold focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" 
+                       placeholder="Order ID...">
                 <div class="absolute inset-y-1 right-1 flex items-center">
-                    <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
+                    <button type="submit" class="h-8 w-10 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center justify-center">
                         <i class="bi bi-search"></i>
-                        <span>Search</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Branch Filter -->
+            <select name="SelectedBranchId" onchange="this.form.submit()" 
+                    class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-bold text-gray-600 bg-white hover:border-[#C41E24] outline-none transition-all dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600 min-w-[150px]">
+                <option value="">All Branches</option>
+                @foreach (var branch in Model.BranchLocations)
+                {
+                    <option value="@branch.BranchId" selected="@(Model.SelectedBranchId == branch.BranchId)">@branch.BranchName</option>
+                }
+            </select>
+
+            <!-- Status Filter -->
+            <select name="SelectedStatus" onchange="this.form.submit()" 
+                    class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-bold text-gray-600 bg-white hover:border-[#C41E24] outline-none transition-all dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+                <option value="">All Status</option>
+                @{
+                    var statuses = new[] { "Pending", "Approved", "Preparing", "Delivering", "Completed", "Rejected", "Cancelled" };
+                    foreach (var s in statuses)
+                    {
+                        <option value="@s" selected="@(Model.SelectedStatus == s)">@s</option>
+                    }
+                }
+            </select>
         </div>
  
         <div class="flex items-center space-x-4">

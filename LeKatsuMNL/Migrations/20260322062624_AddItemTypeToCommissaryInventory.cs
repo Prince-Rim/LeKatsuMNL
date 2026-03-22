@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,9 +13,9 @@ namespace LeKatsuMNL.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "ItemType",
                 table: "CommissaryInventories",
-                type: "nvarchar(max)",
+                type: "nvarchar(50)",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "Non-Repacked");
         }
 
         /// <inheritdoc />

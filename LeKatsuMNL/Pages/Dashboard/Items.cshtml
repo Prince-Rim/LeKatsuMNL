@@ -213,7 +213,7 @@
                                             yield = item.Yield,
                                             stock = item.Stock,
                                             reorderValue = item.ReorderValue,
-                                            isRepack = item.IsRepack
+                                            itemType = item.ItemType
                                         })))' class="text-blue-500 hover:text-blue-700 transition-colors" title="Edit">
                                             <i class="bi bi-pencil-square text-lg"></i>
                                         </button>
@@ -951,7 +951,7 @@
                 itemTypeSelect.value = item.itemType;
             } else {
                 // Fallback for older items
-                itemTypeSelect.value = item.isRepack ? "Repacked" : "Non-Repacked";
+                itemTypeSelect.value = item.itemType || (item.isRepack ? "Repacked" : "Non-Repacked");
             }
             handleTypeChange('edit');
             

@@ -7,26 +7,57 @@
 
 <div class="h-[calc(100vh-12rem)] flex flex-col">
     <!-- Top toolbar -->
-    <div class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700">
-        <form method="get" class="relative flex-1 max-w-lg group">
-            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
-                <i class="bi bi-search text-sm"></i>
-            </span>
-            <input type="text" name="SearchTerm" value="@Model.SearchTerm" 
-                   class="w-full border border-gray-300 rounded-lg pl-11 pr-32 py-2.5 text-sm focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" 
-                   placeholder="Search invoices...">
-            <div class="absolute inset-y-1 right-1 flex items-center">
-                <button type="submit" class="h-full px-4 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center space-x-2">
-                    <i class="bi bi-search"></i>
-                    <span>Search</span>
+    <form method="get" class="bg-white rounded-t-xl border border-gray-200 p-5 flex items-center justify-between shadow-sm dark:bg-slate-800 dark:border-gray-700 search-filter-form">
+        <div class="flex items-center space-x-3 flex-1">
+            <div class="relative inline-block text-left">
+                <button type="button" onclick="toggleActions(event)" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 bg-white hover:bg-gray-50 outline-none transition-all dark:bg-slate-800 dark:hover:bg-slate-700/50 dark:text-gray-400 dark:border-gray-600 font-bold">
+                    <span>Actions</span>
+                    <i class="bi bi-chevron-down text-xs"></i>
                 </button>
+                <div id="actionsMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-[70] overflow-hidden transform origin-top-left transition-all dark:bg-slate-800 dark:border-gray-700 font-bold">
+                    <a asp-page-handler="Export" class="w-full block text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 border-b border-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Export List</a>
+                    <button type="button" onclick="window.print()" class="w-full text-left px-5 py-3 text-xs font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300">Print Table</button>
+                </div>
             </div>
-        </form>
 
-        <button onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-medium dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
-            <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh Data</span>
+            <!-- Search Bar (Shortened) -->
+            <div class="relative w-80 group">
+                <span class="absolute inset-y-0 left-4 flex items-center text-gray-400 dark:text-gray-500">
+                    <i class="bi bi-search text-sm"></i>
+                </span>
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm" 
+                       class="w-full border border-gray-300 rounded-lg pl-11 pr-14 py-2 text-sm font-bold focus:ring-1 focus:ring-[#C41E24] outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white" 
+                       placeholder="Order ID / Ref...">
+                <div class="absolute inset-y-1 right-1 flex items-center">
+                    <button type="submit" class="h-8 w-10 bg-[#C41E24] text-white rounded-md text-xs font-bold hover:bg-[#a51a1f] transition-colors flex items-center justify-center">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Branch Filter -->
+            <select name="SelectedBranchId" onchange="this.form.submit()" 
+                    class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-bold text-gray-600 bg-white hover:border-[#C41E24] outline-none transition-all dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600 min-w-[150px]">
+                <option value="">All Branches</option>
+                @foreach (var branch in Model.BranchLocations)
+                {
+                    <option value="@branch.BranchId" selected="@(Model.SelectedBranchId == branch.BranchId)">@branch.BranchName</option>
+                }
+            </select>
+
+            <!-- Payment Status Filter -->
+            <select name="SelectedPaymentStatus" onchange="this.form.submit()" 
+                    class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-bold text-gray-600 bg-white hover:border-[#C41E24] outline-none transition-all dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
+                <option value="">All Payment Status</option>
+                <option value="Paid" selected="@(Model.SelectedPaymentStatus == "Paid")">Paid</option>
+                <option value="Pending" selected="@(Model.SelectedPaymentStatus == "Pending")">Pending</option>
+            </select>
+        </div>
+
+        <button type="button" onclick="window.location.reload()" class="flex items-center space-x-3 border border-gray-300 rounded-lg px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-all font-bold dark:hover:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600">
+            <i class="bi bi-arrow-clockwise text-base"></i> <span>Refresh</span>
         </button>
-    </div>
+    </form>
 
     <!-- Table content -->
     <div class="flex-1 overflow-auto bg-white border-x border-b border-gray-200 shadow-sm dark:bg-slate-800 dark:border-gray-700 custom-scrollbar">
@@ -34,6 +65,7 @@
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
                 <tr>
                     <th class="px-8 py-4">Date</th>
+                    <th class="px-8 py-4">Branch</th>
                     <th class="px-8 py-4">Order ID</th>
                     <th class="px-8 py-4">Reference</th>
                     <th class="px-8 py-4 text-right">Total Amount</th>
@@ -49,6 +81,7 @@
                     {
                         <tr class="hover:bg-gray-50 transition-colors border-t border-gray-100 dark:hover:bg-slate-700/50 dark:border-gray-700">
                             <td class="px-8 py-5 text-gray-600 font-medium dark:text-gray-300">@invoice.InvoiceDate.ToString("MMM dd, yyyy")</td>
+                            <td class="px-8 py-5 text-gray-600 font-bold text-sm dark:text-gray-300">@invoice.OrderInfo?.BranchManager?.BranchLocation?.BranchName</td>
                             <td class="px-8 py-5 font-bold text-gray-800 text-sm dark:text-white">
                                 <a asp-page="PrintInvoice" asp-route-id="@invoice.OrderId" target="_blank" class="text-blue-600 hover:text-blue-800 transition-colors">
                                     @(invoice.OrderInfo?.OrderDate.Year)-@invoice.OrderId.ToString("D4")
@@ -93,7 +126,12 @@
                         </tr>
                     }
                 }
-@* ... (no changes to else block) ... *@
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="px-8 py-20 text-center text-gray-400 italic">No billing records found.</td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -152,6 +190,17 @@
 
 @section Scripts {
     <script>
+        const actionsMenu = document.getElementById('actionsMenu');
+        function toggleActions(e) {
+            e.stopPropagation();
+            if (actionsMenu) actionsMenu.classList.toggle('hidden');
+        }
+        window.onclick = function(event) {
+            if (!event.target.closest('.relative')) {
+                if(actionsMenu) actionsMenu.classList.add('hidden');
+            }
+        }
+
         function openPaymentModal(invoiceId) {
             const modal = document.getElementById('paymentModal');
             const content = modal.querySelector('.inline-block');

@@ -363,7 +363,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 Quantity = RejectQty,
                 Uom = sku.Uom,
                 Reason = string.IsNullOrWhiteSpace(RejectReason) ? "N/A" : RejectReason,
-                RejectedAt = DateTime.Now,
+                RejectedAt = DateTime.UtcNow,
                 RejectType = "SKU"
             };
 

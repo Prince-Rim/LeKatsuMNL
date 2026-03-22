@@ -5,7 +5,7 @@
     Layout = "_BranchLayout";
 
     var order = Model.Order;
-    var invoice = Model.Invoice;
+    var invoice = order.Invoices.FirstOrDefault();
     string formattedId = order != null ? $"FO-{order.OrderDate.Year.ToString().Substring(2)}{order.OrderId:D4}" : "—";
     string statusPath = order?.Status == "Approved" ? "Approved Order" :
                         order?.Status == "Completed" ? "Completed Order" :
@@ -148,14 +148,6 @@
 
 @* Main content *@
 <!-- Main content -->
-<div class="screen-only px-1 mb-6">
-    <div class="flex items-center gap-4 mb-8">
-        <a href="/BranchDashboard/MyOrder" class="w-10 h-10 rounded-full bg-red-50 text-[#C41E24] flex items-center justify-center hover:bg-[#C41E24] hover:text-white transition-all shadow-sm dark:bg-red-500/10 dark:hover:bg-[#C41E24]">
-            <i class="bi bi-chevron-left text-lg"></i>
-        </a>
-        <h1 class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">Order Details</h1>
-    </div>
-</div>
 
 <div class="screen-only px-1 mb-4">
     @if (TempData["Message"] != null)
@@ -170,268 +162,300 @@
             <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
         </div>
     }
-</div>
 
-<div class="screen-only grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-    @* Order Details Panel *@
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
-        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-5 dark:text-gray-500">Order Details</p>
-        <dl class="space-y-4 text-sm">
-            <div class="flex gap-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Statement No</dt>
-                <dd class="font-bold text-gray-800 dark:text-white">@formattedId</dd>
-            </div>
-            <div class="flex gap-3 border-b border-gray-50 dark:border-gray-700/50 pb-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0 font-bold uppercase text-[10px] tracking-widest pt-1">Reference PO</dt>
-                <dd class="font-bold text-gray-800 dark:text-white">
-                    @if (invoice?.ReferenceNumber != null && invoice.ReferenceNumber.StartsWith("SESSION:"))
-                    {
-                        <div class="flex flex-col gap-1">
-                            <span class="text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                                <i class="bi bi-hourglass-split animate-spin text-sm"></i>
-                                <span class="animate-pulse">Verifying Payment...</span>
-                            </span>
-                            @if (order?.Status == "Approved" && invoice.PaymentStatus == "Pending")
-                            {
-                                <form method="post" asp-page-handler="Verify" class="mt-1">
-                                    <input type="hidden" name="id" value="@order.OrderId" />
-                                    <button type="submit" class="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-lg font-black uppercase hover:bg-amber-200 transition-colors shadow-sm active:scale-95">
-                                        <i class="bi bi-arrow-clockwise mr-1"></i> Force Refresh
-                                    </button>
-                                </form>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        @(invoice?.ReferenceNumber ?? "—")
-                    }
-                </dd>
-            </div>
-            <div class="flex gap-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Date Issued</dt>
-                <dd class="font-medium text-gray-600 dark:text-gray-300">@(order?.OrderDate.ToString("MMMM dd, yyyy") ?? "—")</dd>
-            </div>
-            <div class="flex gap-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Approved date</dt>
-                <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.InvoiceDate.ToString("MMMM dd, yyyy") ?? "—")</dd>
-            </div>
-            <div class="flex gap-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Payment Terms</dt>
-                <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.PaymentMethod ?? "—")</dd>
-            </div>
-            <div class="flex gap-3">
-                <dt class="w-36 text-gray-400 dark:text-gray-500 flex-shrink-0">Status</dt>
-                <dd>
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
-                        @(order?.Status == "Completed" ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
-                          order?.Status == "Rejected" ? "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20" :
-                          order?.Status == "Cancelled" ? "bg-gray-50 text-gray-600 border-gray-100 dark:bg-slate-700 dark:text-gray-400 dark:border-gray-600" :
-                          order?.Status == "Delivering" ? "bg-cyan-50 text-cyan-600 border-cyan-100 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/20" :
-                          order?.Status == "Preparing" ? "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20" :
-                          order?.Status == "Approved" ? "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" :
-                          "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20")">
-                        @(order?.Status ?? "—")
-                    </span>
-                </dd>
-            </div>
-        </dl>
+
+
+<div class="screen-only bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700 min-h-[600px] flex flex-col mb-8">
+    @* Tab Navigation *@
+    <div class="flex border-b border-gray-100 dark:border-gray-700 px-6 overflow-x-auto no-scrollbar bg-gray-50/30 dark:bg-slate-900/10">
+        <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#C41E24] border-b-2 border-[#C41E24] transition-all whitespace-nowrap">Overview</button>
+        <button onclick="switchTab('transaction')" id="tab-transaction" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors whitespace-nowrap">Transaction</button>
+        <button onclick="switchTab('chat')" id="tab-chat" class="tab-btn px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-all whitespace-nowrap flex items-center gap-2">
+            Discussion
+            @if (Model.Comments.Any(c => !c.Comment.StartsWith("System:")))
+            {
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            }
+        </button>
     </div>
 
-    @* Order Items Panel *@
-    <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700 dark:text-gray-500">
-                        <th class="px-5 py-4 font-bold text-left">Item Code</th>
-                        <th class="px-4 py-4 font-bold text-left">Item Description</th>
-                        <th class="px-4 py-4 font-bold text-left">Classification</th>
-                        <th class="px-4 py-4 font-bold text-right">Quantity</th>
-                        <th class="px-4 py-4 font-bold text-right">Line Total</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
-                    @if (order?.OrderLists != null && order.OrderLists.Any())
-                    {
-                        @foreach (var item in order.OrderLists)
-                        {
-                            string itemCode = item.SkuId.HasValue
-                                ? $"SKU-{item.SkuId:D3}"
-                                : $"RM-{item.ComId:D3}";
-                            string itemName = item.SkuHeader?.ItemName ?? item.CommissaryInventory?.ItemName ?? "—";
-                            string category = item.SkuHeader?.Category?.CategoryName
-                                ?? item.CommissaryInventory?.Category?.CategoryName ?? "—";
+    @* Tab Content Wrapper *@
+    <div class="flex-1 flex flex-col">
+        @* Tab 1: Overview *@
+        <div id="content-overview" class="tab-content block animate-in fade-in duration-500">
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+                    @* Left: Status and Journey *@
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 dark:bg-slate-900/20 dark:border-gray-700">
+                            <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-6">Order Journey</p>
+                            <div class="relative flex items-center justify-between w-full px-2 py-4">
+                                <div class="absolute left-8 right-8 h-1 bg-gray-100 dark:bg-gray-700 top-1/2 -translate-y-4"></div>
+                                @{
+                                    var stages = new[] { "Pending", "Approved", "Preparing", "Delivering", "Completed" };
+                                    int currentStageIdx = Array.IndexOf(stages, order?.Status ?? "Pending");
+                                    if (order?.Status == "Delivering") currentStageIdx = 3;
+                                    double progWidth = currentStageIdx * 25;
+                                }
+                                <div class="absolute left-8 h-1 bg-[#C41E24] top-1/2 -translate-y-4 transition-all duration-700 ease-out" style="width: calc(@(progWidth)% - 8px)"></div>
+                                @for (int i = 0; i < stages.Length; i++)
+                                {
+                                    bool isDone = i < currentStageIdx;
+                                    bool isNow = i == currentStageIdx;
+                                    string icon = i == 0 ? "bi-send" : i == 1 ? "bi-check2-circle" : i == 2 ? "bi-box-seam" : i == 3 ? "bi-truck" : "bi-flag";
+                                    <div class="relative z-10 flex flex-col items-center">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 
+                                            @(isNow ? "bg-white border-[#C41E24] text-[#C41E24] shadow-md scale-110 dark:bg-slate-800" : isDone ? "bg-[#C41E24] border-[#C41E24] text-white" : "bg-white border-gray-100 text-gray-200 dark:bg-slate-800 dark:border-gray-700")">
+                                            <i class="bi @icon text-[10px]"></i>
+                                        </div>
+                                        <span class="mt-3 text-[8px] font-black uppercase tracking-tighter @(isNow ? "text-[#C41E24]" : "text-gray-400")">@stages[i]</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
 
-                            <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-colors">
-                                <td class="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">@itemCode</td>
-                                <td class="px-4 py-4 font-medium text-gray-800 dark:text-white">@itemName</td>
-                                <td class="px-4 py-4 text-gray-500 dark:text-gray-400">@category</td>
-                                <td class="px-4 py-4 text-right font-medium text-gray-700 dark:text-gray-200">@item.Quantity.ToString("0.##")</td>
-                                <td class="px-4 py-4 text-right font-bold text-gray-800 dark:text-white">₱@item.TotalPrice.ToString("N2")</td>
-                            </tr>
+                        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm dark:bg-slate-800 dark:border-gray-700">
+                            <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-5">Order Properties</p>
+                            <dl class="space-y-4 text-xs">
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-3 dark:border-gray-700/50">
+                                    <dt class="text-gray-400 uppercase font-bold tracking-widest text-[9px]">Statement ID</dt>
+                                    <dd class="font-black text-gray-800 dark:text-white">@formattedId</dd>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-3 dark:border-gray-700/50">
+                                    <dt class="text-gray-400 uppercase font-bold tracking-widest text-[9px]">Issued Date</dt>
+                                    <dd class="font-medium text-gray-600 dark:text-gray-300">@(order?.OrderDate.ToString("MMMM dd, yyyy") ?? "—")</dd>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-gray-50 pb-3 dark:border-gray-700/50">
+                                    <dt class="text-gray-400 uppercase font-bold tracking-widest text-[9px]">Approved On</dt>
+                                    <dd class="font-medium text-gray-600 dark:text-gray-300">@(invoice?.InvoiceDate.ToString("MMMM dd, yyyy") ?? "—")</dd>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <dt class="text-gray-400 uppercase font-bold tracking-widest text-[9px]">Origin</dt>
+                                    <dd class="font-black text-[#C41E24] uppercase tracking-widest">Main Office</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                    </div>
+
+                    @* Right: Items Table *@
+                    <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col border dark:bg-slate-800 dark:border-gray-700">
+                        <p class="p-5 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-50 dark:border-gray-700/50">Requisition Items</p>
+                        <div class="flex-1 overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-gray-50/50 text-gray-400 uppercase text-[9px] font-black tracking-widest dark:bg-slate-900/20">
+                                    <tr>
+                                        <th class="px-6 py-4">Item Details</th>
+                                        <th class="px-4 py-4 text-center">Qty</th>
+                                        <th class="px-6 py-4 text-right">Line Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                                    @foreach (var item in order.OrderLists)
+                                    {
+                                        <tr class="hover:bg-gray-50/50 transition-colors dark:hover:bg-slate-700/30">
+                                            <td class="px-6 py-5">
+                                                <div class="flex flex-col">
+                                                    <span class="font-bold text-gray-800 dark:text-white">@(item.SkuHeader?.ItemName ?? item.CommissaryInventory?.ItemName)</span>
+                                                    <span class="text-[9px] text-gray-400 uppercase mt-1">@item.SkuHeader?.Category?.CategoryName</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-5 text-center font-bold text-gray-600 dark:text-gray-300">@item.Quantity.ToString("G")</td>
+                                            <td class="px-6 py-5 text-right font-black text-gray-800 dark:text-white">₱@item.TotalPrice.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-6 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center dark:bg-slate-900/40 dark:border-gray-700/50">
+                            <span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Grand Total</span>
+                            <span class="text-xl font-black text-[#C41E24]">₱@grandTotal.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Tab 2: Transaction (Restored) *@
+        <div id="content-transaction" class="tab-content hidden animate-in slide-in-from-right-4 duration-500">
+            <div class="p-8">
+                <div class="max-w-4xl mx-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        @* Left: Financial Summary *@
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm dark:bg-slate-800 dark:border-gray-700">
+                                <div class="text-center mb-8">
+                                    <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10">
+                                        <i class="bi bi-wallet2 text-[#C41E24] text-2xl"></i>
+                                    </div>
+                                    <h3 class="text-sm font-black text-gray-800 uppercase tracking-widest dark:text-white">Payment Summary</h3>
+                                </div>
+                                
+                                <div class="space-y-6">
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-gray-400 uppercase font-black tracking-widest">Amount Due</span>
+                                        <span class="font-bold text-gray-700 dark:text-gray-300">₱@grandTotal.ToString("N2")</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-gray-400 uppercase font-black tracking-widest">Status</span>
+                                        <span class="font-black @(invoice?.PaymentStatus == "Paid" ? "text-emerald-500" : "text-orange-500") uppercase tracking-widest text-[10px]">@(invoice?.PaymentStatus ?? "Pending")</span>
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-50 flex justify-between items-center dark:border-gray-700">
+                                        <span class="text-xs font-black text-[#C41E24] uppercase tracking-widest">Total</span>
+                                        <span class="text-2xl font-black text-gray-900 dark:text-white">₱@grandTotal.ToString("N2")</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-10">
+                                    @if (invoice?.PaymentStatus != "Paid" && order?.Status == "Approved")
+                                    {
+                                        <form method="post" asp-page-handler="Pay" class="w-full">
+                                            <input type="hidden" name="id" value="@order.OrderId" />
+                                            <button type="submit" class="w-full py-4 bg-[#C41E24] text-white rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all shadow-xl shadow-red-100 active:scale-95 dark:shadow-none">
+                                                Pay via PayMongo
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (invoice?.PaymentStatus == "Paid")
+                                    {
+                                        <div class="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 text-center dark:bg-emerald-500/5 dark:border-emerald-500/10">
+                                            <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Payment Verified</p>
+                                            <p class="text-[9px] text-gray-400 mt-2 uppercase font-bold">Ref: @invoice.ReferenceNumber</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="p-6 bg-gray-50 rounded-2xl border border-gray-100 text-center dark:bg-slate-900/40 dark:border-gray-700">
+                                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Awaiting Approval</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100 dark:bg-amber-500/5 dark:border-amber-500/10 flex gap-4">
+                                <i class="bi bi-info-circle-fill text-amber-500 text-lg"></i>
+                                <p class="text-[10px] text-amber-800/80 leading-relaxed font-bold uppercase tracking-wide dark:text-amber-500/80">
+                                    Include Statement ID <span class="bg-amber-200 px-1.5 py-0.5 rounded text-amber-900 dark:bg-amber-900/40 dark:text-amber-300">@formattedId</span> in remarks for faster verification.
+                                </p>
+                            </div>
+                        </div>
+
+                        @* Right: Payment Instructions / FAQs *@
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm dark:bg-slate-800 dark:border-gray-700">
+                                <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-6">Payment Instructions</p>
+                                <div class="space-y-6">
+                                    <div class="flex gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-slate-900/20">
+                                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-[#C41E24] text-[10px] shadow-sm dark:bg-slate-800">1</div>
+                                        <div>
+                                            <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-white">Choose Method</h5>
+                                            <p class="text-[10px] text-gray-500 mt-1">Select PayMongo for GCash, Maya, or Credit Cards.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-slate-900/20">
+                                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-[#C41E24] text-[10px] shadow-sm dark:bg-slate-800">2</div>
+                                        <div>
+                                            <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-white">Confirm Transfer</h5>
+                                            <p class="text-[10px] text-gray-500 mt-1">Wait for the redirection and complete the secure payment.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-slate-900/20">
+                                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-[#C41E24] text-[10px] shadow-sm dark:bg-slate-800">3</div>
+                                        <div>
+                                            <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-white">Auto-Update</h5>
+                                            <p class="text-[10px] text-gray-500 mt-1">Status will automatically change to "Paid" once verified by PayMongo.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Tab 3: Chat *@
+        <div id="content-chat" class="tab-content hidden animate-in slide-in-from-bottom-4 duration-500">
+            <div class="flex flex-col min-h-[600px] bg-white dark:bg-slate-800">
+                @* Chat Header *@
+                <div class="px-8 py-5 border-b border-gray-50 flex items-center justify-between dark:border-gray-700/50">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-[#C41E24] dark:bg-red-500/10">
+                            <i class="bi bi-chat-left-quote-fill-dots text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-widest text-gray-800 dark:text-white">Order Discussion</h4>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase">Direct line to Main Office</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span class="text-[9px] font-black uppercase text-green-600 tracking-widest">Online</span>
+                    </div>
+                </div>
+
+                @* Messages List *@
+                <div class="flex-1 overflow-y-auto p-10 space-y-8 max-h-[500px] custom-scrollbar bg-gray-50/20 dark:bg-slate-900/10" id="chatContainer">
+                    @if (Model.Comments != null && Model.Comments.Any())
+                    {
+                        foreach (var comment in Model.Comments)
+                        {
+                            if (comment.Comment.StartsWith("System:"))
+                            {
+                                <div class="flex justify-center">
+                                    <div class="bg-white/80 backdrop-blur-sm border border-gray-100 px-6 py-2 rounded-full shadow-sm dark:bg-slate-800/80 dark:border-gray-700">
+                                        <span class="text-[9px] font-black uppercase text-gray-400 tracking-widest italic">@comment.Comment</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                int.TryParse(currentUserIdStr, out int currentUserId);
+                                bool isMe = comment.BranchManagerId == currentUserId;
+                                
+                                <div class="flex @(isMe ? "justify-end" : "justify-start")">
+                                    <div class="max-w-[80%] md:max-w-[65%] group">
+                                        <div class="flex items-center gap-3 mb-2 px-1 @(isMe ? "justify-end" : "justify-start")">
+                                            <span class="text-[9px] font-black uppercase tracking-widest @(isMe ? "text-red-700" : "text-gray-500 dark:text-gray-300")">
+                                                @(isMe ? "You" : (comment.AdminAccount != null ? $"{comment.AdminAccount.FirstName} (Admin)" : "Main Office"))
+                                            </span>
+                                            <span class="text-[8px] font-bold text-gray-400">@comment.CreatedAt.ToString("hh:mm tt")</span>
+                                        </div>
+                                        <div class="p-5 rounded-3xl shadow-sm border @(isMe ? "bg-red-50 border-red-100 text-gray-800 rounded-tr-none" : "bg-white border-gray-100 text-gray-700 rounded-tl-none") dark:bg-slate-700 dark:border-gray-600 dark:text-gray-200">
+                                            <p class="text-xs leading-relaxed">@comment.Comment</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         }
                     }
                     else
                     {
-                        <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-gray-300 text-xs uppercase tracking-wider">No items found</td>
-                        </tr>
+                        <div class="flex flex-col items-center justify-center py-20 text-gray-300">
+                            <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 dark:bg-slate-800">
+                                <i class="bi bi-chat-dots-fill text-5xl opacity-10"></i>
+                            </div>
+                            <p class="text-[10px] font-black uppercase tracking-widest">No conversation history yet</p>
+                        </div>
                     }
-                </tbody>
-            </table>
+                </div>
+
+                @* Input Area *@
+                <div class="p-8 border-t border-gray-50 bg-white dark:bg-slate-800 dark:border-gray-700">
+                    <form method="post" asp-page-handler="AddComment" class="relative">
+                        <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
+                        <div class="flex items-center gap-5 bg-gray-50 rounded-3xl px-8 py-3 border border-gray-100 focus-within:border-[#C41E24] focus-within:ring-4 focus-within:ring-[#C41E24]/5 focus-within:bg-white transition-all dark:bg-slate-700/50 dark:border-gray-700">
+                            <textarea name="CommentText" placeholder="Start typing a message..." required
+                                      class="flex-1 bg-transparent border-none py-2.5 text-xs outline-none focus:ring-0 text-gray-800 dark:text-white dark:placeholder:text-gray-500 resize-none h-12 min-h-[48px]"></textarea>
+                            <button type="submit" class="bg-[#C41E24] text-white p-3.5 rounded-2xl hover:bg-black transition-all shadow-xl shadow-red-100 dark:shadow-none active:scale-95">
+                                <i class="bi bi-send-fill text-xl"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-@* Bottom section: Payment Instructions + Financial Summary *@
-<div class="screen-only grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
-        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-6 dark:text-gray-500">Order Journey</p>
-        <div class="relative flex items-center justify-between w-full px-2">
-            @* Progress Line Background *@
-            <div class="absolute left-10 right-10 h-1 bg-gray-100 dark:bg-gray-700 top-1/2 -translate-y-4"></div>
-            
-            @* Progress Line Active *@
-            @{
-                var stages = new[] { "Pending", "Approved", "Preparing", "Delivering", "Completed" };
-                int currentStageIndex = Array.IndexOf(stages, order?.Status ?? "Pending");
-                if (order?.Status == "Delivering") currentStageIndex = 3;
-                if (order?.Status == "Preparing") currentStageIndex = 2;
-                if (order?.Status == "Approved") currentStageIndex = 1;
-                if (order?.Status == "Completed") currentStageIndex = 4;
-                
-                double progressWidth = currentStageIndex * 25; // 0, 25, 50, 75, 100
-            }
-            <div class="absolute left-10 h-1 bg-[#C41E24] top-1/2 -translate-y-4 transition-all duration-700 ease-out" style="width: calc(@(progressWidth)% - 10px)"></div>
-
-            @* Steps *@
-            @for (int i = 0; i < stages.Length; i++)
-            {
-                bool isCompleted = i < currentStageIndex;
-                bool isCurrent = i == currentStageIndex;
-                bool isFuture = i > currentStageIndex;
-                
-                string icon = i == 0 ? "bi-send" : 
-                              i == 1 ? "bi-check2-circle" : 
-                              i == 2 ? "bi-box-seam" : 
-                              i == 3 ? "bi-truck" : "bi-flag";
-                
-                <div class="relative z-10 flex flex-col items-center">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 
-                        @(isCurrent ? "bg-white border-[#C41E24] text-[#C41E24] shadow-[0_0_15px_rgba(196,30,36,0.3)] scale-125 dark:bg-slate-800" : 
-                          isCompleted ? "bg-[#C41E24] border-[#C41E24] text-white" : 
-                          "bg-white border-gray-200 text-gray-300 dark:bg-slate-800 dark:border-gray-700")">
-                        <i class="bi @icon text-xs"></i>
-                    </div>
-                    <span class="mt-2 text-[10px] font-black uppercase tracking-tighter @(isCurrent ? "text-[#C41E24]" : isCompleted ? "text-gray-600 dark:text-gray-300" : "text-gray-300 dark:text-gray-600")">@stages[i]</span>
-                </div>
-            }
-        </div>
-    </div>
-
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
-            <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 dark:text-gray-500">Financial Summary</p>
-            <div class="flex items-center justify-between text-sm">
-                <span class="text-gray-600 dark:text-gray-300 font-medium">Total Amount:</span>
-                <span class="font-bold text-2xl text-gray-800 dark:text-white">₱@grandTotal.ToString("N2")</span>
-            </div>
-            @if (invoice != null)
-            {
-                <div class="mt-2 flex items-center justify-between text-sm">
-                    <span class="text-gray-500 dark:text-gray-400">Payment Status:</span>
-                    <span class="font-bold text-[#C41E24]">@invoice.PaymentStatus</span>
-                </div>
-            }
-        </div>
-    </div>
-
-    @* Chat Section Trigger *@
-    <div class="screen-only px-1 mb-6">
-        <button onclick="document.getElementById('chatSection').scrollIntoView({behavior: 'smooth'})" class="w-full flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-[#C41E24] hover:bg-red-50/30 transition-all group dark:bg-slate-800 dark:border-gray-700 dark:hover:border-red-500/50">
-            <div class="flex items-center space-x-5">
-                <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-white transition-colors dark:bg-red-500/10">
-                    <i class="bi bi-chat-left-dots-fill text-[#C41E24] text-xl"></i>
-                </div>
-                <div class="flex flex-col items-start">
-                    <span class="text-sm font-black text-gray-800 uppercase tracking-widest dark:text-white">Chat with Main Office</span>
-                    <span class="text-[10px] font-bold text-gray-400 uppercase">Recent activity: @(Model.Comments.LastOrDefault()?.Comment ?? "No messages yet")</span>
-                </div>
-            </div>
-            <i class="bi bi-chevron-down text-gray-300 group-hover:text-[#C41E24] transition-colors"></i>
-        </button>
-    </div>
-
-    @* Full Chat Interface *@
-    <div id="chatSection" class="screen-only bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden mb-12 flex flex-col min-h-[600px] dark:bg-slate-800 dark:border-gray-700">
-        <div class="px-8 py-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between dark:bg-slate-700/30 dark:border-gray-700">
-            <div class="flex items-center space-x-3">
-                <i class="bi bi-chat-square-text-fill text-[#C41E24] text-lg"></i>
-                <h4 class="text-sm font-black uppercase tracking-widest text-gray-800 dark:text-white">Order Discussion - @formattedId</h4>
-            </div>
-            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest dark:bg-green-500/10 dark:text-green-500">Online</span>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-white dark:bg-slate-800/50" id="chatContainer">
-            @if (Model.Comments != null && Model.Comments.Any())
-            {
-                foreach (var comment in Model.Comments)
-                {
-                    if (comment.Comment.StartsWith("System:"))
-                    {
-                        <div class="flex justify-center my-6">
-                            <span class="bg-gray-50 text-gray-400 px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border border-gray-100 shadow-sm dark:bg-slate-900/40 dark:text-gray-500 dark:border-gray-700">
-                                @comment.Comment
-                            </span>
-                        </div>
-                    }
-                    else
-                    {
-                        var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                        int.TryParse(currentUserIdStr, out int currentUserId);
-                        
-                        bool isMe = comment.BranchManagerId == currentUserId;
-                        
-                        <div class="flex @(isMe ? "justify-end" : "justify-start")">
-                            <div class="max-w-[85%] md:max-w-[70%] @(isMe ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100") rounded-3xl p-5 border shadow-sm dark:bg-slate-700/50 dark:border-gray-700">
-                                <div class="flex items-center space-x-3 mb-2.5">
-                                    <span class="text-[10px] font-black uppercase tracking-widest @(isMe ? "text-red-700" : "text-gray-700 dark:text-gray-200")">
-                                        @if (comment.AdminAccount != null) { @($"{comment.AdminAccount.FirstName} {comment.AdminAccount.LastName} (Main Office)") }
-                                        else if (comment.BranchManager != null) { @($"{comment.BranchManager.FirstName} {comment.BranchManager.LastName} (Me)") }
-                                        else { @("Unknown") }
-                                    </span>
-                                    <span class="text-[9px] font-bold text-gray-400">@comment.CreatedAt.ToString("hh:mm tt")</span>
-                                </div>
-                                <p class="text-sm text-gray-600 leading-relaxed dark:text-gray-300">@comment.Comment</p>
-                            </div>
-                        </div>
-                    }
-                }
-            }
-            else
-            {
-                <div class="flex flex-col items-center justify-center py-20 text-gray-400">
-                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 dark:bg-slate-700/30">
-                        <i class="bi bi-chat-dots text-4xl opacity-20"></i>
-                    </div>
-                    <p class="text-[10px] font-black uppercase tracking-widest">Start a conversation with the Main Office</p>
-                </div>
-            }
-        </div>
-
-        <div class="p-8 border-t border-gray-50 bg-white dark:bg-slate-800 dark:border-gray-700">
-            <form method="post" asp-page-handler="AddComment" class="relative">
-                <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
-                <div class="flex items-center space-x-4 bg-gray-50 rounded-2xl px-6 py-3 border border-gray-100 focus-within:border-[#C41E24] focus-within:ring-2 focus-within:ring-[#C41E24]/10 transition-all dark:bg-slate-700/50 dark:border-gray-700">
-                    <textarea name="CommentText" placeholder="Type your message here..." required
-                              class="flex-1 bg-transparent border-none py-2 text-sm outline-none focus:ring-0 text-gray-800 dark:text-white dark:placeholder:text-gray-500 resize-none h-12 min-h-[48px]"></textarea>
-                    <button type="submit" class="bg-[#C41E24] text-white p-3 rounded-xl hover:bg-red-700 transition-all shadow-lg flex items-center justify-center shrink-0">
-                        <i class="bi bi-send-fill text-xl"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
 @* Action buttons *@
 @if (order?.Status == "Pending")
@@ -483,11 +507,34 @@
         </form>
     </div>
 }
-    </div>
-}
+    
 
 @section Scripts {
     <script>
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            
+            // Show selected content
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            document.getElementById('content-' + tabId).classList.add('block');
+            
+            // Update tab button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-[#C41E24]', 'border-[#C41E24]');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+            
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.classList.add('text-[#C41E24]', 'border-[#C41E24]');
+            activeBtn.classList.remove('text-gray-400', 'border-transparent');
+
+            if (tabId === 'chat') {
+                scrollToBottom();
+            }
+        }
+
         function scrollToBottom() {
             const container = document.getElementById('chatContainer');
             if (container) {
