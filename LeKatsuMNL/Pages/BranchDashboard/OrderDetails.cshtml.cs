@@ -24,6 +24,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
         public OrderInfo Order { get; set; }
         public Invoice Invoice { get; set; }
+        public System.Collections.Generic.List<OrderComment> Comments { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -43,6 +44,11 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                     .ThenInclude(ol => ol.CommissaryInventory)
                         .ThenInclude(c => c != null ? c.Category : null)
                 .Include(o => o.Invoices)
+                .Include(o => o.OrderComments)
+                    .ThenInclude(oc => oc.AdminAccount)
+                .Include(o => o.OrderComments)
+                    .ThenInclude(oc => oc.BranchManager)
+                        .ThenInclude(bm => bm != null ? bm.BranchLocation : null)
                 .FirstOrDefaultAsync();
 
             if (Order == null)
@@ -73,6 +79,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                     if (Order.Status == "Approved")
                     {
                         Order.Status = "Preparing";
+                        await LogSystemMessage(Order.OrderId, "Payment verified via PayMongo - Order status changed to Preparing");
                     }
 
                     await _context.SaveChangesAsync();
@@ -86,8 +93,20 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             }
 
             Invoice = Order.Invoices?.FirstOrDefault();
+            Comments = Order.OrderComments.OrderBy(c => c.CreatedAt).ToList();
 
             return Page();
+        }
+
+        private async Task LogSystemMessage(int orderId, string message)
+        {
+            var systemComment = new OrderComment
+            {
+                OrderId = orderId,
+                Comment = "System: " + message,
+                CreatedAt = DateTime.Now
+            };
+            _context.OrderComments.Add(systemComment);
         }
 
         public async Task<IActionResult> OnPostCancelAsync(int id)
@@ -102,6 +121,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             if (order != null && order.Status == "Pending")
             {
                 order.Status = "Cancelled";
+                await LogSystemMessage(id, "Order Cancelled by Branch");
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Order cancelled.";
             }
@@ -120,6 +140,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
             if (order != null && order.Status == "Delivering")
             {
                 order.Status = "Completed";
+                await LogSystemMessage(id, "Order received and completed by branch");
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Transaction completed.";
             }
@@ -153,6 +174,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
 
             try
             {
+                /* 
                 // Re-use active session if available
                 if (invoice.ReferenceNumber != null && invoice.ReferenceNumber.StartsWith("SESSION:"))
                 {
@@ -163,6 +185,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                         return Redirect(existingSession.CheckoutUrl);
                     }
                 }
+                */
 
                 var result = await _payMongoService.CreateCheckoutSessionAsync(
                     order.OrderId,
@@ -231,6 +254,7 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                         if (order.Status == "Approved")
                         {
                             order.Status = "Preparing";
+                            await LogSystemMessage(id, "Payment verified via PayMongo - Order status changed to Preparing");
                         }
 
                         await _context.SaveChangesAsync();
@@ -243,6 +267,26 @@ namespace LeKatsuMNL.Pages.BranchDashboard
                 }
             }
             return RedirectToPage(new { id = id });
+        }
+
+        public async Task<IActionResult> OnPostAddCommentAsync(int OrderId, string CommentText)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdStr, out int branchManagerId))
+                return RedirectToPage("/Login/login");
+
+            var comment = new OrderComment
+            {
+                OrderId = OrderId,
+                Comment = CommentText,
+                BranchManagerId = branchManagerId,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.OrderComments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage(new { id = OrderId });
         }
     }
 }

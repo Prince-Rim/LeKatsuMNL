@@ -137,33 +137,49 @@ namespace LeKatsuMNL.Pages.Dashboard
                     decimal lineTotal = item.Quantity * item.UnitPrice;
                     decimal unitCostPerUom = inventoryItem.CostPrice;
 
-                    // Parse Yield to convert if it matches the received unit
-                    if (!string.IsNullOrEmpty(inventoryItem.Yield) && item.Unit == inventoryItem.Yield)
+                    // Robust Conversion Logic
+                    // Robust Conversion Logic
+                    decimal conversionFactor = 1;
+                    if (!string.IsNullOrEmpty(item.Unit))
                     {
-                        try 
+                        try
                         {
-                            var parts = inventoryItem.Yield.Split('/');
-                            string sizeAndUnit = parts.Length == 2 ? parts[1].Trim() : parts[0].Trim();
-                            var match = Regex.Match(sizeAndUnit, @"^([\d\.]+)\s*(.+)$");
-                            if (match.Success)
+                            var parts = item.Unit.Split('/');
+                            if (parts.Length >= 2)
                             {
-                                if (decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal yieldSize))
+                                // Multi-part format (e.g., Plastic/Kilogram/5 OR Plastic/5Kilogram)
+                                string last = parts.Last().Trim();
+                                string secondLast = parts[parts.Length - 2].Trim();
+
+                                if (decimal.TryParse(last, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal lastVal))
                                 {
-                                    string yieldUom = match.Groups[2].Value.Trim();
-                                    decimal conversionFactor = UomConverter.Convert(yieldSize, yieldUom, inventoryItem.Uom);
-                                    actualQuantityAdded = item.Quantity * conversionFactor;
-                                    
-                                    if (conversionFactor > 0)
-                                    {
-                                        unitCostPerUom = item.UnitPrice / conversionFactor;
-                                    }
+                                    // Format: .../Unit/Size (e.g., Plastic/Kilogram/5)
+                                    conversionFactor = UomConverter.Convert(lastVal, secondLast, inventoryItem.Uom);
+                                }
+                                else
+                                {
+                                    // Format: .../SizeUnit (e.g., Plastic/5Kilogram)
+                                    // UomConverter.Convert now handles "5Kilogram" internally
+                                    conversionFactor = UomConverter.Convert(1, last, inventoryItem.Uom);
                                 }
                             }
+                            else
+                            {
+                                // Single-part unit name or composite (e.g., "1kg")
+                                conversionFactor = UomConverter.Convert(1, item.Unit.Trim(), inventoryItem.Uom);
+                            }
                         }
-                        catch { } // fallback to original item.Quantity if parsing fails
+                        catch { }
                     }
-                    else if (item.Unit == inventoryItem.Uom)
+
+                    if (conversionFactor > 0)
                     {
+                        actualQuantityAdded = item.Quantity * conversionFactor;
+                        unitCostPerUom = item.UnitPrice / conversionFactor;
+                    }
+                    else
+                    {
+                        actualQuantityAdded = item.Quantity;
                         unitCostPerUom = item.UnitPrice;
                     }
 
@@ -192,6 +208,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                         TotalPrice = lineTotal,
                         IsPaid = (PaymentStatus == "Paid"),
                         TimeStamp = DateTime.Now,
+                        Uom = inventoryItem.Uom,
                         Remarks = $"Stock In via Supply Order #{supplyOrder.SoaId:D5}"
                     };
 

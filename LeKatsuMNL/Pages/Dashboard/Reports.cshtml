@@ -80,6 +80,7 @@
         <button type="button" onclick="setReportType('Rejects')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "Rejects" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Rejects</button>
         <button type="button" onclick="setReportType('VendorSummary')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "VendorSummary" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Vendors</button>
         <button type="button" onclick="setReportType('BranchSummary')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "BranchSummary" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Branches</button>
+        <button type="button" onclick="setReportType('TransactionLog')" class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all @(Model.ReportType == "TransactionLog" ? "text-[#C41E24] border-b-2 border-[#C41E24] bg-white dark:bg-slate-800" : "text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-50/50 dark:hover:bg-slate-700/20")">Trans. Log</button>
     </div>
 
     <!-- Toolbar Filters -->
@@ -407,6 +408,46 @@
             </tbody>
         </table>
         <partial name="_Pagination" model="Model.SkuFinanceReports" />
+    }
+    else if (Model.ReportType == "TransactionLog")
+    {
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100 dark:bg-slate-700/50 dark:text-gray-400 dark:border-gray-700">
+                <tr>
+                    <th class="px-8 py-4">Date</th>
+                    <th class="px-8 py-4">Item Name</th>
+                    <th class="px-8 py-4">Type</th>
+                    <th class="px-8 py-4 text-right">Qty Change</th>
+                    <th class="px-8 py-4">UOM</th>
+                    <th class="px-8 py-4">Remarks</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                @if (Model.TransactionLogReports != null && Model.TransactionLogReports.Any())
+                {
+                    foreach (var trans in Model.TransactionLogReports)
+                    {
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/30 transition-all">
+                            <td class="px-8 py-4 font-medium">@trans.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="px-8 py-4 font-bold text-gray-800 dark:text-white">@trans.ItemName</td>
+                            <td class="px-8 py-4">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase @(trans.TransactionType switch { 
+                                    "Stock In" => "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400",
+                                    "Stock Out" => "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+                                    "Rejected" => "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
+                                    _ => "bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                                })">@trans.TransactionType</span>
+                            </td>
+                            <td class="px-8 py-4 text-right font-bold @(trans.QuantityChange > 0 ? "text-green-600" : "text-red-600")">@trans.QuantityChange.ToString("G29") @trans.Uom</td>
+                            <td class="px-8 py-4">@trans.Uom</td>
+                            <td class="px-8 py-4 text-gray-500 dark:text-gray-400 max-w-xs truncate" title="@trans.Remarks">@trans.Remarks</td>
+                        </tr>
+                    }
+                }
+                else { <partial name="_EmptyReport" /> }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.TransactionLogReports" />
     }
 </div>
 

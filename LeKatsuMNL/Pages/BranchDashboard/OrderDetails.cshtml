@@ -148,6 +148,15 @@
 
 @* Main content *@
 <!-- Main content -->
+<div class="screen-only px-1 mb-6">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="/BranchDashboard/MyOrder" class="w-10 h-10 rounded-full bg-red-50 text-[#C41E24] flex items-center justify-center hover:bg-[#C41E24] hover:text-white transition-all shadow-sm dark:bg-red-500/10 dark:hover:bg-[#C41E24]">
+            <i class="bi bi-chevron-left text-lg"></i>
+        </a>
+        <h1 class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">Order Details</h1>
+    </div>
+</div>
+
 <div class="screen-only px-1 mb-4">
     @if (TempData["Message"] != null)
     {
@@ -278,30 +287,151 @@
 @* Bottom section: Payment Instructions + Financial Summary *@
 <div class="screen-only grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
-        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 dark:text-gray-500">Payment Instructions</p>
-        <div class="flex flex-wrap gap-4 items-center">
-            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-green-600 dark:border-gray-700">🅿 Paymongo</span>
-            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-blue-800 dark:border-gray-700">BDO</span>
-            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-red-600 dark:border-gray-700">AUB</span>
-            <span class="px-3 py-2 rounded-lg border border-gray-100 text-sm font-bold text-blue-500 dark:border-gray-700">GCash</span>
+        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-6 dark:text-gray-500">Order Journey</p>
+        <div class="relative flex items-center justify-between w-full px-2">
+            @* Progress Line Background *@
+            <div class="absolute left-10 right-10 h-1 bg-gray-100 dark:bg-gray-700 top-1/2 -translate-y-4"></div>
+            
+            @* Progress Line Active *@
+            @{
+                var stages = new[] { "Pending", "Approved", "Preparing", "Delivering", "Completed" };
+                int currentStageIndex = Array.IndexOf(stages, order?.Status ?? "Pending");
+                if (order?.Status == "Delivering") currentStageIndex = 3;
+                if (order?.Status == "Preparing") currentStageIndex = 2;
+                if (order?.Status == "Approved") currentStageIndex = 1;
+                if (order?.Status == "Completed") currentStageIndex = 4;
+                
+                double progressWidth = currentStageIndex * 25; // 0, 25, 50, 75, 100
+            }
+            <div class="absolute left-10 h-1 bg-[#C41E24] top-1/2 -translate-y-4 transition-all duration-700 ease-out" style="width: calc(@(progressWidth)% - 10px)"></div>
+
+            @* Steps *@
+            @for (int i = 0; i < stages.Length; i++)
+            {
+                bool isCompleted = i < currentStageIndex;
+                bool isCurrent = i == currentStageIndex;
+                bool isFuture = i > currentStageIndex;
+                
+                string icon = i == 0 ? "bi-send" : 
+                              i == 1 ? "bi-check2-circle" : 
+                              i == 2 ? "bi-box-seam" : 
+                              i == 3 ? "bi-truck" : "bi-flag";
+                
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 
+                        @(isCurrent ? "bg-white border-[#C41E24] text-[#C41E24] shadow-[0_0_15px_rgba(196,30,36,0.3)] scale-125 dark:bg-slate-800" : 
+                          isCompleted ? "bg-[#C41E24] border-[#C41E24] text-white" : 
+                          "bg-white border-gray-200 text-gray-300 dark:bg-slate-800 dark:border-gray-700")">
+                        <i class="bi @icon text-xs"></i>
+                    </div>
+                    <span class="mt-2 text-[10px] font-black uppercase tracking-tighter @(isCurrent ? "text-[#C41E24]" : isCompleted ? "text-gray-600 dark:text-gray-300" : "text-gray-300 dark:text-gray-600")">@stages[i]</span>
+                </div>
+            }
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
-        <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 dark:text-gray-500">Financial Summary</p>
-        <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600 dark:text-gray-300 font-medium">Total Amount:</span>
-            <span class="font-bold text-2xl text-gray-800 dark:text-white">₱@grandTotal.ToString("N2")</span>
-        </div>
-        @if (invoice != null)
-        {
-            <div class="mt-2 flex items-center justify-between text-sm">
-                <span class="text-gray-500 dark:text-gray-400">Payment Status:</span>
-                <span class="font-bold text-[#C41E24]">@invoice.PaymentStatus</span>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 dark:bg-slate-800 dark:border-gray-700">
+            <p class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 dark:text-gray-500">Financial Summary</p>
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-300 font-medium">Total Amount:</span>
+                <span class="font-bold text-2xl text-gray-800 dark:text-white">₱@grandTotal.ToString("N2")</span>
             </div>
-        }
+            @if (invoice != null)
+            {
+                <div class="mt-2 flex items-center justify-between text-sm">
+                    <span class="text-gray-500 dark:text-gray-400">Payment Status:</span>
+                    <span class="font-bold text-[#C41E24]">@invoice.PaymentStatus</span>
+                </div>
+            }
+        </div>
     </div>
-</div>
+
+    @* Chat Section Trigger *@
+    <div class="screen-only px-1 mb-6">
+        <button onclick="document.getElementById('chatSection').scrollIntoView({behavior: 'smooth'})" class="w-full flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-[#C41E24] hover:bg-red-50/30 transition-all group dark:bg-slate-800 dark:border-gray-700 dark:hover:border-red-500/50">
+            <div class="flex items-center space-x-5">
+                <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-white transition-colors dark:bg-red-500/10">
+                    <i class="bi bi-chat-left-dots-fill text-[#C41E24] text-xl"></i>
+                </div>
+                <div class="flex flex-col items-start">
+                    <span class="text-sm font-black text-gray-800 uppercase tracking-widest dark:text-white">Chat with Main Office</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Recent activity: @(Model.Comments.LastOrDefault()?.Comment ?? "No messages yet")</span>
+                </div>
+            </div>
+            <i class="bi bi-chevron-down text-gray-300 group-hover:text-[#C41E24] transition-colors"></i>
+        </button>
+    </div>
+
+    @* Full Chat Interface *@
+    <div id="chatSection" class="screen-only bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden mb-12 flex flex-col min-h-[600px] dark:bg-slate-800 dark:border-gray-700">
+        <div class="px-8 py-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between dark:bg-slate-700/30 dark:border-gray-700">
+            <div class="flex items-center space-x-3">
+                <i class="bi bi-chat-square-text-fill text-[#C41E24] text-lg"></i>
+                <h4 class="text-sm font-black uppercase tracking-widest text-gray-800 dark:text-white">Order Discussion - @formattedId</h4>
+            </div>
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest dark:bg-green-500/10 dark:text-green-500">Online</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-white dark:bg-slate-800/50" id="chatContainer">
+            @if (Model.Comments != null && Model.Comments.Any())
+            {
+                foreach (var comment in Model.Comments)
+                {
+                    if (comment.Comment.StartsWith("System:"))
+                    {
+                        <div class="flex justify-center my-6">
+                            <span class="bg-gray-50 text-gray-400 px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border border-gray-100 shadow-sm dark:bg-slate-900/40 dark:text-gray-500 dark:border-gray-700">
+                                @comment.Comment
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                        int.TryParse(currentUserIdStr, out int currentUserId);
+                        
+                        bool isMe = comment.BranchManagerId == currentUserId;
+                        
+                        <div class="flex @(isMe ? "justify-end" : "justify-start")">
+                            <div class="max-w-[85%] md:max-w-[70%] @(isMe ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100") rounded-3xl p-5 border shadow-sm dark:bg-slate-700/50 dark:border-gray-700">
+                                <div class="flex items-center space-x-3 mb-2.5">
+                                    <span class="text-[10px] font-black uppercase tracking-widest @(isMe ? "text-red-700" : "text-gray-700 dark:text-gray-200")">
+                                        @if (comment.AdminAccount != null) { @($"{comment.AdminAccount.FirstName} {comment.AdminAccount.LastName} (Main Office)") }
+                                        else if (comment.BranchManager != null) { @($"{comment.BranchManager.FirstName} {comment.BranchManager.LastName} (Me)") }
+                                        else { @("Unknown") }
+                                    </span>
+                                    <span class="text-[9px] font-bold text-gray-400">@comment.CreatedAt.ToString("hh:mm tt")</span>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed dark:text-gray-300">@comment.Comment</p>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="flex flex-col items-center justify-center py-20 text-gray-400">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 dark:bg-slate-700/30">
+                        <i class="bi bi-chat-dots text-4xl opacity-20"></i>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Start a conversation with the Main Office</p>
+                </div>
+            }
+        </div>
+
+        <div class="p-8 border-t border-gray-50 bg-white dark:bg-slate-800 dark:border-gray-700">
+            <form method="post" asp-page-handler="AddComment" class="relative">
+                <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
+                <div class="flex items-center space-x-4 bg-gray-50 rounded-2xl px-6 py-3 border border-gray-100 focus-within:border-[#C41E24] focus-within:ring-2 focus-within:ring-[#C41E24]/10 transition-all dark:bg-slate-700/50 dark:border-gray-700">
+                    <textarea name="CommentText" placeholder="Type your message here..." required
+                              class="flex-1 bg-transparent border-none py-2 text-sm outline-none focus:ring-0 text-gray-800 dark:text-white dark:placeholder:text-gray-500 resize-none h-12 min-h-[48px]"></textarea>
+                    <button type="submit" class="bg-[#C41E24] text-white p-3 rounded-xl hover:bg-red-700 transition-all shadow-lg flex items-center justify-center shrink-0">
+                        <i class="bi bi-send-fill text-xl"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 @* Action buttons *@
 @if (order?.Status == "Pending")
@@ -352,4 +482,26 @@
             </button>
         </form>
     </div>
+}
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function scrollToBottom() {
+            const container = document.getElementById('chatContainer');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        window.addEventListener('load', scrollToBottom);
+
+        // Auto-scroll on dynamic content if needed
+        const observer = new MutationObserver(scrollToBottom);
+        const chatContainer = document.getElementById('chatContainer');
+        if (chatContainer) {
+            observer.observe(chatContainer, { childList: true });
+        }
+    </script>
 }

@@ -124,7 +124,11 @@
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
                 <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Ordered Items</span>
-                <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">@Model.Order.OrderLists.Sum(ol => ol.Quantity).ToString("N0")</span>
+                @{
+                    var itemCount = Model.Order.OrderLists.Select(ol => ol.SkuId.HasValue ? ol.SkuId : ol.ComId).Distinct().Count();
+                    string display = $"{itemCount} item{(itemCount == 1 ? "" : "s")}";
+                }
+                <span class="px-5 py-3 text-sm text-gray-500 font-bold flex-1 flex items-center dark:text-gray-400">@display</span>
             </div>
             <div class="flex border border-gray-200 rounded-lg overflow-hidden shadow-sm dark:border-gray-700">
                 <span class="bg-gray-50 px-5 py-3 text-xs font-bold text-gray-600 uppercase w-44 border-r border-gray-200 flex items-center dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-700">Delivery date</span>
@@ -135,13 +139,28 @@
                 <span class="px-5 py-3 text-sm text-[#C41E24] font-bold flex-1 flex items-center text-lg">₱ @Model.Order.OrderLists.Sum(ol => ol.TotalPrice).ToString("N2")</span>
             </div>
         </div>
+
+        <div class="px-8 pb-8">
+            <button onclick="switchTab('issues')" class="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-[#C41E24] hover:bg-red-50/30 transition-all group dark:bg-slate-800 dark:border-gray-700 dark:hover:border-red-500/50">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center group-hover:bg-white transition-colors dark:bg-red-500/10">
+                        <i class="bi bi-chat-left-dots-fill text-[#C41E24] text-lg"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                        <span class="text-sm font-black text-gray-800 uppercase tracking-widest dark:text-white">Chat with @(User.IsInRole("Admin") ? "Branch" : "Main Office")</span>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Recent activity: @(Model.Comments.FirstOrDefault()?.Comment ?? "No messages yet")</span>
+                    </div>
+                </div>
+                <i class="bi bi-chevron-right text-gray-300 group-hover:text-[#C41E24] transition-colors"></i>
+            </button>
+        </div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700 min-h-[500px] flex flex-col">
         <div class="flex border-b border-gray-200 px-8 dark:border-gray-700 shrink-0">
             <button onclick="switchTab('invoice')" id="tab-invoice" class="tab-btn px-8 py-5 text-xs font-bold uppercase tracking-widest text-[#C41E24] border-b-4 border-[#C41E24] -mb-[2px] transition-all">Invoice</button>
             <button onclick="switchTab('stocks')" id="tab-stocks" class="tab-btn px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-700 transition-colors border-b-4 border-transparent -mb-[2px] dark:text-gray-500">Stock Check</button>
-            <button onclick="switchTab('issues')" id="tab-issues" class="tab-btn px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-700 transition-colors border-b-4 border-transparent -mb-[2px] dark:text-gray-500">Issue Reports</button>
+            <button onclick="switchTab('issues')" id="tab-issues" class="tab-btn px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-700 transition-colors border-b-4 border-transparent -mb-[2px] dark:text-gray-500">Chat</button>
         </div>
 
         <div id="content-invoice" class="tab-content block flex-1">
@@ -232,69 +251,74 @@
             </div>
         </div>
 
-        <div id="content-issues" class="tab-content hidden flex-1 flex flex-col">
-            <div class="bg-gray-50/50 px-8 py-3 dark:bg-slate-900/50">
-                <h5 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Comment</h5>
+        <div id="content-issues" class="tab-content hidden flex-1 flex flex-col bg-gray-50/30 dark:bg-slate-900/10">
+            <div class="px-8 py-4 border-b border-gray-100 bg-white dark:bg-slate-800 dark:border-gray-700 shrink-0">
+                <div class="flex items-center space-x-3">
+                    <i class="bi bi-chat-left-dots-fill text-[#C41E24] text-lg"></i>
+                    <h4 class="text-sm font-black uppercase tracking-widest text-gray-700 dark:text-gray-200">Chat with @(User.IsInRole("Admin") ? "Branch" : "Main Office") - @formattedOrderId</h4>
+                </div>
             </div>
             
-            <div class="flex-1 overflow-y-auto p-8 space-y-8">
+            <div class="flex-1 overflow-y-auto p-8 space-y-6" id="chatContainer">
                 @if (Model.Comments != null && Model.Comments.Any())
                 {
                     foreach (var comment in Model.Comments)
                     {
-                        <div class="flex space-x-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold text-sm overflow-hidden">
-                                    <i class="bi bi-person-fill text-2xl"></i>
-                                </div>
+                        if (comment.Comment.StartsWith("System:"))
+                        {
+                            <div class="flex justify-center my-4">
+                                <span class="bg-gray-100 text-gray-400 px-5 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-gray-200 shadow-sm dark:bg-slate-800 dark:text-gray-500 dark:border-gray-700">
+                                    @comment.Comment
+                                </span>
                             </div>
-                            <div class="flex-1 space-y-2">
-                                <div class="flex flex-col">
-                                    @if (comment.AdminAccount != null)
-                                    {
-                                        <span class="text-sm font-bold text-gray-800 dark:text-white">@(comment.AdminAccount.FirstName) @(comment.AdminAccount.LastName) - Main Office</span>
-                                        <span class="text-[10px] font-bold text-gray-400 uppercase">@(comment.AdminAccount.Role)</span>
-                                    }
-                                    else if (comment.BranchManager != null)
-                                    {
-                                        <span class="text-sm font-bold text-gray-800 dark:text-white">@(comment.BranchManager.FirstName) @(comment.BranchManager.LastName) - @(comment.BranchManager.BranchLocation?.BranchName)</span>
-                                        <span class="text-[10px] font-bold text-gray-400 uppercase">Branch Manager</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-sm font-bold text-gray-800 dark:text-white">Unknown User</span>
-                                    }
-                                </div>
-                                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 dark:bg-slate-700/50 dark:border-gray-600 max-w-2xl">
+                        }
+                        else
+                        {
+                            var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                            int.TryParse(currentUserIdStr, out int currentUserId);
+                            
+                            bool isMe = (User.IsInRole("Admin") && comment.AdminAccountId == currentUserId) || 
+                                         (User.IsInRole("BranchManager") && comment.BranchManagerId == currentUserId);
+                            
+                            <div class="flex @(isMe ? "justify-end" : "justify-start")">
+                                <div class="max-w-[80%] md:max-w-[70%] @(isMe ? "bg-red-50 border-red-100" : "bg-white border-gray-100") rounded-2xl p-4 border shadow-sm dark:bg-slate-800 dark:border-gray-700">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="text-[10px] font-black uppercase tracking-widest @(isMe ? "text-red-700" : "text-gray-700 dark:text-gray-200")">
+                                            @if (comment.AdminAccount != null) { @($"{comment.AdminAccount.FirstName} {comment.AdminAccount.LastName} (Main Office)") }
+                                            else if (comment.BranchManager != null) { @($"{comment.BranchManager.FirstName} {comment.BranchManager.LastName} ({comment.BranchManager.BranchLocation?.BranchName})") }
+                                            else { @("Unknown User") }
+                                        </span>
+                                        <span class="text-[9px] font-bold text-gray-400">@comment.CreatedAt.ToString("hh:mm tt")</span>
+                                    </div>
                                     <p class="text-sm text-gray-600 leading-relaxed dark:text-gray-300">@comment.Comment</p>
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
                 }
                 else
                 {
                     <div class="flex flex-col items-center justify-center py-20 text-gray-400">
                         <i class="bi bi-chat-left-dots text-4xl mb-4 opacity-20"></i>
-                        <p class="text-xs font-bold uppercase tracking-widest">No issue reports yet</p>
+                        <p class="text-[10px] font-black uppercase tracking-widest">No messages yet</p>
                     </div>
                 }
             </div>
 
-            <div class="p-8 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-slate-800">
-                <form method="post" asp-page-handler="AddComment">
+            <div class="p-8 border-t border-gray-100 bg-white dark:bg-slate-800 dark:border-gray-700 shrink-0">
+                <form method="post" asp-page-handler="AddComment" class="relative">
                     <input type="hidden" name="OrderId" value="@Model.Order.OrderId">
-                    <div class="relative mb-6">
-                        <textarea name="CommentText" placeholder="Add Comment" required
-                                  class="w-full border-b border-gray-200 py-3 text-sm outline-none focus:border-[#C41E24] bg-transparent transition-all placeholder:text-gray-400 text-gray-800 dark:text-white dark:border-gray-700 resize-none h-10 min-h-[40px]"></textarea>
-                    </div>
-                    <div class="flex justify-end space-x-4">
-                        <button type="button" onclick="switchTab('invoice')" class="px-6 py-2 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-all dark:text-gray-400 dark:hover:bg-slate-700">Cancel</button>
-                        <button type="submit" class="px-8 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 shadow-md transition-all">Send</button>
+                    <div class="flex items-center space-x-4 bg-gray-50 rounded-2xl px-6 py-2 border border-gray-200 focus-within:border-[#C41E24] focus-within:ring-1 focus-within:ring-[#C41E24]/20 transition-all dark:bg-slate-700/50 dark:border-gray-700">
+                        <textarea name="CommentText" placeholder="Type a message..." required
+                                  class="flex-1 bg-transparent border-none py-3 text-sm outline-none focus:ring-0 text-gray-800 dark:text-white dark:placeholder:text-gray-500 resize-none h-11 min-h-[44px]"></textarea>
+                        <button type="submit" class="bg-[#C41E24] text-white p-2.5 rounded-xl hover:bg-red-700 transition-all shadow-md flex items-center justify-center shrink-0">
+                            <i class="bi bi-send-fill text-lg"></i>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
+
 
     </div>
 
@@ -318,6 +342,18 @@
             const activeBtn = document.getElementById('tab-' + tab);
             activeBtn.classList.add('text-[#C41E24]', 'border-[#C41E24]');
             activeBtn.classList.remove('text-gray-400', 'border-transparent');
+
+            if (tab === 'issues') {
+                scrollToBottom();
+                setTimeout(scrollToBottom, 100);
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatContainer');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
 
         // Auto-expand textarea
@@ -336,6 +372,11 @@
             if (tabParam) {
                 if (tabParam === 'items') tabParam = 'invoice';
                 switchTab(tabParam);
+            } else {
+                // Default scroll check
+                if (document.getElementById('content-issues').classList.contains('block')) {
+                    scrollToBottom();
+                }
             }
         });
     </script>

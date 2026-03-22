@@ -45,7 +45,10 @@ namespace LeKatsuMNL.Pages.Dashboard
              var filterStart = StartDate.Value.Date;
              var filterEnd = EndDate.Value.Date.AddDays(1).AddTicks(-1);
 
-             var query = _context.RejectItems.Where(r => r.RejectType == "Recipe" && r.RejectedAt >= filterStart && r.RejectedAt <= filterEnd);
+             var query = _context.RejectItems
+                .Include(r => r.CommissaryInventory)
+                .Include(r => r.SkuHeader)
+                .Where(r => r.RejectedAt >= filterStart && r.RejectedAt <= filterEnd);
 
              if (!string.IsNullOrEmpty(SearchQuery))
              {

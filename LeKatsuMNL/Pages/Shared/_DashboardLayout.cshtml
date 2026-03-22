@@ -164,17 +164,21 @@
 @if (HasPermission("Transactions"))
 {
     <div class="space-y-1">
-        <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Transaction">
+        <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") || currentPage.Contains("/Dashboard/Billing") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Transaction">
             <i class="bi bi-node-plus mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Transaction</span>
-            <i class="bi bi-chevron-down ml-auto text-xs opacity-50 group-hover:opacity-100 transition-transform @(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") ? "rotate-180" : "")"></i>
+            <i class="bi bi-chevron-down ml-auto text-xs opacity-50 group-hover:opacity-100 transition-transform @(currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") || currentPage.Contains("/Dashboard/Billing") ? "rotate-180" : "")"></i>
         </a>
 
-        @if (currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails"))
+        @if (currentPage.Contains("/Dashboard/ReceivedStocks") || currentPage.Contains("/Dashboard/BranchOrders") || currentPage.Contains("/Dashboard/OrderDetails") || currentPage.Contains("/Dashboard/Billing"))
         {
             <div class="ml-5 flex flex-col space-y-4 py-4 border-l border-gray-100 dark:border-gray-700">
                 <a href="/Dashboard/ReceivedStocks" class="@(currentPage.Contains("/ReceivedStocks") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Received Stocks</span></a>
                 @* Stays active for both the list view and the details view *@
                 <a href="/Dashboard/BranchOrders" class="@(currentPage.Contains("/BranchOrders") || currentPage.Contains("/OrderDetails") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Branch Orders</span></a>
+                @if (HasPermission("Billing"))
+                {
+                    <a href="/Dashboard/Billing" class="@(currentPage.Contains("/Dashboard/Billing") ? "sub-nav-active dark:bg-gray-800" : "text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 pl-[20px]") transition-all"><span class="sidebar-text">Billing</span></a>
+                }
             </div>
         }
     </div>
@@ -246,12 +250,6 @@
     </a>
 }
 
-@if (HasPermission("Billing"))
-{
-    <a href="/Dashboard/Billing" class="@(currentPage.Contains("/Dashboard/Billing") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Billing">
-        <i class="bi bi-wallet2 mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Billing</span>
-    </a>
-}
 
 <a href="/Dashboard/Archive" class="@(currentPage.Contains("/Dashboard/Archive") ? "active-nav shadow-md" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700") flex items-center px-4 py-3 rounded-xl text-base font-semibold transition-all group" title="Archive">
     <i class="bi bi-archive mr-4 text-lg group-hover:text-[#C41E24]"></i> <span class="sidebar-text group-hover:text-[#C41E24]">Archive</span>

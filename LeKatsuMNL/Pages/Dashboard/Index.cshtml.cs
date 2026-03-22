@@ -29,6 +29,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         public List<LowStockItem> LowStockAlerts { get; set; } = new List<LowStockItem>();
         public List<RejectItem> RecentRejects { get; set; } = new List<RejectItem>();
+        public List<OrderInfo> RecentOrders { get; set; } = new List<OrderInfo>();
         public List<BranchPerformance> TopBranches { get; set; } = new List<BranchPerformance>();
         public List<ActivityItem> RecentActivities { get; set; } = new List<ActivityItem>();
 
@@ -100,6 +101,15 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Where(r => (r.CommissaryInventory == null || !r.CommissaryInventory.IsArchived) &&
                            (r.SkuHeader == null || !r.SkuHeader.IsArchived))
                 .OrderByDescending(r => r.RejectedAt)
+                .Take(5)
+                .ToListAsync();
+
+            // 6.5. Recent Orders Table
+            RecentOrders = await _context.OrderInfos
+                .Include(o => o.BranchManager)
+                    .ThenInclude(bm => bm.BranchLocation)
+                .Where(o => !o.IsArchived)
+                .OrderByDescending(o => o.OrderDate)
                 .Take(5)
                 .ToListAsync();
 

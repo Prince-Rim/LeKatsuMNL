@@ -21,5 +21,7 @@ namespace LeKatsuMNL.Models
         [Required]
         [MaxLength(1000)]
         public string Comment { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

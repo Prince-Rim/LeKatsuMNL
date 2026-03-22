@@ -328,6 +328,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                         TypeId = transactionType.TypeId,
                         QuantityChange = -req.Value,
                         TimeStamp = System.DateTime.Now,
+                        Uom = inventory.Uom,
                         Remarks = $"Deduction for Order #{order.OrderId}"
                     });
                 }
@@ -353,6 +354,8 @@ namespace LeKatsuMNL.Pages.Dashboard
         private async Task AggregateDeductions(int? skuId, int? comId, decimal quantity, Dictionary<int, decimal> deductions, Dictionary<int, decimal> stockSnapshots)
         {
             CommissaryInventory inv = null;
+            SkuHeader sku = null;
+
             if (skuId.HasValue)
             {
                 inv = await _context.CommissaryInventories
@@ -363,6 +366,20 @@ namespace LeKatsuMNL.Pages.Dashboard
                         .ThenInclude(s => s.SkuRecipes)
                             .ThenInclude(r => r.TargetSku)
                     .FirstOrDefaultAsync(i => i.SkuId == skuId);
+
+                if (inv == null)
+                {
+                    sku = await _context.SkuHeaders
+                        .Include(s => s.SkuRecipes)
+                            .ThenInclude(r => r.CommissaryInventory)
+                        .Include(s => s.SkuRecipes)
+                            .ThenInclude(r => r.TargetSku)
+                        .FirstOrDefaultAsync(s => s.SkuId == skuId);
+                }
+                else
+                {
+                    sku = inv.SkuHeader;
+                }
             }
             else if (comId.HasValue)
             {
@@ -372,50 +389,67 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .FirstOrDefaultAsync(i => i.ComId == comId);
             }
 
-            if (inv == null) return;
-
-            if (!stockSnapshots.ContainsKey(inv.ComId))
+            if (inv != null)
             {
-                stockSnapshots[inv.ComId] = inv.Stock;
-            }
-
-            decimal available = Math.Min(quantity, stockSnapshots[inv.ComId]);
-            if (available > 0)
-            {
-                stockSnapshots[inv.ComId] -= available;
-                deductions[inv.ComId] = deductions.GetValueOrDefault(inv.ComId) + available;
-            }
-
-            decimal remaining = quantity - available;
-            if (remaining > 0)
-            {
-                if (skuId.HasValue && inv.SkuHeader?.SkuRecipes != null && inv.SkuHeader.SkuRecipes.Any())
+                if (!stockSnapshots.ContainsKey(inv.ComId))
                 {
-                    foreach (var recipe in inv.SkuHeader.SkuRecipes)
+                    stockSnapshots[inv.ComId] = inv.Stock;
+                }
+
+                decimal snapshot = Math.Max(0, stockSnapshots[inv.ComId]);
+                decimal available = Math.Min(quantity, snapshot);
+                if (available > 0)
+                {
+                    stockSnapshots[inv.ComId] -= available;
+                    deductions[inv.ComId] = deductions.GetValueOrDefault(inv.ComId) + available;
+                }
+
+                decimal remaining = quantity - available;
+                if (remaining > 0)
+                {
+                    if (skuId.HasValue && sku?.SkuRecipes != null && sku.SkuRecipes.Any())
+                    {
+                        foreach (var recipe in sku.SkuRecipes)
+                        {
+                            string targetUom = recipe.ComId.HasValue ? recipe.CommissaryInventory?.Uom : recipe.TargetSku?.Uom;
+                            if (string.IsNullOrEmpty(targetUom)) targetUom = recipe.Uom;
+
+                            decimal componentQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, targetUom);
+                            await AggregateDeductions(recipe.TargetSkuId, recipe.ComId, componentQty * remaining, deductions, stockSnapshots);
+                        }
+                    }
+                    else if (comId.HasValue && inv.IsRepack && inv.IngredientRecipes != null && inv.IngredientRecipes.Any())
+                    {
+                        foreach (var recipe in inv.IngredientRecipes)
+                        {
+                            if (recipe.MaterialId > 0 && recipe.Material != null)
+                            {
+                                decimal materialQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, recipe.Material.Uom);
+                                await AggregateDeductions(null, recipe.MaterialId, materialQty * remaining, deductions, stockSnapshots);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // No stock and no recipe/not repack - take from this item
+                        deductions[inv.ComId] = deductions.GetValueOrDefault(inv.ComId) + remaining;
+                        stockSnapshots[inv.ComId] -= remaining;
+                    }
+                }
+            }
+            else if (skuId.HasValue && sku != null)
+            {
+                // SKU exists but no inventory row - check recipes
+                if (sku.SkuRecipes != null && sku.SkuRecipes.Any())
+                {
+                    foreach (var recipe in sku.SkuRecipes)
                     {
                         string targetUom = recipe.ComId.HasValue ? recipe.CommissaryInventory?.Uom : recipe.TargetSku?.Uom;
                         if (string.IsNullOrEmpty(targetUom)) targetUom = recipe.Uom;
 
                         decimal componentQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, targetUom);
-                        await AggregateDeductions(recipe.TargetSkuId, recipe.ComId, componentQty * remaining, deductions, stockSnapshots);
+                        await AggregateDeductions(recipe.TargetSkuId, recipe.ComId, componentQty * quantity, deductions, stockSnapshots);
                     }
-                }
-                else if (comId.HasValue && inv.IsRepack && inv.IngredientRecipes != null && inv.IngredientRecipes.Any())
-                {
-                    foreach (var recipe in inv.IngredientRecipes)
-                    {
-                        if (recipe.MaterialId > 0 && recipe.Material != null)
-                        {
-                            decimal materialQty = UomConverter.Convert(recipe.QuantityNeeded, recipe.Uom, recipe.Material.Uom);
-                            await AggregateDeductions(null, recipe.MaterialId, materialQty * remaining, deductions, stockSnapshots);
-                        }
-                    }
-                }
-                else
-                {
-                    // No stock and no recipe/not repack - take from this item (will result in negative stock snapshot and eventual failure)
-                    deductions[inv.ComId] = deductions.GetValueOrDefault(inv.ComId) + remaining;
-                    stockSnapshots[inv.ComId] -= remaining;
                 }
             }
         }

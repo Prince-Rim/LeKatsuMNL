@@ -305,12 +305,9 @@
 
                     <div class="grid grid-cols-2 gap-5">
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Cost</label>
-                            <div class="relative">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                                <input type="number" step="0.01" name="UnitCost" placeholder="0.00" onfocus="this.select()"
-                                       class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                            </div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">In Stock</label>
+                            <input type="number" step="0.01" name="Stock" placeholder="0.00" onfocus="this.select()"
+                                   class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Safe Stock</label>
@@ -431,24 +428,16 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-5">
-                        <div class="space-y-1.5 col-span-1">
+                    <div class="grid grid-cols-2 gap-5">
+                        <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">In Stock</label>
                             <input type="number" step="0.01" name="Stock" id="editStock" placeholder="0.00" onfocus="this.select()"
                                    class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
-                        <div class="space-y-1.5 col-span-1">
+                        <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Safe Stock</label>
                             <input type="number" step="0.01" name="ReorderValue" id="editReorderValue" placeholder="0.00" onfocus="this.select()"
                                    class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                        </div>
-                        <div class="space-y-1.5 col-span-1">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Cost</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                                <input type="number" step="0.01" name="UnitCost" id="editUnitCost" placeholder="0.00" onfocus="this.select()"
-                                       class="w-full border border-gray-200 rounded-xl pl-8 pr-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
-                            </div>
                         </div>
                     </div>
                     <!-- Selling Price (Always visible, required) -->
@@ -570,22 +559,39 @@
 @section Scripts {
     <script>
         // UOM categories for client-side validation
-        const unitMap = {
-            'g': 'weight', 'gram': 'weight', 'grams': 'weight', 'kg': 'weight', 'kilogram': 'weight', 'kilograms': 'weight',
-            'oz': 'weight', 'ounce': 'weight', 'ounces': 'weight', 'lb': 'weight', 'lbs': 'weight', 'pound': 'weight', 'pounds': 'weight', 'mg': 'weight',
-            'ml': 'volume', 'milliliter': 'volume', 'milliliters': 'volume', 'l': 'volume', 'liter': 'volume', 'liters': 'volume',
-            'cup': 'volume', 'cups': 'volume', 'tbsp': 'volume', 'tablespoon': 'volume', 'tsp': 'volume', 'teaspoon': 'volume', 'fl oz': 'volume',
-            'gal': 'volume', 'gallon': 'volume', 'gallons': 'volume', 'qt': 'volume', 'quart': 'volume', 'quarts': 'volume', 'pt': 'volume', 'pint': 'volume', 'pints': 'volume',
-            'pcs': 'count', 'pc': 'count', 'per pc': 'count', 'pieces': 'count', 'piece': 'count', 'ea': 'count', 'dozen': 'count', 'pack': 'count', 'bundle': 'count',
-            'roll': 'count', 'can': 'count', 'cans': 'count', 'stick': 'count', 'sticks': 'count', 'pull': 'count', 'pulls': 'count', 'dip': 'count', 'dips': 'count'
+        const UNITS = {
+            "g": { category: "weight", factor: 1 }, "gram": { category: "weight", factor: 1 }, "grams": { category: "weight", factor: 1 },
+            "kg": { category: "weight", factor: 1000 }, "kilogram": { category: "weight", factor: 1000 }, "kilograms": { category: "weight", factor: 1000 },
+            "oz": { category: "weight", factor: 28.3495 }, "ounce": { category: "weight", factor: 28.3495 },
+            "ml": { category: "volume", factor: 1 }, "milliliter": { category: "volume", factor: 1 }, "milliliters": { category: "volume", factor: 1 },
+            "l": { category: "volume", factor: 1000 }, "liter": { category: "volume", factor: 1000 }, "liters": { category: "volume", factor: 1000 },
+            "pcs": { category: "count", factor: 1 }, "pc": { category: "count", factor: 1 }, "pieces": { category: "count", factor: 1 },
+            "pack": { category: "count", factor: 1 }, "dozen": { category: "count", factor: 12 },
+            "stick": { category: "count", factor: 1 }, "sticks": { category: "count", factor: 1 }, "dip": { category: "count", factor: 1 },
+            "cans": { category: "count", factor: 1 }
         };
 
+        function normalizeUnit(unit) {
+            if (!unit) return "";
+            let trimmed = unit.trim().toLowerCase();
+            const match = trimmed.match(/\(([^)]+)\)/);
+            if (match && UNITS[match[1]]) return match[1];
+            let primary = trimmed.replace(/\s*\(.*?\)\s*/g, " ").trim();
+            if (UNITS[primary]) return primary;
+            return trimmed;
+        }
+
         function validateUomCompatibility(prefix) {
-            const pkgUnit = document.getElementById(prefix + 'PackagingUnit').value.trim().toLowerCase();
-            const uom = document.getElementById(prefix + 'UOM').value.trim().toLowerCase();
+            const pkgUnitInput = document.getElementById(prefix + 'PackagingUnit');
+            const uomInput = document.getElementById(prefix + 'UOM');
             const errorDiv = document.getElementById(prefix + 'UomError');
             const errorText = document.getElementById(prefix + 'UomErrorText');
             const submitBtn = document.getElementById(prefix + 'SubmitBtn');
+
+            if (!pkgUnitInput || !uomInput) return true;
+
+            const pkgUnit = pkgUnitInput.value.trim();
+            const uom = uomInput.value.trim();
 
             if (!pkgUnit || !uom) {
                 if (errorDiv) errorDiv.classList.add('hidden');
@@ -596,22 +602,16 @@
                 return true;
             }
 
-            // Simple cleaning for common parentatical units in datalists (e.g. "Grams (g)" -> "g")
-            const cleanUnit = (u) => {
-                const match = u.match(/\(([^)]+)\)/);
-                return match ? match[1].toLowerCase() : u.toLowerCase();
-            };
+            const u1 = normalizeUnit(pkgUnit);
+            const u2 = normalizeUnit(uom);
 
-            const u1 = cleanUnit(pkgUnit);
-            const u2 = cleanUnit(uom);
+            const info1 = UNITS[u1];
+            const info2 = UNITS[u2];
 
-            const cat1 = unitMap[u1] || unitMap[pkgUnit];
-            const cat2 = unitMap[u2] || unitMap[uom];
-
-            if (cat1 && cat2 && cat1 !== cat2) {
+            if (info1 && info2 && info1.category !== info2.category) {
                 if (errorDiv) {
                     errorDiv.classList.remove('hidden');
-                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${cat1.toUpperCase()}, while [${uom}] is ${cat2.toUpperCase()}. Please match the unit categories.`;
+                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${info1.category.toUpperCase()}, while [${uom}] is ${info2.category.toUpperCase()}. Please match the unit categories.`;
                 }
                 if (submitBtn) {
                     submitBtn.disabled = true;
@@ -753,7 +753,6 @@
             document.querySelector('#editProductModal [name="PackagingUnit"]').value = sku.packagingUnit || '';
             document.querySelector('#editProductModal [name="PackSize"]').value = sku.packSize || '';
             document.querySelector('#editProductModal [name="UOM"]').value = sku.uom || '';
-            document.getElementById('editUnitCost').value = sku.unitCost ? parseFloat(sku.unitCost).toFixed(2) : '';
             document.getElementById('editSellingPrice').value = sku.sellingPrice ? parseFloat(sku.sellingPrice).toFixed(2) : '';
             document.getElementById('editStock').value = sku.stock !== null ? parseFloat(sku.stock) : '0';
             document.getElementById('editReorderValue').value = sku.reorderValue !== null ? parseFloat(sku.reorderValue) : '';

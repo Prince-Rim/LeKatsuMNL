@@ -109,10 +109,11 @@
                 <option value="Out of Stock" selected='@(Model.StockStatus == "Out of Stock")'>Out of Stock</option>
             </select>
 
-            <select name="repackStatus" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 bg-white outline-none cursor-pointer dark:bg-slate-800 dark:text-gray-300 dark:border-gray-600">
-                <option value="All" selected='@(Model.RepackStatus == "All")'>All Types</option>
-                <option value="Repack" selected='@(Model.RepackStatus == "Repack")'>Repack</option>
-                <option value="Non-Repack" selected='@(Model.RepackStatus == "Non-Repack")'>Non-Repack</option>
+            <select name="repackStatus" onchange="this.form.submit()" class="bg-gray-50 border border-transparent rounded-lg px-4 py-2 text-xs font-bold text-gray-700 outline-none focus:bg-white focus:ring-2 focus:ring-[#C41E24]/10 transition-all dark:bg-slate-700 dark:text-gray-200">
+                <option value="All" selected="@(Model.RepackStatus == "All")">All Types</option>
+                <option value="Non-Repacked" selected="@(Model.RepackStatus == "Non-Repacked")">Non-Repacked</option>
+                <option value="Repacked" selected="@(Model.RepackStatus == "Repacked")">Repacked</option>
+                <option value="Recipe" selected="@(Model.RepackStatus == "Recipe")">Recipe</option>
             </select>
 
             <div class="flex items-center gap-2">
@@ -163,7 +164,22 @@
                             </td>
                             <td class="px-6 py-5 text-gray-600 font-bold dark:text-gray-400">ING-@item.ComId.ToString("D3")</td>
                             <td class="px-6 py-5 font-bold text-gray-900 text-sm dark:text-white">
-                                @if (item.IsRepack)
+                                <div class="flex items-center space-x-2 mb-1">
+                                    @if (item.ItemType == "Repacked")
+                                    {
+                                        <div class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase tracking-wider border border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/30">Repack</div>
+                                    }
+                                    else if (item.ItemType == "Recipe")
+                                    {
+                                        <div class="px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-[10px] font-bold uppercase tracking-wider border border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800/30">Recipe</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="px-2 py-0.5 bg-gray-50 text-gray-400 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-100 dark:bg-slate-700/20 dark:text-gray-500 dark:border-gray-700/30">Direct</div>
+                                    }
+                                </div>
+                                
+                                @if (item.ItemType != "Non-Repacked")
                                 {
                                     <a href="/Dashboard/IngredientDetails?id=@item.ComId" class="text-blue-600 hover:underline">@item.ItemName</a>
                                 }
@@ -291,12 +307,12 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
                         <input type="text" name="PackagingUnit" id="newPackagingUnit" list="pkgUnitList" placeholder="Unit" required
-                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('new')"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('new'); updateUnitCostPreview('new')"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Pack Size</label>
-                        <input type="text" name="PackSize" id="newPackSize" placeholder="00"
+                        <input type="text" name="PackSize" id="newPackSize" placeholder="00" oninput="updateUnitCostPreview('new')"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                 </div>
@@ -306,7 +322,7 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
                         <input type="text" name="UOM" id="newUOM" list="uomList" placeholder="UOM" required
-                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('new')"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('new'); updateUnitCostPreview('new')"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5" id="newVendorIdContainer">
@@ -343,9 +359,12 @@
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                            <input type="number" step="0.01" name="CostPrice" id="newCostPrice" placeholder="0.00" onfocus="this.select()"
+                            <input type="number" step="0.01" name="CostPrice" id="newCostPrice" placeholder="0.00" onfocus="this.select()" oninput="updateUnitCostPreview('new')"
                                    class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
+                        <p class="text-[11px] font-bold text-gray-500 mt-2 ml-1 uppercase tracking-widest">
+                            Calculated Unit Cost: <span id="newUnitCostPreview" class="text-[#C41E24]">₱0.00</span>
+                        </p>
                     </div>
                 </div>
 
@@ -360,16 +379,25 @@
                 </div>
 
                 <!-- Options Toggle -->
+                <div class="grid grid-cols-1 gap-5 pt-2">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Item Type</label>
+                        <div class="relative">
+                            <select name="ItemType" id="newItemType" onchange="handleTypeChange('new')" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                                <option value="Non-Repacked" selected>Non-Repacked</option>
+                                <option value="Repacked">Repacked</option>
+                                <option value="Recipe">Recipe</option>
+                            </select>
+                            <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-5 pt-2">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3" id="newSellingPriceCheckContainer">
                         <input type="checkbox" id="newSellingPriceCheck" onchange="togglePriceField('new')" 
                                class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
                         <label for="newSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <input type="checkbox" name="IsRepack" value="true" id="newIsRepack" onchange="toggleSupplierField('new')" 
-                               class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
-                        <label for="newIsRepack" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Repack</label>
                     </div>
                 </div>
             </div>
@@ -451,12 +479,12 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 whitespace-nowrap dark:text-gray-200">Packaging Unit</label>
                         <input type="text" name="PackagingUnit" id="editPackagingUnit" list="pkgUnitList" placeholder="Unit" required
-                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('edit')"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('edit'); updateUnitCostPreview('edit')"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Pack Size</label>
-                        <input type="text" name="PackSize" id="editPackSize" placeholder="00"
+                        <input type="text" name="PackSize" id="editPackSize" placeholder="00" oninput="updateUnitCostPreview('edit')"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                 </div>
@@ -466,7 +494,7 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit of Measurement</label>
                         <input type="text" name="UOM" id="editUOM" list="uomList" placeholder="UOM" required
-                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('edit')"
+                               onfocus="handleDatalistFocus(this)" onblur="handleDatalistBlur(this)" oninput="validateUomCompatibility('edit'); updateUnitCostPreview('edit')"
                                class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                     </div>
                     <div class="space-y-1.5" id="editVendorIdContainer">
@@ -500,12 +528,15 @@
                 </div>
                 <div class="grid grid-cols-1 gap-5">
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Unit Price</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Purchase Price (per Pack)</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                            <input type="number" step="0.01" name="CostPrice" id="editCostPrice" placeholder="0.00" onfocus="this.select()"
+                            <input type="number" step="0.01" name="CostPrice" id="editCostPrice" placeholder="0.00" onfocus="this.select()" oninput="updateUnitCostPreview('edit')"
                                    class="w-full border border-gray-200 rounded-xl pl-9 pr-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all placeholder:text-gray-500 text-gray-800 shadow-sm font-medium dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-700">
                         </div>
+                        <p class="text-[11px] font-bold text-gray-500 mt-2 ml-1 uppercase tracking-widest">
+                            Calculated Unit Cost: <span id="editUnitCostPreview" class="text-[#C41E24]">₱0.00</span>
+                        </p>
                     </div>
                 </div>
 
@@ -520,16 +551,25 @@
                 </div>
 
                 <!-- Options Toggle -->
+                <div class="grid grid-cols-1 gap-5 pt-2">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest ml-1 dark:text-gray-200">Item Type</label>
+                        <div class="relative">
+                            <select name="ItemType" id="editItemType" onchange="handleTypeChange('edit')" class="w-full border border-gray-200 rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C41E24]/20 focus:border-[#C41E24] bg-white transition-all cursor-pointer text-gray-700 shadow-sm font-medium appearance-none dark:bg-slate-800 dark:text-gray-200 dark:border-gray-700">
+                                <option value="Non-Repacked">Non-Repacked</option>
+                                <option value="Repacked">Repacked</option>
+                                <option value="Recipe">Recipe</option>
+                            </select>
+                            <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs dark:text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-5 pt-2">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3" id="editSellingPriceCheckContainer">
                         <input type="checkbox" id="editSellingPriceCheck" onchange="togglePriceField('edit')" 
                                class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
                         <label for="editSellingPriceCheck" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Selling Price</label>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <input type="checkbox" name="IsRepack" value="true" id="editIsRepack" onchange="toggleSupplierField('edit')" 
-                               class="w-4 h-4 rounded border-gray-300 text-[#C41E24] focus:ring-0 cursor-pointer dark:border-gray-600">
-                        <label for="editIsRepack" class="text-xs font-bold text-gray-700 uppercase tracking-widest cursor-pointer ml-1 dark:text-gray-200">Repack</label>
                     </div>
                 </div>
             </div>
@@ -636,7 +676,6 @@
     <option value="Pieces"></option>
     <option value="pack"></option>
     <option value="bottle"></option>
-    <option value="Cans"></option>
 </datalist>
 
 @section Scripts {
@@ -645,48 +684,83 @@
         const subCategoriesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SubCategories.Select(s => new { s.SubCategoryId, s.SubCategoryName, s.CategoryId })));
 
         // UOM categories and base factors for client-side validation and conversion
-        const unitMap = {
-            // Weight (base = g)
-            'g': { cat: 'weight', f: 1 }, 'gram': { cat: 'weight', f: 1 }, 'grams': { cat: 'weight', f: 1 },
-            'kg': { cat: 'weight', f: 1000 }, 'kilogram': { cat: 'weight', f: 1000 }, 'kilograms': { cat: 'weight', f: 1000 },
-            'oz': { cat: 'weight', f: 28.3495 }, 'ounce': { cat: 'weight', f: 28.3495 }, 'ounces': { cat: 'weight', f: 28.3495 },
-            'lb': { cat: 'weight', f: 453.592 }, 'lbs': { cat: 'weight', f: 453.592 }, 'pound': { cat: 'weight', f: 453.592 }, 'pounds': { cat: 'weight', f: 453.592 },
-            'mg': { cat: 'weight', f: 0.001 },
-
-            // Volume (base = ml)
-            'ml': { cat: 'volume', f: 1 }, 'milliliter': { cat: 'volume', f: 1 }, 'milliliters': { cat: 'volume', f: 1 },
-            'l': { cat: 'volume', f: 1000 }, 'liter': { cat: 'volume', f: 1000 }, 'liters': { cat: 'volume', f: 1000 },
-            'cup': { cat: 'volume', f: 236.588 }, 'cups': { cat: 'volume', f: 236.588 },
-            'tbsp': { cat: 'volume', f: 14.787 }, 'tablespoon': { cat: 'volume', f: 14.787 },
-            'tsp': { cat: 'volume', f: 4.929 }, 'teaspoon': { cat: 'volume', f: 4.929 },
-            'fl oz': { cat: 'volume', f: 29.5735 },
-            'gal': { cat: 'volume', f: 3785.41 }, 'gallon': { cat: 'volume', f: 3785.41 }, 'gallons': { cat: 'volume', f: 3785.41 },
-            'qt': { cat: 'volume', f: 946.353 }, 'quart': { cat: 'volume', f: 946.353 }, 'quarts': { cat: 'volume', f: 946.353 },
-            'pt': { cat: 'volume', f: 473.176 }, 'pint': { cat: 'volume', f: 473.176 }, 'pints': { cat: 'volume', f: 473.176 },
-
-            // Count (base = pcs)
-            'pcs': { cat: 'count', f: 1 }, 'pc': { cat: 'count', f: 1 }, 'per pc': { cat: 'count', f: 1 },
-            'pieces': { cat: 'count', f: 1 }, 'piece': { cat: 'count', f: 1 }, 'ea': { cat: 'count', f: 1 },
-            'dozen': { cat: 'count', f: 12 }, 'pack': { cat: 'count', f: 1 }, 'bundle': { cat: 'count', f: 1 },
-            'roll': { cat: 'count', f: 1 }, 'can': { cat: 'count', f: 1 }, 'cans': { cat: 'count', f: 1 },
-            'stick': { cat: 'count', f: 1 }, 'sticks': { cat: 'count', f: 1 },
-            'pull': { cat: 'count', f: 1 }, 'pulls': { cat: 'count', f: 1 },
-            'dip': { cat: 'count', f: 1 }, 'dips': { cat: 'count', f: 1 }
+        const UNITS = {
+            // Weight (Base: grams)
+            "g": { category: "weight", factor: 1 }, "gram": { category: "weight", factor: 1 }, "grams": { category: "weight", factor: 1 },
+            "kg": { category: "weight", factor: 1000 }, "kilogram": { category: "weight", factor: 1000 }, "kilograms": { category: "weight", factor: 1000 },
+            "oz": { category: "weight", factor: 28.3495 }, "ounce": { category: "weight", factor: 28.3495 },
+            // Volume (Base: mL)
+            "ml": { category: "volume", factor: 1 }, "milliliter": { category: "volume", factor: 1 }, "milliliters": { category: "volume", factor: 1 },
+            "l": { category: "volume", factor: 1000 }, "liter": { category: "volume", factor: 1000 }, "liters": { category: "volume", factor: 1000 },
+            // Count (Base: pieces)
+            "pcs": { category: "count", factor: 1 }, "pc": { category: "count", factor: 1 }, "pieces": { category: "count", factor: 1 },
+            "pack": { category: "count", factor: 1 }, "bottle": { category: "count", factor: 1 }, "stick": { category: "count", factor: 1 },
+            "sticks": { category: "count", factor: 1 }, "pull": { category: "count", factor: 1 }, "dip": { category: "count", factor: 1 },
+            "cans": { category: "count", factor: 1 }, "dozen": { category: "count", factor: 12 }
         };
+
+        function normalizeUnit(unit) {
+            if (!unit) return "";
+            let trimmed = unit.trim().toLowerCase();
+            const match = trimmed.match(/\(([^)]+)\)/);
+            if (match && UNITS[match[1]]) return match[1];
+            let primary = trimmed.replace(/\s*\(.*?\)\s*/g, " ").trim();
+            if (UNITS[primary]) return primary;
+            return trimmed;
+        }
+
+        function convertUnit(val, u1, u2) {
+            if (!u1 || !u2) return val;
+            const from = normalizeUnit(u1);
+            const to = normalizeUnit(u2);
+            if (from === to) return val;
+            const fromInfo = UNITS[from];
+            const toInfo = UNITS[to];
+            if (!fromInfo || !toInfo || fromInfo.category !== toInfo.category) return 0;
+            return (val * fromInfo.factor) / toInfo.factor;
+        }
+
+        function updateUnitCostPreview(prefix) {
+            const priceInput = document.getElementById(prefix + 'CostPrice');
+            const sizeInput = document.getElementById(prefix + 'PackSize');
+            const unitInput = document.getElementById(prefix + 'PackagingUnit');
+            const uomInput = document.getElementById(prefix + 'UOM');
+            const previewSpan = document.getElementById(prefix + 'UnitCostPreview');
+
+            if (!priceInput || !uomInput || !previewSpan) return;
+
+            const price = parseFloat(priceInput.value) || 0;
+            const uom = uomInput.value.trim();
+            const pkgUnit = unitInput ? unitInput.value.trim() : '';
+            const packSize = sizeInput ? (parseFloat(sizeInput.value) || 1) : 1;
+
+            if (price <= 0 || !uom) {
+                previewSpan.innerText = '₱0.00';
+                return;
+            }
+
+            let unitCost = price;
+            if (pkgUnit) {
+                const conversionFactor = convertUnit(packSize, pkgUnit, uom);
+                if (conversionFactor > 0) {
+                    unitCost = price / conversionFactor;
+                }
+            }
+
+            previewSpan.innerText = `₱${unitCost.toFixed(2)} / ${uom}`;
+        }
 
         function validateUomCompatibility(prefix) {
             const pkgUnitInput = document.getElementById(prefix + 'PackagingUnit');
             const uomInput = document.getElementById(prefix + 'UOM');
-            const stockInput = document.getElementById(prefix + 'Stock');
-
-            const pkgUnit = pkgUnitInput.value.trim();
-            const uom = uomInput.value.trim();
             const errorDiv = document.getElementById(prefix + 'UomError');
             const errorText = document.getElementById(prefix + 'UomErrorText');
             const submitBtn = document.getElementById(prefix + 'SubmitBtn');
 
-            // Handle background UOM tracking for conversion on change
-            if (!uomInput.dataset.lastUom) uomInput.dataset.lastUom = uom;
+            if (!pkgUnitInput || !uomInput) return true;
+
+            const pkgUnit = pkgUnitInput.value.trim();
+            const uom = uomInput.value.trim();
 
             if (!pkgUnit || !uom) {
                 if (errorDiv) errorDiv.classList.add('hidden');
@@ -697,36 +771,16 @@
                 return true;
             }
 
-            const cleanUnit = (u) => {
-                const match = u.match(/\(([^)]+)\)/);
-                return (match ? match[1].toLowerCase() : u.toLowerCase()).trim();
-            };
+            const u1 = normalizeUnit(pkgUnit);
+            const u2 = normalizeUnit(uom);
 
-            const u1 = cleanUnit(pkgUnit);
-            const u2 = cleanUnit(uom);
+            const info1 = UNITS[u1];
+            const info2 = UNITS[u2];
 
-            const info1 = unitMap[u1];
-            const info2 = unitMap[u2];
-
-            // Perform auto-conversion if UOM changed and units are compatible
-            if (uomInput.dataset.lastUom && uomInput.dataset.lastUom !== uom) {
-                const oldUomClean = cleanUnit(uomInput.dataset.lastUom);
-                const infoOld = unitMap[oldUomClean];
-                
-                if (infoOld && info2 && infoOld.cat === info2.cat && stockInput.value) {
-                    const currentVal = parseFloat(stockInput.value);
-                    if (!isNaN(currentVal)) {
-                        const converted = (currentVal * infoOld.f) / info2.f;
-                        stockInput.value = Number(converted.toFixed(4));
-                    }
-                }
-                uomInput.dataset.lastUom = uom;
-            }
-
-            if (info1 && info2 && info1.cat !== info2.cat) {
+            if (info1 && info2 && info1.category !== info2.category) {
                 if (errorDiv) {
                     errorDiv.classList.remove('hidden');
-                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${info1.cat.toUpperCase()}, while [${uom}] is ${info2.cat.toUpperCase()}. Please match the unit categories.`;
+                    errorText.innerText = `INCOMPATIBLE UNITS: [${pkgUnit}] belongs to ${info1.category.toUpperCase()}, while [${uom}] is ${info2.category.toUpperCase()}. Please match the unit categories.`;
                 }
                 if (submitBtn) {
                     submitBtn.disabled = true;
@@ -778,8 +832,8 @@
                     // Explicitly reset dynamic UI states
                     if (document.getElementById('newSellingPriceCheck')) togglePriceField('new');
                     if (document.getElementById('editSellingPriceCheck')) togglePriceField('edit');
-                    toggleSupplierField('new');
-                    toggleSupplierField('edit');
+                    handleTypeChange('new');
+                    handleTypeChange('edit');
                 }
             }, 300);
         }
@@ -821,17 +875,43 @@
             }
         }
 
-        function toggleSupplierField(prefix = 'new') {
-            const checkbox = document.getElementById(prefix + 'IsRepack');
-            const container = document.getElementById(prefix + 'VendorIdContainer');
-            const select = document.getElementById(prefix + 'VendorId');
-            if (checkbox.checked) {
-                container.classList.add('hidden');
-                select.removeAttribute('required');
-                select.value = '';
+        function handleTypeChange(prefix) {
+            const type = document.getElementById(prefix + 'ItemType').value;
+            const vendorContainer = document.getElementById(prefix + 'VendorIdContainer');
+            const vendorSelect = document.getElementById(prefix + 'VendorId');
+            const priceCheckContainer = document.getElementById(prefix + 'SellingPriceCheckContainer');
+            const priceCheck = document.getElementById(prefix + 'SellingPriceCheck');
+            const priceContainer = document.getElementById(prefix + 'SellingPriceContainer');
+            const costInput = document.getElementById(prefix + 'CostPrice');
+
+            if (type === 'Repacked' || type === 'Recipe') {
+                vendorContainer.classList.add('hidden');
+                vendorSelect.removeAttribute('required');
+                vendorSelect.value = '';
             } else {
-                container.classList.remove('hidden');
-                select.setAttribute('required', 'required');
+                vendorContainer.classList.remove('hidden');
+                vendorSelect.setAttribute('required', 'required');
+            }
+
+            if (type === 'Recipe') {
+                priceCheckContainer.classList.add('hidden');
+                priceCheck.checked = false;
+                priceContainer.classList.add('hidden');
+                
+                // Disable manual cost input for Recipes
+                if (costInput) {
+                    costInput.readOnly = true;
+                    costInput.classList.add('bg-gray-50', 'text-gray-400');
+                    costInput.placeholder = 'Calculated from Materials';
+                    if (prefix === 'new') costInput.value = '0.00';
+                }
+            } else {
+                priceCheckContainer.classList.remove('hidden');
+                if (costInput) {
+                    costInput.readOnly = false;
+                    costInput.classList.remove('bg-gray-50', 'text-gray-400');
+                    costInput.placeholder = '0.00';
+                }
             }
         }
 
@@ -843,29 +923,60 @@
             const editUomInput = document.getElementById('editUOM');
             editUomInput.value = item.uom;
             editUomInput.dataset.lastUom = item.uom;
-            document.getElementById('editCostPrice').value = item.costPrice ? parseFloat(item.costPrice).toFixed(2) : '';
+            
+            // Calculate back the Package Price for the UI
+            let packagePrice = item.costPrice || 0;
+            if (item.yield) {
+                const packSizeMatch = item.yield.match(/(\d+(\.\d+)?)(?=[^\d/]*$)/);
+                const packUnitMatch = item.yield.match(/[a-zA-Z]+$/);
+                
+                if (packSizeMatch && packUnitMatch) {
+                    const packSize = parseFloat(packSizeMatch[0]);
+                    const packUnit = packUnitMatch[0];
+                    const conversionFactor = convertUnit(packSize, packUnit, item.uom);
+                    if (conversionFactor > 0) {
+                        packagePrice = item.costPrice * conversionFactor;
+                    }
+                }
+            }
+            document.getElementById('editCostPrice').value = packagePrice > 0 ? parseFloat(packagePrice).toFixed(2) : '';
+
             document.getElementById('editSellingPrice').value = (item.sellingPrice && item.sellingPrice > 0) ? parseFloat(item.sellingPrice).toFixed(2) : '';
             document.getElementById('editStock').value = item.stock ? parseFloat(item.stock).toString() : '0';
             document.getElementById('editReorderValue').value = item.reorderValue ? parseFloat(item.reorderValue).toFixed(2) : '';
-            document.getElementById('editIsRepack').checked = item.isRepack || false;
+            
+            // Set Item Type
+            const itemTypeSelect = document.getElementById('editItemType');
+            if (item.itemType) {
+                itemTypeSelect.value = item.itemType;
+            } else {
+                // Fallback for older items
+                itemTypeSelect.value = item.isRepack ? "Repacked" : "Non-Repacked";
+            }
+            handleTypeChange('edit');
             
             // Handle Selling Price Toggle
             const sellingPriceCheck = document.getElementById('editSellingPriceCheck');
             sellingPriceCheck.checked = item.sellingPrice > 0;
             togglePriceField('edit');
-            toggleSupplierField('edit');
 
             // Filter SubCategories and select the current one
             filterSubCategories('edit', item.subCategoryId);
 
-            // Parse packaging from yield (Format: Type/SizeUnit OR SizeUnit)
+            // Parse packaging from yield (Format: Type/Unit/Size OR Type/UnitSize OR SizeUnit)
             if (item.yield) {
-                if (item.yield.includes('/')) {
-                    const parts = item.yield.split('/');
+                const parts = item.yield.split('/');
+                if (parts.length === 3) {
+                    // Modern 3-part format: Type/Unit/Size
                     document.getElementById('editPackagingType').value = parts[0];
-                    const remainder = parts[1];
-                    parseYieldRemainder(remainder);
+                    document.getElementById('editPackagingUnit').value = parts[1];
+                    document.getElementById('editPackSize').value = parts[2];
+                } else if (parts.length === 2) {
+                    // 2-part format: Type/Remainder
+                    document.getElementById('editPackagingType').value = parts[0];
+                    parseYieldRemainder(parts[1]);
                 } else {
+                    // Single part format
                     document.getElementById('editPackagingType').value = '';
                     parseYieldRemainder(item.yield);
                 }
@@ -876,6 +987,7 @@
             }
 
             function parseYieldRemainder(str) {
+                if (!str) return;
                 const sizeMatch = str.match(/^[\d.]+/);
                 if (sizeMatch) {
                     const size = sizeMatch[0];
@@ -889,6 +1001,7 @@
             }
 
             openModal('editItemModal');
+            updateUnitCostPreview('edit');
         }
 
         function openRejectModal() {
@@ -978,6 +1091,7 @@
                 }
             }, 200);
         }
+
         function handleArchive() {
             const checked = document.querySelectorAll('.row-checkbox:checked');
             if (checked.length === 0) {

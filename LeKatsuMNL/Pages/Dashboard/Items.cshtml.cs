@@ -62,6 +62,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             public decimal Stock { get; set; }
             public decimal? ReorderValue { get; set; }
             public bool IsRepack { get; set; }
+            public string ItemType { get; set; } = "Non-Repacked";
         }
 
         public async Task<IActionResult> OnGetAsync(
@@ -136,14 +137,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (RepackStatus != "All")
             {
-                if (RepackStatus == "Repack")
-                {
-                    query = query.Where(i => i.IsRepack);
-                }
-                else if (RepackStatus == "Non-Repack")
-                {
-                    query = query.Where(i => !i.IsRepack);
-                }
+                query = query.Where(i => i.ItemType == RepackStatus);
             }
 
             query = query.OrderByDescending(i => i.ComId);
@@ -171,7 +165,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             decimal? SellingPrice,
             decimal Stock,
             decimal? ReorderValue,
-            bool IsRepack)
+            bool IsRepack,
+            string ItemType = "Non-Repacked")
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'C')) return Forbid();
 
@@ -208,22 +203,22 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
-            decimal unitCostPerUom = CostPrice ?? 0;
-            if (!string.IsNullOrEmpty(PackagingUnit))
+            decimal divisor = 1;
+            if (ItemType == "Recipe")
+            {
+                divisor = ParseYieldDivisor(calculatedYield, UOM);
+            }
+            else if (!string.IsNullOrEmpty(PackagingUnit))
             {
                 try
                 {
-                    if (decimal.TryParse(PackSize, out decimal packSizeValue))
-                    {
-                        decimal conversionFactor = UomConverter.Convert(packSizeValue, PackagingUnit, UOM);
-                        if (conversionFactor > 0)
-                        {
-                            unitCostPerUom = (CostPrice ?? 0) / conversionFactor;
-                        }
-                    }
+                    if (!decimal.TryParse(PackSize, out decimal packSizeValue)) { packSizeValue = 1; }
+                    divisor = UomConverter.Convert(packSizeValue, PackagingUnit, UOM);
                 }
                 catch { }
             }
+
+            decimal unitCostPerUom = (CostPrice ?? 0) / (divisor > 0 ? divisor : 1);
 
             var item = new CommissaryInventory
             {
@@ -237,7 +232,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 SellingPrice = SellingPrice ?? 0,
                 Stock = Stock,
                 ReorderValue = ReorderValue,
-                IsRepack = IsRepack
+                IsRepack = ItemType == "Repacked" || ItemType == "Recipe",
+                ItemType = ItemType
             };
 
             _context.CommissaryInventories.Add(item);
@@ -258,10 +254,11 @@ namespace LeKatsuMNL.Pages.Dashboard
                     ComId = item.ComId,
                     TypeId = transactionType.TypeId,
                     QuantityChange = Stock,
-                    UnitPrice = item.CostPrice,
-                    TotalPrice = Stock * item.CostPrice,
+                    UnitPrice = unitCostPerUom,
+                    TotalPrice = Stock * unitCostPerUom,
                     TimeStamp = System.DateTime.Now,
-                    Remarks = "Initial stock entry upon creation"
+                    Uom = UOM,
+                    Remarks = "Initial stock recorded upon creation"
                 });
                 await _context.SaveChangesAsync();
             }
@@ -285,7 +282,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             decimal? SellingPrice,
             decimal Stock,
             decimal? ReorderValue,
-            bool IsRepack)
+            bool IsRepack,
+            string ItemType = "Non-Repacked")
         {
             if (!PermissionHelper.HasPermission(User, "Items", 'U')) return Forbid();
 
@@ -323,23 +321,6 @@ namespace LeKatsuMNL.Pages.Dashboard
             // BEFORE applying any manual decimal changes from the form.
             decimal convertedOldStock = UomConverter.Convert(oldStock, oldUom, newUom);
 
-            decimal unitCostPerUom = CostPrice ?? 0;
-            if (!string.IsNullOrEmpty(PackagingUnit))
-            {
-                try
-                {
-                    if (decimal.TryParse(PackSize, out decimal packSizeValue))
-                    {
-                        decimal conversionFactor = UomConverter.Convert(packSizeValue, PackagingUnit, newUom);
-                        if (conversionFactor > 0)
-                        {
-                            unitCostPerUom = (CostPrice ?? 0) / conversionFactor;
-                        }
-                    }
-                }
-                catch { }
-            }
-
             // Yield logic -> Type / Size + Unit
             string calculatedYield = string.Empty;
             if (!string.IsNullOrEmpty(PackagingUnit))
@@ -354,6 +335,23 @@ namespace LeKatsuMNL.Pages.Dashboard
                 }
             }
 
+            decimal divisor = 1;
+            if (ItemType == "Recipe")
+            {
+                divisor = ParseYieldDivisor(calculatedYield, newUom);
+            }
+            else if (!string.IsNullOrEmpty(PackagingUnit))
+            {
+                try
+                {
+                    if (!decimal.TryParse(PackSize, out decimal packSizeValue)) { packSizeValue = 1; }
+                    divisor = UomConverter.Convert(packSizeValue, PackagingUnit, newUom);
+                }
+                catch { }
+            }
+
+            decimal unitCostPerUom = (CostPrice ?? 0) / (divisor > 0 ? divisor : 1);
+
             item.ItemName = ItemName;
             item.CategoryId = CategoryId;
             item.SubCategoryId = SubCategoryId;
@@ -364,7 +362,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             item.SellingPrice = SellingPrice ?? 0;
             item.Stock = Stock; // The new stock value from the form
             item.ReorderValue = ReorderValue;
-            item.IsRepack = IsRepack;
+            item.IsRepack = ItemType == "Repacked" || ItemType == "Recipe";
+            item.ItemType = ItemType;
 
             // Record Transaction if stock changed (after considering UOM conversion)
             decimal stockDiff = Stock - convertedOldStock;
@@ -382,13 +381,12 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                 var transaction = new InventoryTransaction
                 {
-                    ComId = item.ComId,
+                    ComId = ComId,
                     TypeId = transactionType.TypeId,
                     QuantityChange = stockDiff,
-                    UnitPrice = item.CostPrice,
-                    TotalPrice = stockDiff * item.CostPrice,
                     TimeStamp = System.DateTime.Now,
-                    Remarks = "Manual adjustment via Items management"
+                    Uom = newUom,
+                    Remarks = "Manual adjustment via item management"
                 };
 
                 _context.InventoryTransactions.Add(transaction);
@@ -439,7 +437,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                 QuantityChange = -RejectQty,
                 UnitPrice = item.CostPrice,
                 TotalPrice = -RejectQty * item.CostPrice,
-                TimeStamp = System.DateTime.Now
+                TimeStamp = System.DateTime.Now,
+                Uom = item.Uom
             };
             _context.InventoryTransactions.Add(transaction);
 
@@ -488,6 +487,12 @@ namespace LeKatsuMNL.Pages.Dashboard
             await _context.SaveChangesAsync();
             StatusMessage = "Selected items have been archived.";
             return RedirectToPage();
+        }
+        private decimal ParseYieldDivisor(string yieldStr, string targetUom)
+        {
+            if (string.IsNullOrEmpty(yieldStr)) return 1;
+            // Use UomConverter to normalize the yield string (e.g., "1kg") to the target UOM (e.g., "Grams")
+            return Helpers.UomConverter.Convert(1, yieldStr, targetUom);
         }
     }
 }

@@ -133,6 +133,18 @@ namespace LeKatsuMNL.Pages.Dashboard
             public decimal MarginPercentage => SellingPrice != 0 ? (Markup / SellingPrice) * 100 : 0;
         }
         public PaginatedList<SkuFinanceReportRow> SkuFinanceReports { get; set; }
+        public class TransactionLogReportRow
+        {
+            public DateTime Date { get; set; }
+            public string ItemName { get; set; }
+            public string TransactionType { get; set; }
+            public decimal QuantityChange { get; set; }
+            public string Uom { get; set; }
+            public string Remarks { get; set; }
+        }
+
+        public PaginatedList<TransactionLogReportRow> TransactionLogReports { get; set; }
+
 
         public async Task OnGetAsync(int? pageIndex)
         {
@@ -167,6 +179,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 case "BranchSummary":
                     await LoadBranchSummaryReport(pageIndex ?? 1, pageSize);
                     break;
+                case "TransactionLog":
+                    await LoadTransactionLogReport(pageIndex ?? 1, pageSize);
+                    break;
                 case "IngredientFinance":
                     await LoadIngredientFinanceReport(pageIndex ?? 1, pageSize);
                     break;
@@ -195,7 +210,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                 var transactionsAfterPeriod = item.InventoryTransactions
                     .Where(t => t.TimeStamp > EndDate)
-                    .Sum(t => t.QuantityChange);
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom));
 
                 // Current stock is after all transactions. 
                 // Stock at EndDate = CurrentStock - Sum(Transactions after EndDate)
@@ -203,14 +218,14 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                 decimal received = transactionsInPeriod
                     .Where(t => t.QuantityChange > 0 && t.InvTransactionType?.TransactionType == "Stock In")
-                    .Sum(t => t.QuantityChange);
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom));
 
                 decimal consumed = Math.Abs(transactionsInPeriod
                     .Where(t => t.QuantityChange < 0 && t.InvTransactionType?.TransactionType == "Branch Order")
-                    .Sum(t => t.QuantityChange));
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom)));
 
                 // For simplicity, let's assume "Beginning" is stockAtEnd minus net change in period
-                decimal netChange = transactionsInPeriod.Sum(t => t.QuantityChange);
+                decimal netChange = transactionsInPeriod.Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom));
                 decimal stockAtBeginning = stockAtEnd - netChange;
 
                 return new InventoryReportRow
@@ -271,14 +286,20 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                 var transactionsAfterPeriod = item.InventoryTransactions
                     .Where(t => t.TimeStamp > EndDate)
-                    .Sum(t => t.QuantityChange);
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom));
 
                 decimal stockAtEnd = item.Stock - transactionsAfterPeriod;
-                decimal received = transactionsInPeriod.Where(t => t.QuantityChange > 0).Sum(t => t.QuantityChange);
-                decimal consumed = Math.Abs(transactionsInPeriod.Where(t => t.QuantityChange < 0 && t.InvTransactionType?.TransactionType == "Branch Order").Sum(t => t.QuantityChange));
-                decimal rejected = Math.Abs(transactionsInPeriod.Where(t => t.InvTransactionType?.TransactionType == "Rejected").Sum(t => t.QuantityChange));
+                decimal received = transactionsInPeriod
+                    .Where(t => t.QuantityChange > 0)
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom));
+                decimal consumed = Math.Abs(transactionsInPeriod
+                    .Where(t => t.QuantityChange < 0 && t.InvTransactionType?.TransactionType == "Branch Order")
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom)));
+                decimal rejected = Math.Abs(transactionsInPeriod
+                    .Where(t => t.InvTransactionType?.TransactionType == "Rejected")
+                    .Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom)));
                 
-                decimal netChange = transactionsInPeriod.Sum(t => t.QuantityChange);
+                decimal netChange = transactionsInPeriod.Sum(t => UomConverter.Convert(t.QuantityChange, t.Uom ?? item.Uom, item.Uom));
                 decimal stockAtBeginning = stockAtEnd - netChange;
 
                 return new SkuInventoryReportRow
@@ -364,7 +385,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                                         ComId = skuInventory.ComId,
                                         TypeId = transactionType.TypeId,
                                         QuantityChange = -ol.Quantity,
-                                        TimeStamp = order.OrderDate
+                                        TimeStamp = order.OrderDate,
+                                        Uom = skuInventory.Uom
                                     });
                                     changes = true;
                                 }
@@ -392,7 +414,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                                             ComId = recipe.ComId.Value,
                                             TypeId = transactionType.TypeId,
                                             QuantityChange = -qty,
-                                            TimeStamp = order.OrderDate
+                                            TimeStamp = order.OrderDate,
+                                            Uom = recipe.CommissaryInventory?.Uom ?? recipe.Uom
                                         });
                                         changes = true;
                                     }
@@ -417,7 +440,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                                     ComId = ol.ComId.Value,
                                     TypeId = transactionType.TypeId,
                                     QuantityChange = -ol.Quantity,
-                                    TimeStamp = order.OrderDate
+                                    TimeStamp = order.OrderDate,
+                                    Uom = ol.CommissaryInventory?.Uom ?? ""
                                 });
                                 changes = true;
                             }
@@ -566,7 +590,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         private async Task LoadIngredientFinanceReport(int pageIndex, int pageSize)
         {
             var query = _context.CommissaryInventories
-                .Where(i => !i.IsArchived);
+                .Where(i => !i.IsArchived && i.SellingPrice > 0);
 
             if (!string.IsNullOrEmpty(SearchQuery))
             {
@@ -590,7 +614,7 @@ namespace LeKatsuMNL.Pages.Dashboard
         private async Task LoadSkuFinanceReport(int pageIndex, int pageSize)
         {
             var query = _context.SkuHeaders
-                .Where(s => !s.IsArchived);
+                .Where(s => !s.IsArchived && s.SellingPrice > 0);
 
             if (!string.IsNullOrEmpty(SearchQuery))
             {
@@ -609,6 +633,34 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .ToListAsync();
 
             SkuFinanceReports = PaginatedList<SkuFinanceReportRow>.Create(items, pageIndex, pageSize);
+        }
+
+        private async Task LoadTransactionLogReport(int pageIndex, int pageSize)
+        {
+            var query = _context.InventoryTransactions
+                .Include(t => t.CommissaryInventory)
+                .Include(t => t.InvTransactionType)
+                .Where(t => t.TimeStamp >= StartDate && t.TimeStamp <= EndDate);
+
+            if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                query = query.Where(t => t.CommissaryInventory.ItemName.Contains(SearchQuery) || 
+                                       t.InvTransactionType.TransactionType.Contains(SearchQuery) ||
+                                       t.Remarks.Contains(SearchQuery));
+            }
+
+            var rows = query.OrderByDescending(t => t.TimeStamp)
+                .Select(t => new TransactionLogReportRow
+                {
+                    Date = t.TimeStamp,
+                    ItemName = t.CommissaryInventory.ItemName,
+                    TransactionType = t.InvTransactionType.TransactionType,
+                    QuantityChange = t.QuantityChange,
+                    Uom = t.CommissaryInventory.Uom,
+                    Remarks = t.Remarks
+                });
+
+            TransactionLogReports = await PaginatedList<TransactionLogReportRow>.CreateAsync(rows.AsNoTracking(), pageIndex, pageSize);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -74,7 +75,6 @@ namespace LeKatsuMNL.Pages.Dashboard
                 query = query.Where(s => s.SubCategoryId == FilterSubCategoryId);
             }
 
-
             query = query.OrderByDescending(s => s.SkuId);
 
             int pageSize = PageSize > 0 ? PageSize : 10;
@@ -93,9 +93,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             string PackSize,
             string UOM,
             decimal? SellingPrice,
-            decimal? UnitCost,
+            decimal? Stock,
             decimal? ReorderValue)
-
         {
             if (!PermissionHelper.HasPermission(User, "SKU", 'C')) return Forbid();
 
@@ -128,10 +127,9 @@ namespace LeKatsuMNL.Pages.Dashboard
                 PackagingUnit = PackagingUnit ?? "",
                 PackSize = PackSize ?? "",
                 Uom = UOM ?? "",
-                IsSellingPriceEnabled = true,
                 IsReorderLevelEnabled = true,
                 SellingPrice = SellingPrice ?? 0,
-                UnitCost = UnitCost
+                UnitCost = 0
             };
 
             _context.SkuHeaders.Add(newSku);
@@ -140,22 +138,42 @@ namespace LeKatsuMNL.Pages.Dashboard
             var firstVendor = await _context.VendorInfos.Where(v => !v.IsArchived).OrderBy(v => v.VendorId).FirstOrDefaultAsync();
             int defaultVendorId = firstVendor?.VendorId ?? 0;
 
-            // Automatically create inventory entry for tracking
             var inventory = new CommissaryInventory
             {
                 SkuId = newSku.SkuId,
                 ItemName = newSku.ItemName,
-                Stock = 0,
+                Stock = Stock ?? 0,
                 Uom = newSku.Uom,
-                CostPrice = newSku.UnitCost ?? 0,
+                CostPrice = 0,
                 ReorderValue = ReorderValue,
                 CategoryId = newSku.CategoryId,
                 VendorId = defaultVendorId,
                 Yield = "100%"
-
             };
             _context.CommissaryInventories.Add(inventory);
             await _context.SaveChangesAsync();
+
+            if (Stock.HasValue && Stock.Value != 0)
+            {
+                var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Manual Adjustment");
+                if (transactionType == null)
+                {
+                    transactionType = new InvTransactionType { TransactionType = "Manual Adjustment" };
+                    _context.InvTransactionTypes.Add(transactionType);
+                    await _context.SaveChangesAsync();
+                }
+
+                _context.InventoryTransactions.Add(new InventoryTransaction
+                {
+                    ComId = inventory.ComId,
+                    TypeId = transactionType.TypeId,
+                    QuantityChange = Stock.Value,
+                    TimeStamp = DateTime.Now,
+                    Uom = inventory.Uom,
+                    Remarks = "Initial SKU stock recorded upon creation"
+                });
+                await _context.SaveChangesAsync();
+            }
 
             StatusMessage = "Successfully recorded. Your new SKU has been added to the inventory.";
             return RedirectToPage();
@@ -171,10 +189,8 @@ namespace LeKatsuMNL.Pages.Dashboard
             string PackSize,
             string UOM,
             decimal SellingPrice,
-            decimal? UnitCost,
             decimal? ReorderValue,
             decimal? Stock)
-
         {
             if (!PermissionHelper.HasPermission(User, "SKU", 'U')) return Forbid();
 
@@ -214,9 +230,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             sku.IsSellingPriceEnabled = true;
             sku.IsReorderLevelEnabled = true;
             sku.SellingPrice = SellingPrice;
-            sku.UnitCost = UnitCost;
 
-            // Ensure inventory record exists
             var inv = await _context.CommissaryInventories.FirstOrDefaultAsync(i => i.SkuId == sku.SkuId);
             if (inv == null)
             {
@@ -249,17 +263,17 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                     _context.InventoryTransactions.Add(new InventoryTransaction
                     {
-                        ComId = inv.ComId,
+                        CommissaryInventory = inv,
                         TypeId = transactionType.TypeId,
                         QuantityChange = Stock.Value,
                         TimeStamp = DateTime.Now,
+                        Uom = inv.Uom,
                         Remarks = "Initial SKU stock recorded upon creation"
                     });
                 }
             }
             else
             {
-                // Track stock change
                 if (Stock.HasValue && inv.Stock != Stock.Value)
                 {
                     var diff = Stock.Value - inv.Stock;
@@ -277,6 +291,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                         TypeId = transactionType.TypeId,
                         QuantityChange = diff,
                         TimeStamp = DateTime.Now,
+                        Uom = inv.Uom,
                         Remarks = "Manual SKU stock adjustment"
                     });
 
@@ -285,14 +300,11 @@ namespace LeKatsuMNL.Pages.Dashboard
 
                 inv.ItemName = sku.ItemName;
                 inv.Uom = sku.Uom;
-                inv.CostPrice = sku.UnitCost ?? 0;
                 inv.ReorderValue = ReorderValue;
                 inv.CategoryId = sku.CategoryId;
             }
 
-
             await _context.SaveChangesAsync();
-
             StatusMessage = "Successfully recorded. The SKU details have been updated.";
             return RedirectToPage();
         }
@@ -302,6 +314,7 @@ namespace LeKatsuMNL.Pages.Dashboard
             await OnGetAsync(1);
             return Page();
         }
+
         public async Task<IActionResult> OnPostRejectAsync(int RejectId, string RejectName, decimal RejectQty, string RejectUOM, string RejectReason)
         {
             if (!PermissionHelper.HasPermission(User, "Rejects", 'C')) return Forbid();
@@ -317,7 +330,6 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return await InitializeAndReturnPage();
             }
 
-            // Log Transaction
             var transactionType = await _context.InvTransactionTypes.FirstOrDefaultAsync(t => t.TransactionType == "Rejected");
             if (transactionType == null)
             {
@@ -326,7 +338,6 @@ namespace LeKatsuMNL.Pages.Dashboard
                 await _context.SaveChangesAsync();
             }
 
-            // Find matching commissary inventory for this SKU to track stock movement
             var ci = await _context.CommissaryInventories.FirstOrDefaultAsync(i => i.SkuId == RejectId);
             if (ci != null)
             {
@@ -337,7 +348,8 @@ namespace LeKatsuMNL.Pages.Dashboard
                     ComId = ci.ComId,
                     TypeId = transactionType.TypeId,
                     QuantityChange = -RejectQty,
-                    TimeStamp = System.DateTime.Now,
+                    TimeStamp = DateTime.Now,
+                    Uom = ci.Uom,
                     Remarks = "Manual adjustment via SKU management"
                 };
 
@@ -351,7 +363,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 Quantity = RejectQty,
                 Uom = sku.Uom,
                 Reason = string.IsNullOrWhiteSpace(RejectReason) ? "N/A" : RejectReason,
-                RejectedAt = System.DateTime.Now,
+                RejectedAt = DateTime.Now,
                 RejectType = "SKU"
             };
 
