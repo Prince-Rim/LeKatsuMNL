@@ -127,8 +127,14 @@
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Unit Cost</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold dark:text-gray-400 text-sm">₱</span>
-                            <input type="number" step="0.01" asp-for="Ingredient.CostPrice" asp-format="{0:F2}" placeholder="0.00" onfocus="this.select()" class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            <input type="number" step="0.0001" asp-for="Ingredient.CostPrice" asp-format="{0:0.####}" placeholder="0.00" onfocus="this.select()" 
+                                   readonly="@(Model.Ingredient?.ItemType == "Recipe")"
+                                   class="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700 @(Model.Ingredient?.ItemType == "Recipe" ? "bg-gray-50 text-gray-400" : "")">
                         </div>
+                        @if (Model.Ingredient?.ItemType == "Recipe")
+                        {
+                            <p class="text-[9px] font-black text-[#C41E24] uppercase tracking-widest mt-1 ml-1">Calculated from recipes & yield</p>
+                        }
                     </div>
                     <div class="space-y-2">
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Selling Price</label>
@@ -138,6 +144,26 @@
                         </div>
                     </div>
                 </div>
+
+                @if (Model.Ingredient?.ItemType == "Recipe")
+                {
+                    <div class="pt-2">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Recipe Yield (Divisor)</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="relative">
+                                <input type="number" step="0.01" name="YieldValue" value="@Model.ExtractYieldValue(Model.Ingredient.Yield).ToString("G29")" 
+                                       oninput="updateTotalUnitCost()"
+                                       placeholder="Yield Amount" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700">
+                            </div>
+                            <div class="relative">
+                                <input type="text" name="YieldUnit" value="@Model.ExtractYieldUnit(Model.Ingredient.Yield)" 
+                                       oninput="updateTotalUnitCost()"
+                                       placeholder="Yield Unit (e.g. Grams)" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#C41E24] transition-all dark:bg-slate-800 dark:text-white dark:border-gray-700" list="uomList">
+                            </div>
+                        </div>
+                        <p class="text-[9px] text-gray-400 font-medium italic mt-1 ml-1">Total recipes cost will be divided by this value to get unit cost.</p>
+                    </div>
+                }
             </div>
         </div>
 
@@ -145,20 +171,22 @@
         <div class="col-span-12 lg:col-span-7 space-y-6">
             <div class="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden dark:bg-slate-800 dark:border-gray-700">
                 <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">Repacking Materials</h3>
+                    <h3 class="text-sm font-black text-gray-700 uppercase tracking-widest mb-6 dark:text-gray-200">
+                        @(Model.Ingredient?.ItemType == "Recipe" ? "Recipe Ingredients" : "Repacking Materials")
+                    </h3>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             @if (PermissionHelper.HasPermission(User, "Items", 'U'))
                             {
                                 <button type="button" onclick="openIngredientModal()" class="px-5 py-2.5 bg-[#C41E24] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md flex items-center">
-                                    <i class="bi bi-plus-lg mr-2"></i> Add Material
+                                    <i class="bi bi-plus-lg mr-2"></i> Add Recipe
                                 </button>
                             }
                         </div>
                         @if (PermissionHelper.HasPermission(User, "Items", 'D'))
                         {
                             <button type="button" onclick="detachMaterials()" class="px-5 py-2.5 bg-white border border-[#C41E24] text-[#C41E24] rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all flex items-center dark:bg-slate-800">
-                                <i class="bi bi-file-earmark-x mr-2"></i> Detach Materials
+                                <i class="bi bi-file-earmark-x mr-2"></i> Detach Recipe
                             </button>
                         }
                     </div>
@@ -461,17 +489,28 @@
         const UNITS = {
             "g": { category: "weight", factor: 1 }, "gram": { category: "weight", factor: 1 }, "grams": { category: "weight", factor: 1 },
             "kg": { category: "weight", factor: 1000 }, "kilogram": { category: "weight", factor: 1000 }, "kilograms": { category: "weight", factor: 1000 },
+            "oz": { category: "weight", factor: 28.3495 }, "ounce": { category: "weight", factor: 28.3495 },
             "ml": { category: "volume", factor: 1 }, "milliliter": { category: "volume", factor: 1 }, "milliliters": { category: "volume", factor: 1 },
             "l": { category: "volume", factor: 1000 }, "liter": { category: "volume", factor: 1000 }, "liters": { category: "volume", factor: 1000 },
-            "pcs": { category: "count", factor: 1 }, "pc": { category: "count", factor: 1 }, "per pc": { category: "count", factor: 1 }, "pieces": { category: "count", factor: 1 },
-            "pack": { category: "count", factor: 1 }, "bundle": { category: "count", factor: 1 }, "can": { category: "count", factor: 1 }, "cans": { category: "count", factor: 1 },
-            "stick": { category: "count", factor: 1 }, "sticks": { category: "count", factor: 1 }, "pull": { category: "count", factor: 1 }, "dip": { category: "count", factor: 1 }
+            "pcs": { category: "count", factor: 1 }, "pc": { category: "count", factor: 1 }, "pieces": { category: "count", factor: 1 },
+            "pack": { category: "count", factor: 1 }, "dozen": { category: "count", factor: 12 },
+            "stick": { category: "count", factor: 1 }, "sticks": { category: "count", factor: 1 }, "dip": { category: "count", factor: 1 }
         };
+
+        function normalizeUnit(unit) {
+            if (!unit) return "";
+            let trimmed = unit.trim().toLowerCase();
+            const match = trimmed.match(/\(([^)]+)\)/);
+            if (match && UNITS[match[1]]) return match[1];
+            let primary = trimmed.replace(/\s*\(.*?\)\s*/g, " ").trim();
+            if (UNITS[primary]) return primary;
+            return trimmed;
+        }
 
         function convertUom(quantity, fromUom, toUom) {
             if (!fromUom || !toUom) return quantity;
-            const from = fromUom.toLowerCase().trim();
-            const to = toUom.toLowerCase().trim();
+            const from = normalizeUnit(fromUom);
+            const to = normalizeUnit(toUom);
             if (from === to) return quantity;
             const fromInfo = UNITS[from];
             const toInfo = UNITS[to];
@@ -500,7 +539,41 @@
                 const text = span.textContent.replace('₱', '').replace(/,/g, '').trim();
                 total += parseFloat(text) || 0;
             });
-            document.getElementById('Ingredient_CostPrice').value = total.toFixed(2);
+
+            @if (Model.Ingredient?.ItemType == "Recipe")
+            {
+                <text>
+                const yieldValInput = document.querySelector('input[name="YieldValue"]');
+                const yieldVal = yieldValInput ? (parseFloat(yieldValInput.value) || 1) : 1;
+                
+                const yieldUnitSelect = document.querySelector('select[name="YieldUnit"], select[name="Ingredient.YieldUnit"]');
+                const yieldUnitInput = document.querySelector('input[name="YieldUnit"]');
+                const yieldUnit = (yieldUnitSelect ? yieldUnitSelect.value : (yieldUnitInput ? yieldUnitInput.value : "")) || "";
+                
+                const itemUomInput = document.querySelector('input[name="Ingredient.Uom"], select[name="Ingredient.Uom"]');
+                const itemUom = (itemUomInput && itemUomInput.value) ? itemUomInput.value : "@(Model.Ingredient?.Uom)";
+                
+                // Divisor is (Yield Value) converted from (Yield Unit) to (Item UOM)
+                const factor = convertUom(1, yieldUnit, itemUom);
+                const divisor = yieldVal * factor;
+                
+                const unitCost = total / (divisor > 0 ? divisor : 1);
+                
+                const costPriceElem = document.getElementById('Ingredient_CostPrice');
+                if (costPriceElem) {
+                    costPriceElem.value = parseFloat(unitCost.toFixed(4));
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                const costPriceElem = document.getElementById('Ingredient_CostPrice');
+                if (costPriceElem) {
+                    costPriceElem.value = parseFloat(total.toFixed(4));
+                }
+                </text>
+            }
         }
 
         function handleDatalistFocus(input) {
@@ -516,5 +589,9 @@
                 if (input.value === '' && input.dataset.originalValue) input.value = input.dataset.originalValue;
             }, 200);
         }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTotalUnitCost();
+        });
     </script>
 }

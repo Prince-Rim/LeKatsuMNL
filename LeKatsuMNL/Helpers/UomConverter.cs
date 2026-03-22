@@ -90,8 +90,19 @@ namespace LeKatsuMNL.Helpers
             if (string.IsNullOrWhiteSpace(fromUom) || string.IsNullOrWhiteSpace(toUom))
                 return quantity;
 
-            string from = NormalizeUnit(fromUom);
-            string to = NormalizeUnit(toUom);
+            string fromRaw = fromUom.Trim();
+            string toRaw = toUom.Trim();
+
+            // Try to extract a factor from fromUom if it's like "500ml" or "1kg"
+            var match = Regex.Match(fromRaw, @"^([\d\.]+)\s*(.+)$");
+            if (match.Success && decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal factor))
+            {
+                quantity *= factor;
+                fromRaw = match.Groups[2].Value.Trim();
+            }
+
+            string from = NormalizeUnit(fromRaw);
+            string to = NormalizeUnit(toRaw);
 
             // Same unit — no conversion needed
             if (string.Equals(from, to, StringComparison.OrdinalIgnoreCase))
@@ -99,7 +110,7 @@ namespace LeKatsuMNL.Helpers
 
             if (!Units.TryGetValue(from, out var fromInfo))
             {
-                // Unknown UOM — return as-is to avoid breaking existing data
+                // Unknown UOM — return as-is
                 return quantity;
             }
 

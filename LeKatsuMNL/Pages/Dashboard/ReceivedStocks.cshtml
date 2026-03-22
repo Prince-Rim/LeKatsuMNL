@@ -205,8 +205,54 @@
 
 @section Scripts {
     <script>
-        const allItems = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AllItems.Select(i => new { i.ComId, i.ItemName, i.VendorId, i.Uom, i.Yield })));
+        const allItems = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AllItems.Select(i => new { i.ComId, i.ItemName, i.VendorId, i.Uom, i.Yield, i.CostPrice })));
         let rowCount = 0;
+
+        const UNITS = {
+            "g": { category: "weight", factor: 1 }, "gram": { category: "weight", factor: 1 }, "grams": { category: "weight", factor: 1 },
+            "kg": { category: "weight", factor: 1000 }, "kilogram": { category: "weight", factor: 1000 }, "kilograms": { category: "weight", factor: 1000 },
+            "oz": { category: "weight", factor: 28.3495 }, "ounce": { category: "weight", factor: 28.3495 },
+            "ml": { category: "volume", factor: 1 }, "milliliter": { category: "volume", factor: 1 }, "milliliters": { category: "volume", factor: 1 },
+            "l": { category: "volume", factor: 1000 }, "liter": { category: "volume", factor: 1000 }, "liters": { category: "volume", factor: 1000 },
+            "pcs": { category: "count", factor: 1 }, "pc": { category: "count", factor: 1 }, "pieces": { category: "count", factor: 1 },
+            "pack": { category: "count", factor: 1 }, "dozen": { category: "count", factor: 12 },
+            "stick": { category: "count", factor: 1 }, "sticks": { category: "count", factor: 1 }, "dip": { category: "count", factor: 1 },
+            "cans": { category: "count", factor: 1 }
+        };
+
+        function normalizeUnit(unit) {
+            if (!unit) return "";
+            let trimmed = unit.trim().toLowerCase();
+            const match = trimmed.match(/\(([^)]+)\)/);
+            if (match && UNITS[match[1]]) return match[1];
+            let primary = trimmed.replace(/\s*\(.*?\)\s*/g, " ").trim();
+            if (UNITS[primary]) return primary;
+            return trimmed;
+        }
+
+        function convertUnit(val, u1, u2) {
+            if (!u1 || !u2) return 0;
+            const from = normalizeUnit(u1);
+            const to = normalizeUnit(u2);
+            
+            // Special handling for legacy factors like "500ml" in from unit
+            let cleanFrom = from;
+            let multiplier = 1;
+            const factorMatch = cleanFrom.match(/^([\d.]+)\s*(.+)$/);
+            if (factorMatch) {
+                multiplier = parseFloat(factorMatch[1]) || 1;
+                cleanFrom = factorMatch[2];
+            }
+
+            if (cleanFrom === to) return val * multiplier;
+            
+            const fromInfo = UNITS[cleanFrom];
+            const toInfo = UNITS[to];
+            if (fromInfo && toInfo && fromInfo.category === toInfo.category) {
+                return (val * multiplier * fromInfo.factor) / toInfo.factor;
+            }
+            return 0;
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const historySelectAll = document.getElementById('historySelectAll');
@@ -307,7 +353,10 @@
 
         function addNewRow() {
             const vendorId = parseInt(document.getElementById('supplierSelect').value);
-            if (vendorId === 0) return;
+            if (vendorId === 0) {
+                alert("Choose a supplier first.");
+                return;
+            }
 
             const vendorItems = allItems.filter(i => i.VendorId === vendorId);
             const tbody = document.getElementById('receiveTableBody');
@@ -325,7 +374,7 @@
                 <td class="px-8 py-5">
                     <select name="ItemsToReceive[${index}].ComId" onchange="updateRowUom(this, ${index})" class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm font-bold text-gray-900 focus:ring-1 focus:ring-[#C41E24] outline-none bg-white dark:bg-slate-800 dark:text-white dark:border-gray-700" required>
                         <option value="">Select Product from Supplier</option>
-                        ${vendorItems.map(i => `<option value="${i.ComId}" data-yield="${i.Yield || ''}" data-uom="${i.Uom}">${i.ItemName}</option>`).join('')}
+                        ${vendorItems.map(i => `<option value="${i.ComId}" data-yield="${i.Yield || ''}" data-uom="${i.Uom}" data-cost="${i.CostPrice || 0}">${i.ItemName}</option>`).join('')}
                     </select>
                 </td>
                 <td class="px-8 py-5">
@@ -352,10 +401,55 @@
 
         function updateRowUom(select, index) {
             if (!select.options[select.selectedIndex]) return;
-            const yieldUnit = select.options[select.selectedIndex].getAttribute('data-yield');
-            const uom = select.options[select.selectedIndex].getAttribute('data-uom');
+            const option = select.options[select.selectedIndex];
+            const yieldUnit = option.getAttribute('data-yield');
+            const uom = option.getAttribute('data-uom');
+            const costPrice = parseFloat(option.getAttribute('data-cost')) || 0;
+            
             const uomInput = document.getElementById(`uom_${index}`);
             if (uomInput) uomInput.value = yieldUnit || uom || '';
+            
+            // Auto-fill unit price based on historical cost and yield
+            const priceInput = document.getElementById(`price_${index}`);
+            if (priceInput) {
+                let suggestedPrice = costPrice;
+                if (yieldUnit) {
+                    // Robust JS parsing for yield
+                    let packSize = 1;
+                    let packUnit = "";
+                    const parts = yieldUnit.split("/");
+
+                    if (parts.length === 3) {
+                        packUnit = parts[1];
+                        packSize = parseFloat(parts[2]) || 1;
+                    } else if (parts.length === 2) {
+                        const remainder = parts[1];
+                        const match = remainder.match(/^([\d.]+)\s*(.+)$/);
+                        if (match) {
+                            packSize = parseFloat(match[1]) || 1;
+                            packUnit = match[2];
+                        } else {
+                            packUnit = remainder;
+                        }
+                    } else {
+                        const match = yieldUnit.match(/^([\d.]+)\s*(.+)$/);
+                        if (match) {
+                            packSize = parseFloat(match[1]) || 1;
+                            packUnit = match[2];
+                        } else {
+                            packUnit = yieldUnit;
+                        }
+                    }
+
+                    const conversionFactor = convertUnit(packSize, packUnit, uom);
+                    if (conversionFactor > 0) {
+                        suggestedPrice = costPrice * conversionFactor;
+                    }
+                }
+                priceInput.value = suggestedPrice > 0 ? suggestedPrice.toFixed(2) : '';
+                calculateLineTotal(index);
+            }
+
             const qtyInput = document.getElementById(`qty_${index}`);
             if (qtyInput) qtyInput.focus();
         }

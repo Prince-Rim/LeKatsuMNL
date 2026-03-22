@@ -79,13 +79,26 @@ namespace LeKatsuMNL.Pages.Dashboard
                 return NotFound();
             }
 
-            // Update basic info (Yield logic handled in Items page usually, but we keep it sync here if needed)
+            // Update basic info
             itemToUpdate.ItemName = Ingredient.ItemName;
             itemToUpdate.SubCategoryId = Ingredient.SubCategoryId;
             itemToUpdate.Uom = Ingredient.Uom;
-            itemToUpdate.CostPrice = Ingredient.CostPrice;
             itemToUpdate.SellingPrice = Ingredient.SellingPrice;
             itemToUpdate.Stock = Ingredient.Stock;
+
+            // If it's a Recipe, CostPrice is calculated, not directly from form
+            if (itemToUpdate.ItemType != "Recipe")
+            {
+                itemToUpdate.CostPrice = Ingredient.CostPrice;
+            }
+
+            // Update Yield from form if provided (new fields for Recipe)
+            string yieldValue = Request.Form["YieldValue"];
+            string yieldUnit = Request.Form["YieldUnit"];
+            if (itemToUpdate.ItemType == "Recipe" && !string.IsNullOrEmpty(yieldValue))
+            {
+                itemToUpdate.Yield = $"{yieldValue}{yieldUnit}";
+            }
 
             // Update recipes: Clear and re-add
             _context.IngredientRecipes.RemoveRange(itemToUpdate.IngredientRecipes);
@@ -111,7 +124,10 @@ namespace LeKatsuMNL.Pages.Dashboard
             await _context.SaveChangesAsync();
             
             // Recalculate Unit Cost
-            itemToUpdate.CostPrice = Math.Round(await CalculateTotalUnitCost(itemToUpdate.ComId), 2);
+            decimal totalMaterialsCost = await CalculateTotalMaterialsCost(itemToUpdate.ComId);
+            decimal divisor = ParseYieldDivisor(itemToUpdate.Yield, itemToUpdate.Uom);
+            
+            itemToUpdate.CostPrice = Math.Round(totalMaterialsCost / (divisor > 0 ? divisor : 1), 4);
 
             await _context.SaveChangesAsync();
 
@@ -119,7 +135,36 @@ namespace LeKatsuMNL.Pages.Dashboard
             return RedirectToPage(new { id = Ingredient.ComId });
         }
 
-        private async Task<decimal> CalculateTotalUnitCost(int ingredientId, HashSet<int> visitedIds = null)
+        public decimal ParseYieldDivisor(string yieldStr, string targetUom)
+        {
+            if (string.IsNullOrEmpty(yieldStr)) return 1;
+            // Use UomConverter to normalize the yield string (e.g., "1kg") to the target UOM (e.g., "Grams")
+            return Helpers.UomConverter.Convert(1, yieldStr, targetUom);
+        }
+
+        public decimal ExtractYieldValue(string yieldStr)
+        {
+            if (string.IsNullOrEmpty(yieldStr)) return 1;
+            var match = System.Text.RegularExpressions.Regex.Match(yieldStr, @"(\d+(\.\d+)?)(?=[^\d/]*$)", System.Text.RegularExpressions.RegexOptions.RightToLeft);
+            if (match.Success && decimal.TryParse(match.Value, out decimal val))
+            {
+                return val;
+            }
+            return 1;
+        }
+
+        public string ExtractYieldUnit(string yieldStr)
+        {
+            if (string.IsNullOrEmpty(yieldStr)) return "";
+            var match = System.Text.RegularExpressions.Regex.Match(yieldStr, @"(\d+(\.\d+)?)(?=[^\d/]*$)", System.Text.RegularExpressions.RegexOptions.RightToLeft);
+            if (match.Success)
+            {
+                return yieldStr.Substring(match.Index + match.Length).Trim();
+            }
+            return yieldStr;
+        }
+
+        private async Task<decimal> CalculateTotalMaterialsCost(int ingredientId, HashSet<int> visitedIds = null)
         {
             if (visitedIds == null) visitedIds = new HashSet<int>();
             if (visitedIds.Contains(ingredientId)) return 0; // Circular dependency check
@@ -133,8 +178,8 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             if (item == null) return 0;
 
-            // If it's not a repack, just return its cost (or 0 if calculating from scratch, but here we need its base cost if it's a leaf node)
-            if (!item.IsRepack || item.IngredientRecipes == null || !item.IngredientRecipes.Any())
+            // If it's a leaf node (not a recipe/repack), use its base cost
+            if (item.IngredientRecipes == null || !item.IngredientRecipes.Any())
             {
                 return item.CostPrice;
             }
@@ -144,9 +189,20 @@ namespace LeKatsuMNL.Pages.Dashboard
             {
                 if (recipe.Material != null)
                 {
-                    decimal materialCost = recipe.Material.IsRepack 
-                        ? await CalculateTotalUnitCost(recipe.MaterialId, new HashSet<int>(visitedIds))
+                    decimal materialCost = (recipe.Material.IngredientRecipes != null && recipe.Material.IngredientRecipes.Any())
+                        ? await CalculateTotalMaterialsCost(recipe.MaterialId, new HashSet<int>(visitedIds))
                         : recipe.Material.CostPrice;
+
+                    // If the material cost we just got is a TOTAL cost (from sub-recipe), we might need to divide it by its yield too?
+                    // Actually, CalculateTotalMaterialsCost should probably return the PRICE PER UNIT of the material.
+                    // Wait, if it's a leaf node, item.CostPrice IS the price per unit.
+                    // If it's a sub-recipe, we need its PRICE PER UNIT.
+                    
+                    if (recipe.Material.IngredientRecipes != null && recipe.Material.IngredientRecipes.Any())
+                    {
+                        decimal subYield = ParseYieldDivisor(recipe.Material.Yield, recipe.Material.Uom);
+                        materialCost = materialCost / (subYield > 0 ? subYield : 1);
+                    }
 
                     decimal convertedQty = Helpers.UomConverter.Convert(
                         recipe.QuantityNeeded, recipe.Uom, recipe.Material.Uom);

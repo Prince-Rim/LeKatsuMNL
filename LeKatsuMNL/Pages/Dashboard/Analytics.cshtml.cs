@@ -28,6 +28,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
         // KPI Metrics
         public decimal TotalRevenue { get; set; }
+        public decimal AccountsReceivable { get; set; }
         public decimal TotalCollected { get; set; }
         public decimal TotalSupplierExpenses { get; set; }
         public decimal GrossProfit { get; set; }
@@ -69,14 +70,22 @@ namespace LeKatsuMNL.Pages.Dashboard
                     .ThenInclude(bm => bm.BranchLocation)
                 .ToListAsync();
 
-            // 1. Revenue & Collection (Completed Orders)
-            TotalRevenue = allOrders.Where(o => o.Status == "Completed")
+            // 1. Financial Performance Analysis
+            var revenueStatuses = new[] { "Approved", "Preparing", "Delivering", "Completed" };
+            
+            // Total Revenue (Total Sales Volume - committed income)
+            TotalRevenue = allOrders.Where(o => revenueStatuses.Contains(o.Status))
                                    .Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0);
             
-            TotalCollected = allOrders.Where(o => o.Invoices.Any() && o.Invoices.First().PaymentStatus == "Paid")
+            // Accounts Receivable (Committed but NOT paid)
+            AccountsReceivable = allOrders.Where(o => revenueStatuses.Contains(o.Status) && o.Invoices.Any() && o.Invoices.First().PaymentStatus != "Paid")
+                                         .Sum(o => o.Invoices.First().TotalPrice);
+
+            // Total Collected (Actually paid)
+            TotalCollected = allOrders.Where(o => revenueStatuses.Contains(o.Status) && o.Invoices.Any() && o.Invoices.First().PaymentStatus == "Paid")
                                      .Sum(o => o.Invoices.First().TotalPrice);
             
-            TotalOrders = allOrders.Count(o => o.Status == "Completed");
+            TotalOrders = allOrders.Count(o => revenueStatuses.Contains(o.Status));
             
             // 2. Supplier Expenses (Supply Orders in period)
             var supplyOrders = await _context.SupplyOrders
@@ -85,16 +94,16 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .ToListAsync();
             TotalSupplierExpenses = supplyOrders.Sum(so => so.SupplyLists.Sum(sl => sl.TotalPrice));
 
-            // 3. Gross Profit Calculation (Revenue - COGS)
-            var completedOrderLists = await _context.OrderLists
+            // 3. Gross Profit Calculation (Total Revenue - COGS)
+            var relevantOrderLists = await _context.OrderLists
                 .Include(ol => ol.OrderInfo)
                 .Include(ol => ol.CommissaryInventory)
                 .Include(ol => ol.SkuHeader)
                 .Where(ol => ol.OrderInfo.OrderDate >= filterStart && ol.OrderInfo.OrderDate <= filterEnd && 
-                           ol.OrderInfo.Status == "Completed" && !ol.OrderInfo.IsArchived)
+                           revenueStatuses.Contains(ol.OrderInfo.Status) && !ol.OrderInfo.IsArchived)
                 .ToListAsync();
 
-            decimal estimatedCogs = completedOrderLists.Sum(ol => 
+            decimal estimatedCogs = relevantOrderLists.Sum(ol => 
             {
                 decimal cost = 0;
                 if (ol.CommissaryInventory != null) cost = ol.CommissaryInventory.CostPrice;
@@ -162,7 +171,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // 1. Sales Trend (Line Chart)
             var dailySales = allOrders
-                .Where(o => o.Status == "Completed")
+                .Where(o => revenueStatuses.Contains(o.Status))
                 .GroupBy(o => o.OrderDate.Date)
                 .Select(g => new { Date = g.Key, Total = g.Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0) })
                 .OrderBy(g => g.Date)
@@ -173,7 +182,7 @@ namespace LeKatsuMNL.Pages.Dashboard
 
             // 2. Branch Revenue (Bar Chart)
             var branchRevenue = allOrders
-                .Where(o => o.Status == "Completed")
+                .Where(o => revenueStatuses.Contains(o.Status))
                 .GroupBy(o => o.BranchManager.BranchLocation.BranchName)
                 .Select(g => new { Branch = g.Key, Total = g.Sum(o => o.Invoices.Any() ? o.Invoices.First().TotalPrice : 0) })
                 .OrderByDescending(g => g.Total)
@@ -188,7 +197,7 @@ namespace LeKatsuMNL.Pages.Dashboard
                 .Include(ol => ol.CommissaryInventory)
                     .ThenInclude(ci => ci.Category)
                 .Where(ol => ol.OrderInfo.OrderDate >= filterStart && ol.OrderInfo.OrderDate <= filterEnd && 
-                           ol.OrderInfo.Status == "Completed" && !ol.OrderInfo.IsArchived)
+                           revenueStatuses.Contains(ol.OrderInfo.Status) && !ol.OrderInfo.IsArchived)
                 .ToListAsync();
 
             var categoryUsage = orderLists

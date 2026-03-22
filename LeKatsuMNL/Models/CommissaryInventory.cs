@@ -43,6 +43,7 @@ namespace LeKatsuMNL.Models
         public SkuHeader SkuHeader { get; set; }
 
         public bool IsRepack { get; set; }
+        public string ItemType { get; set; } = "Non-Repacked";
 
         public int? PriceId { get; set; }
 
